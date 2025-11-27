@@ -100,9 +100,9 @@ flowchart TD
     style NFRA fill:#FFA726,stroke:#E65100,stroke-width:3px,stroke-dasharray: 5 5,color:#000
     style NFRD fill:#FFA726,stroke:#E65100,stroke-width:3px,stroke-dasharray: 5 5,color:#000
     style ID fill:#FFA726,stroke:#E65100,stroke-width:3px,stroke-dasharray: 5 5,color:#000
-    style INCEPTION fill:#BBDEFB,stroke:#1565C0,stroke-width:3px
-    style CONSTRUCTION fill:#C8E6C9,stroke:#2E7D32,stroke-width:3px
-    style OPERATIONS fill:#FFF59D,stroke:#F57F17,stroke-width:3px
+    style INCEPTION fill:#BBDEFB,stroke:#1565C0,stroke-width:3px, color:#000
+    style CONSTRUCTION fill:#C8E6C9,stroke:#2E7D32,stroke-width:3px, color:#000
+    style OPERATIONS fill:#FFF59D,stroke:#F57F17,stroke-width:3px, color:#000
     style Start fill:#CE93D8,stroke:#6A1B9A,stroke-width:3px,color:#000
     style End fill:#CE93D8,stroke:#6A1B9A,stroke-width:3px,color:#000
     
