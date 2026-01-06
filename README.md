@@ -6,13 +6,18 @@ AI-DLC is an intelligent software development workflow that adapts to your needs
 
 Have one of our supported platforms/tools for Assisted AI Coding installed:
 
+- [Cursor IDE](https://cursor.com/)
 - [Kiro CLI](https://kiro.dev/cli/) (formerly Amazon Q CLI)
 - [Kiro](https://kiro.dev/)
 - [Amazon Q Developer IDE plugin](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/q-in-IDE.html)
 
+**Using Cursor?** See [CURSOR_README.md](CURSOR_README.md) for Cursor-specific setup instructions.
+
 **Using Cline?** See [CLINE_README.md](CLINE_README.md) for Cline-specific setup instructions.
 
 ## Choose Your Platform
+
+**Using Cursor?** See [CURSOR_README.md](CURSOR_README.md) for Cursor-specific setup instructions.
 
 **Using Cline?** See [CLINE_README.md](CLINE_README.md) for Cline-specific setup instructions.
 
@@ -72,21 +77,24 @@ Copy the AI-DLC workflow to your project's workspace under the `<project-root>/.
 ```bash
 mkdir -p .amazonq/rules 
 cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rules .amazonq/rules/ 
-cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details .amazonq/
+mkdir -p .aidlc-rule-details
+cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details/* .aidlc-rule-details/
 ```
 
 **Windows PowerShell:**
 ```powershell
 New-Item -ItemType Directory -Force -Path ".amazonq\rules"
 Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules" ".amazonq\rules\" -Recurse
-Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".amazonq\" -Recurse
+New-Item -ItemType Directory -Force -Path ".aidlc-rule-details"
+Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details\*" ".aidlc-rule-details\" -Recurse
 ```
 
 **Windows CMD:**
 ```cmd
 mkdir .amazonq\rules
 xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules" ".amazonq\rules\" /E /I
-xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".amazonq\" /E /I
+mkdir .aidlc-rule-details
+xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-details\" /E /I
 ```
 
 To confirm that the Amazon Q Rules are correctly loaded in your IDE, follow these steps:
@@ -108,21 +116,24 @@ Copy the AI-DLC workflow to your project's workspace under the `<project-root>/.
 ```bash
 mkdir -p .kiro/steering
 cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rules .kiro/steering/
-cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details .kiro/
+mkdir -p .aidlc-rule-details
+cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details/* .aidlc-rule-details/
 ```
 
 **Windows PowerShell:**
 ```powershell
 New-Item -ItemType Directory -Force -Path ".kiro\steering"
 Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules" ".kiro\steering\" -Recurse
-Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".kiro\" -Recurse
+New-Item -ItemType Directory -Force -Path ".aidlc-rule-details"
+Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details\*" ".aidlc-rule-details\" -Recurse
 ```
 
 **Windows CMD:**
 ```cmd
 mkdir .kiro\steering
 xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules" ".kiro\steering\" /E /I
-xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".kiro\" /E /I
+mkdir .aidlc-rule-details
+xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-details\" /E /I
 ```
 
 To confirm that the AI-DLC rules are correctly loaded in your Kiro CLI, follow these steps:
