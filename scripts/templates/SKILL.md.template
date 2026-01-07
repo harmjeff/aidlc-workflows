@@ -5,7 +5,7 @@ license: "Apache-2.0"
 compatibility: "Requires file system access for artifact creation. Works with any AI agent supporting file operations."
 metadata:
   author: "AI-DLC Team"
-  version: "1.0.0"
+  version: "{{VERSION}}"
   keywords: "ai-dlc development methodology lifecycle workflow adaptive software architecture"
 ---
 
@@ -51,24 +51,3 @@ When executing the workflow, load detailed guidance from:
 - `references/inception/` - Inception phase detailed steps
 - `references/construction/` - Construction phase detailed steps
 - `references/operations/` - Operations phase (placeholder)
-
-## Adaptive Workflow Principle
-
-**The workflow adapts to the work, not the other way around.**
-
-The AI model intelligently assesses what stages are needed based on:
-1. User's stated intent and clarity
-2. Existing codebase state (if any)
-3. Complexity and scope of change
-4. Risk and impact assessment
-
-## Directory Structure Created
-
-```
-aidlc-docs/
-├── inception/           # Planning artifacts
-├── construction/        # Design and code artifacts
-├── operations/          # Deployment artifacts (future)
-├── aidlc-state.md      # Workflow state tracking
-└── audit.md            # Complete audit trail
-```
