@@ -1,0 +1,53 @@
+---
+name: "ai-dlc-methodology"
+description: "Comprehensive adaptive software development lifecycle that intelligently tailors workflow stages to project complexity and requirements. Guides teams through inception, construction, and operations phases with built-in quality gates, audit trails, and documentation. Use this skill when starting new software projects, enhancing existing systems, or when you need structured development methodology guidance."
+license: "Apache-2.0"
+compatibility: "Requires file system access for artifact creation. Works with any AI agent supporting file operations."
+metadata:
+  author: "AI-DLC Team"
+  version: "{{VERSION}}"
+  keywords: "ai-dlc development methodology lifecycle workflow adaptive software architecture"
+---
+
+# AI-DLC Development Methodology
+
+## Overview
+
+AI-DLC (AI-Driven Development Life Cycle) is a comprehensive, adaptive software development methodology that intelligently tailors workflow stages to your project's specific needs. Unlike rigid methodologies, AI-DLC analyzes your requirements, existing codebase, and complexity to determine which stages add value and which can be safely skipped.
+
+**Key Benefits:**
+- **Adaptive Execution**: Only runs stages that add value to your specific project
+- **Quality Gates**: Built-in checkpoints ensure quality and stakeholder alignment
+- **Complete Documentation**: Maintains full audit trail of decisions and rationale
+- **Risk-Based Approach**: Complex/high-risk projects get comprehensive treatment, simple changes stay efficient
+
+## Three-Phase Lifecycle
+
+### 🔵 INCEPTION PHASE - Planning & Architecture
+- **Purpose**: Determine WHAT to build and WHY
+- **Stages**: Workspace Detection, Reverse Engineering (brownfield), Requirements Analysis, User Stories, Workflow Planning, Application Design, Units Generation
+
+### 🟢 CONSTRUCTION PHASE - Design & Implementation  
+- **Purpose**: Determine HOW to build it
+- **Stages**: Functional Design, NFR Requirements, NFR Design, Infrastructure Design, Code Generation, Build and Test
+
+### 🟡 OPERATIONS PHASE - Deployment & Monitoring
+- **Purpose**: How to DEPLOY and RUN it
+- **Status**: Placeholder for future expansion
+
+## Getting Started
+
+1. **Load the core workflow**: Read `references/core-workflow.md` for complete execution rules
+2. **Load common guidelines**: Start with files in `references/common/` directory
+3. **Follow adaptive principles**: Use the methodology's intelligence to determine needed stages
+4. **Maintain audit trail**: Log all user interactions and decisions
+
+## Reference Files
+
+When executing the workflow, load detailed guidance from:
+
+- `references/core-workflow.md` - Complete workflow rules and stage sequencing
+- `references/common/` - Common guidelines (validation, questions, terminology)
+- `references/inception/` - Inception phase detailed steps
+- `references/construction/` - Construction phase detailed steps
+- `references/operations/` - Operations phase (placeholder)

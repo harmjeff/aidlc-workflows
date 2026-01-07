@@ -1,0 +1,57 @@
+# Changelog Generator
+#
+# Creates a PR to update CHANGELOG.md after a release is published.
+# Uses git-cliff to generate changelog from conventional commits.
+
+name: Changelog
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        uses: orhun/git-cliff-action@4a4a951bc43fafe41cd2348d181853f52356bee7 # v4.4.2
+        with:
+          config: cliff.toml
+          args: --output CHANGELOG.md
+        env:
+          OUTPUT: CHANGELOG.md
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="changelog/${{ github.event.release.tag_name }}"
+          
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          if git diff --quiet CHANGELOG.md 2>/dev/null; then
+            echo "No changes to CHANGELOG.md"
+            exit 0
+          fi
+          
+          git checkout -b "$BRANCH"
+          git add CHANGELOG.md
+          git commit -m "docs: update changelog for ${{ github.event.release.tag_name }}"
+          git push origin "$BRANCH"
+          
+          gh pr create \
+            --title "docs: update changelog for ${{ github.event.release.tag_name }}" \
+            --body "This PR updates the CHANGELOG.md file for release ${{ github.event.release.tag_name }}." \
+            --label "documentation"
