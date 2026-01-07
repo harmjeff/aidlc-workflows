@@ -3,13 +3,14 @@
 # This workflow handles versioning and distribution of the AI-DLC methodology.
 # It triggers when you push a version tag and:
 #
-#   1. Generates release notes from conventional commits using git-cliff
-#   2. Transforms the source of truth (aidlc-rule-details/) into Agent Skills format
-#   3. Injects the version number into SKILL.md metadata
-#   4. Creates distribution artifacts:
+#   1. Transforms the source of truth (aidlc-rule-details/) into Agent Skills format
+#   2. Injects the version number into SKILL.md metadata
+#   3. Creates distribution artifacts:
 #      - ai-dlc-skills-vX.X.X.zip (Agent Skills format for Claude, Cursor, Windsurf, etc.)
 #      - ai-dlc-rules-vX.X.X.zip (Raw rules format for Amazon Q, Kiro, etc.)
-#   5. Publishes a GitHub Release with artifacts attached
+#   4. Publishes a GitHub Release with artifacts attached
+#
+# Note: Changelog is generated separately by changelog.yml after release is published.
 #
 # Usage:
 #   git tag v1.2.0
@@ -32,7 +33,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
 
@@ -42,15 +43,6 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Generate changelog
-        id: changelog
-        uses: orhun/git-cliff-action@4a4a951bc43fafe41cd2348d181853f52356bee7 # v4.4.2
-        with:
-          config: cliff.toml
-          args: --latest --strip header
-        env:
-          OUTPUT: CHANGELOG.md
 
       - name: Generate Agent Skills format
         run: |
@@ -64,10 +56,17 @@ jobs:
           zip -r "ai-dlc-rules-v${VERSION}.zip" aidlc-rules/
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           name: "AI-DLC Methodology v${{ steps.version.outputs.version }}"
-          body: ${{ steps.changelog.outputs.content }}
+          body: |
+            Release v${{ steps.version.outputs.version }}
+            
+            See [CHANGELOG.md](CHANGELOG.md) for details.
+            
+            ## Downloads
+            - **ai-dlc-skills** - Agent Skills format (Claude, Cursor, Windsurf, etc.)
+            - **ai-dlc-rules** - Raw rules format (Amazon Q, Kiro, etc.)
           files: |
             ai-dlc-skills-v${{ steps.version.outputs.version }}.zip
             ai-dlc-rules-v${{ steps.version.outputs.version }}.zip
