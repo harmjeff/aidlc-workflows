@@ -20,6 +20,70 @@
 - stories.md
 - personas.md
 
+## Step 1.5: Extension Selection (OPTIONAL)
+
+**Check for available extensions** in `.aidlc-rule-details/extensions/` directory:
+
+### 1.5.1 Scan Available Extensions
+- Look for subdirectories containing `rule-manifest.yaml`
+- Read each manifest to understand extension purpose and triggers
+
+### 1.5.2 Check for Pre-enabled Extensions
+- Check if `aidlc-docs/enabled-extensions.md` exists
+- If yes, load the list of already-enabled extensions
+- These extensions will be applied automatically
+
+### 1.5.3 Suggest Relevant Extensions
+Based on project context, suggest extensions whose triggers match:
+- Match project type (web, api, microservice, etc.) against extension triggers
+- Match requirements keywords against extension `has_requirements_keyword` triggers
+- Match detected programming languages against extension triggers
+- Match detected files (Dockerfile, serverless.yml, etc.) against triggers
+
+### 1.5.4 Present Extension Options to User
+If extensions are available and not already pre-enabled:
+
+```markdown
+## 🔌 Available Extensions
+
+Based on your project, the following extensions may be relevant:
+
+**Suggested Extensions** (triggers matched):
+- [ ] **[Extension Display Name]** - [Description]
+  - *Category*: [security/compliance/process/quality/architecture]
+  - *Affects stages*: [List of stages]
+
+**Other Available Extensions**:
+- [ ] **[Extension Display Name]** - [Description]
+
+Would you like to enable any extensions for this project?
+(You can also skip this and enable extensions later by creating `aidlc-docs/enabled-extensions.md`)
+```
+
+### 1.5.5 Save Extension Selections
+If user enables extensions, create/update `aidlc-docs/enabled-extensions.md`:
+
+```markdown
+# Enabled Extensions
+
+The following extensions are enabled for this project:
+
+- [extension-name-1]
+- [extension-name-2]
+
+## Selection Rationale
+
+| Extension | Reason |
+|-----------|--------|
+| [extension-name-1] | [Why user enabled it] |
+| [extension-name-2] | [Why user enabled it] |
+```
+
+### 1.5.6 Log Extension Decisions
+Log extension selection in `aidlc-docs/audit.md` with timestamp.
+
+**Note**: If no extensions directory exists or user skips extension selection, proceed to Step 2.
+
 ## Step 2: Detailed Scope and Impact Analysis
 
 **Now that we have complete context (requirements + stories), perform detailed analysis:**

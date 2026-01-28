@@ -1,0 +1,35 @@
+name: "security-baseline"
+version: "1.0.0"
+displayName: "Security Baseline - Linting & Static Analysis"
+description: "Establishes baseline code security rules for linting, static analysis, and security scanning across all projects"
+author: "AI-DLC Team"
+category: "security"
+
+triggers:
+  # Suggest for most project types
+  suggest_when:
+    - project_type: ["web", "api", "microservice", "library", "cli", "backend"]
+    - has_requirements_keyword: ["security", "secure", "authentication", "authorization", "production", "deploy"]
+    - programming_language: ["java", "python", "typescript", "javascript", "go", "rust", "csharp"]
+  # Always available for any project
+  always_available: true
+
+applies_to:
+  construction:
+    - stage: "nfr-requirements"
+      file: "nfr-security.md"
+      action: "append"
+    - stage: "functional-design"
+      file: "design-security.md"
+      action: "append"
+    - stage: "code-generation"
+      file: "code-guidelines.md"
+      action: "append"
+    - stage: "build-and-test"
+      file: "testing.md"
+      action: "append"
+
+priority: 50  # High priority - security should be considered early
+conflicts_with: []
+depends_on: []
+tags: ["security", "linting", "static-analysis", "sast", "code-quality", "baseline"]

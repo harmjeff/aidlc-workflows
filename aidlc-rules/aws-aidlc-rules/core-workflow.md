@@ -23,6 +23,26 @@ This is the standard location used by all AI-DLC supported platforms (Amazon Q, 
 - Load `common/question-format-guide.md` for question formatting rules
 - Reference these throughout the workflow execution
 
+## OPTIONAL: Extension Rules Loading
+
+**After loading core rules**, check for enabled extensions:
+
+1. **Check for extensions directory**: Look for `extensions/` in `.aidlc-rule-details/`
+2. **Load enabled extensions**: 
+   - Check `aidlc-docs/enabled-extensions.md` for user-selected extensions
+   - If file doesn't exist, extensions will be offered during Workflow Planning stage
+3. **For each enabled extension**:
+   - Read `rule-manifest.yaml` to understand when/how to apply
+   - At each stage, check if extension has content for that stage (via `applies_to` in manifest)
+   - Load and apply extension content files according to `action` (append/prepend/inject-section)
+
+**Extension Application Rules**:
+- Extensions are applied AFTER core stage logic completes
+- Extensions ADD to existing guidance (never replace core functionality)
+- Multiple extensions can apply to the same stage
+- Priority in manifest determines application order (lower = earlier)
+- Apply extensions at each stage as specified in their `applies_to` configuration
+
 ## MANDATORY: Content Validation
 **CRITICAL**: Before creating ANY file, you MUST validate content according to `common/content-validation.md` rules:
 - Validate Mermaid diagram syntax
