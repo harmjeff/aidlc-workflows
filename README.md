@@ -53,7 +53,6 @@ Run `kiro-cli`, then `/context show`, and confirm entries for `.kiro/steering/aw
 
 <img src="./assets/images/kiro-cli-aidlc-rules-loaded.png?raw=true" alt="AI-DLC Rules in Kiro CLI" width="700" height="660">
 
-
 ## Amazon Q Developer IDE Plugin/Extension
 
 AI-DLC uses [Amazon Q Rules](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/context-project-rules.html) within your project workspace. Copy the rules into your project's `.amazonq` folder:
