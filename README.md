@@ -12,7 +12,7 @@ AI-DLC is an intelligent software development workflow that adapts to your needs
 
 
 
-### Kiro
+## Kiro
 
 AI-DLC uses [Kiro Steering Files](https://kiro.dev/docs/cli/steering/) within your project workspace. Copy the rules into your project's `.kiro` folder:
 
@@ -30,23 +30,31 @@ cp -R aidlc-rules/aws-aidlc-rule-details .kiro/
 Your project should look like:
 ```
 <project-root>/
-  .kiro/
-    steering/
-      aws-aidlc-rules/
-    aws-aidlc-rule-details/
+    ├── .kiro/
+    │     ├── steering/
+    │     │      ├── aws-aidlc-rules/
+    │     ├── aws-aidlc-rule-details/
 ```
 
 To verify the rules are loaded:
 
-- **Kiro IDE**: Open the steering files panel and confirm you see an entry for `core-workflow` under `Workspace` as shown in the screenshot below.
+### Kiro IDE 
 
-![AI-DLC Rules in Kiro IDE](./assets/images/kiro-ide-aidlc-rules-loaded.png?raw=true "AI-DLC Rules in Kiro IDE")
+Open the steering files panel and confirm you see an entry for `core-workflow` under `Workspace` as shown in the screenshot below.
 
-- **Kiro CLI**: Run `kiro-cli`, then `/context show`, and confirm entries for `.kiro/steering/aws-aidlc-rules`.
+<img src="./assets/images/kiro-ide-aidlc-rules-loaded.png?raw=true" alt="AI-DLC Rules in Kiro IDE" width="700" height="450">
 
-![AI-DLC Rules in Kiro CLI](./assets/images/kiro-cli-aidlc-rules-loaded.png?raw=true "AI-DLC Rules in Kiro CLI")
+We use Kiro IDE in Vibe mode to run the AI-DLC workflow. This ensures that AI-DLC workflow guides the development workflow in Kiro. At times, Kiro may nudge you to switch to spec mode. Select `No` to such prompts to stay in Vibe mode.
 
-### Amazon Q Developer IDE Plugin/Extension
+<img src="./assets/images/kiro-sdd-nudge.png" alt="Staying in Kiro Vibe mode" width="500" height="175">
+
+### Kiro CLI
+Run `kiro-cli`, then `/context show`, and confirm entries for `.kiro/steering/aws-aidlc-rules`.
+
+<img src="./assets/images/kiro-cli-aidlc-rules-loaded.png?raw=true" alt="AI-DLC Rules in Kiro CLI" width="700" height="620">
+
+
+## Amazon Q Developer IDE Plugin/Extension
 
 AI-DLC uses [Amazon Q Rules](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/context-project-rules.html) within your project workspace. Copy the rules into your project's `.amazonq` folder:
 
@@ -64,10 +72,10 @@ cp -R aidlc-rules/aws-aidlc-rule-details .amazonq/
 Your project should look like:
 ```
 <project-root>/
-  .amazonq/
-    rules/
-      aws-aidlc-rules/
-    aws-aidlc-rule-details/
+    ├── .amazonq/
+    │     ├── rules/
+    │     │     ├── aws-aidlc-rules/
+    │     ├── aws-aidlc-rule-details/
 ```
 
 To verify the rules are loaded:
@@ -75,7 +83,7 @@ To verify the rules are loaded:
 1. In the Amazon Q Chat window, click the `Rules` button in the lower right corner.
 2. Confirm you see entries for `.amazonq/rules/aws-aidlc-rules`.
 
-![AI-DLC Rules in Q Developer IDE](./assets/images/q-ide-aidlc-rules-loaded.png?raw=true "AI-DLC Rules in Q Developer")
+<img src="./assets/images/q-ide-aidlc-rules-loaded.png?raw=true" alt="AI-DLC Rules in Q Developer IDE plugin" width="700" height="400">
 
 ### Other Agents
 
