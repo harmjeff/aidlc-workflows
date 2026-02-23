@@ -165,28 +165,30 @@ xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-detai
 
 AI-DLC uses [Kiro Steering Files](https://kiro.dev/docs/cli/steering/) to implement its intelligent workflow.
 
+> **Note**: Kiro CLI resolves relative paths from the steering file location, so `.aidlc-rule-details/` must be placed inside the `aws-aidlc-rules/` directory alongside `core-workflow.md`.
+
 **Unix/Linux/macOS:**
 ```bash
 mkdir -p .kiro/steering
 cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rules .kiro/steering/
-mkdir -p .aidlc-rule-details
-cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details/* .aidlc-rule-details/
+mkdir -p .kiro/steering/aws-aidlc-rules/.aidlc-rule-details
+cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details/* .kiro/steering/aws-aidlc-rules/.aidlc-rule-details/
 ```
 
 **Windows PowerShell:**
 ```powershell
 New-Item -ItemType Directory -Force -Path ".kiro\steering"
 Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules" ".kiro\steering\" -Recurse
-New-Item -ItemType Directory -Force -Path ".aidlc-rule-details"
-Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details\*" ".aidlc-rule-details\" -Recurse
+New-Item -ItemType Directory -Force -Path ".kiro\steering\aws-aidlc-rules\.aidlc-rule-details"
+Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details\*" ".kiro\steering\aws-aidlc-rules\.aidlc-rule-details\" -Recurse
 ```
 
 **Windows CMD:**
 ```cmd
 mkdir .kiro\steering
 xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules" ".kiro\steering\" /E /I
-mkdir .aidlc-rule-details
-xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-details\" /E /I
+mkdir .kiro\steering\aws-aidlc-rules\.aidlc-rule-details
+xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".kiro\steering\aws-aidlc-rules\.aidlc-rule-details\" /E /I
 ```
 
 **Verify Setup:**
@@ -199,15 +201,15 @@ xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-detai
 **Directory Structure:**
 ```
 <my-project>/
-├── .kiro/
-│   └── steering/
-│       └── aws-aidlc-rules/
-│           └── core-workflow.md
-└── .aidlc-rule-details/
-    ├── common/
-    ├── inception/
-    ├── construction/
-    └── operations/
+└── .kiro/
+    └── steering/
+        └── aws-aidlc-rules/
+            ├── core-workflow.md
+            └── .aidlc-rule-details/
+                ├── common/
+                ├── inception/
+                ├── construction/
+                └── operations/
 ```
 
 ---
@@ -587,6 +589,7 @@ Deployment and monitoring (future)
 #### Amazon Q Developer / Kiro CLI
 - Use `/context show` to verify rules are loaded
 - Check `.amazonq/rules/` or `.kiro/steering/` directory structure
+- For Kiro CLI, ensure `.aidlc-rule-details/` is inside `.kiro/steering/aws-aidlc-rules/` (not the project root)
 
 #### Cursor
 - For "Apply Intelligently", ensure a description is defined in frontmatter
