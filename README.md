@@ -475,53 +475,28 @@ xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-detai
 
 ### GitHub Copilot
 
-AI-DLC uses project context files and Copilot's Chat capabilities to implement its intelligent workflow.
-
-#### Option 1: .copilot Directory (Recommended)
+AI-DLC uses [GitHub Copilot custom instructions](https://code.visualstudio.com/docs/copilot/customization/custom-instructions) to implement its intelligent workflow. The `.github/copilot-instructions.md` file is automatically detected and applied to all chat requests in the workspace.
 
 **Unix/Linux/macOS:**
 ```bash
-mkdir -p .copilot
-cp ../aidlc-workflows/aidlc-rules/aws-aidlc-rules/core-workflow.md .copilot/instructions.md
+mkdir -p .github
+cp ../aidlc-workflows/aidlc-rules/aws-aidlc-rules/core-workflow.md .github/copilot-instructions.md
 mkdir -p .aidlc-rule-details
 cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details/* .aidlc-rule-details/
 ```
 
 **Windows PowerShell:**
 ```powershell
-New-Item -ItemType Directory -Force -Path ".copilot"
-Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules\core-workflow.md" ".copilot\instructions.md"
+New-Item -ItemType Directory -Force -Path ".github"
+Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules\core-workflow.md" ".github\copilot-instructions.md"
 New-Item -ItemType Directory -Force -Path ".aidlc-rule-details"
 Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details\*" ".aidlc-rule-details\" -Recurse
 ```
 
 **Windows CMD:**
 ```cmd
-mkdir .copilot
-copy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules\core-workflow.md" ".copilot\instructions.md"
-mkdir .aidlc-rule-details
-xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-details\" /E /I
-```
-
-#### Option 2: Project Root COPILOT.md
-
-**Unix/Linux/macOS:**
-```bash
-cp ../aidlc-workflows/aidlc-rules/aws-aidlc-rules/core-workflow.md ./COPILOT.md
-mkdir -p .aidlc-rule-details
-cp -R ../aidlc-workflows/aidlc-rules/aws-aidlc-rule-details/* .aidlc-rule-details/
-```
-
-**Windows PowerShell:**
-```powershell
-Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules\core-workflow.md" ".\COPILOT.md"
-New-Item -ItemType Directory -Force -Path ".aidlc-rule-details"
-Copy-Item "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details\*" ".aidlc-rule-details\" -Recurse
-```
-
-**Windows CMD:**
-```cmd
-copy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules\core-workflow.md" ".\COPILOT.md"
+mkdir .github
+copy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rules\core-workflow.md" ".github\copilot-instructions.md"
 mkdir .aidlc-rule-details
 xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-details\" /E /I
 ```
@@ -529,13 +504,14 @@ xcopy "..\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details" ".aidlc-rule-detai
 **Verify Setup:**
 1. Open VS Code with your project folder
 2. Open the Copilot Chat panel (Cmd/Ctrl+Shift+I)
-3. Reference the instructions by typing `#file .copilot/instructions.md` or `#file COPILOT.md` in the chat
+3. Select **Configure Chat** (gear icon) > **Chat Instructions** and verify that `copilot-instructions` is listed
+4. Alternatively, type `/instructions` in the chat input to view active instructions
 
-**Directory Structure (Option 1):**
+**Directory Structure:**
 ```
 <my-project>/
-├── .copilot/
-│   └── instructions.md
+├── .github/
+│   └── copilot-instructions.md
 └── .aidlc-rule-details/
     ├── common/
     ├── inception/
@@ -626,8 +602,9 @@ Deployment and monitoring (future)
 - Ask "What instructions are currently active in this project?"
 
 #### GitHub Copilot
-- Use `#file <path>` syntax to reference instruction files
-- For large instructions, reference specific rule detail files instead of pasting everything
+- Select **Configure Chat** (gear icon) > **Chat Instructions** to verify instructions are loaded
+- Type `/instructions` in the chat input to view active instruction files
+- Check that `.github/copilot-instructions.md` exists in your workspace root
 
 ### File Path Issues on Windows
 - Use forward slashes `/` in file paths within markdown files
@@ -641,13 +618,12 @@ Deployment and monitoring (future)
 ```gitignore
 # These should be version controlled
 CLAUDE.md
-COPILOT.md
 AGENTS.md
 .amazonq/rules/
 .kiro/steering/
 .cursor/rules/
 .clinerules/
-.copilot/
+.github/copilot-instructions.md
 .aidlc-rule-details/
 ```
 
@@ -655,7 +631,6 @@ AGENTS.md
 ```gitignore
 # Local-only settings
 .claude/settings.local.json
-.copilot/context/
 ```
 
 ---
