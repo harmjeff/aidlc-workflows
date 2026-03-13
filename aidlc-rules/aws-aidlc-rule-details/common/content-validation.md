@@ -6,17 +6,15 @@
 
 ## ASCII Diagram Standards
 
-**CRITICAL**: Before creating ANY file with ASCII diagrams:
+**CRITICAL**: Before creating ANY file with ASCII diagrams, validate each diagram:
 
-1. **LOAD** `common/ascii-diagram-standards.md`
-2. **VALIDATE** each diagram:
-   - Count characters per line (all lines MUST be same width)
-   - Use ONLY: `+` `-` `|` `^` `v` `<` `>` and spaces
-   - NO Unicode box-drawing characters
-   - Spaces only (NO tabs)
-3. **TEST** alignment by verifying box corners align vertically
+- Count characters per line — all lines in a box MUST be the same width
+- Use ONLY: `+` `-` `|` `^` `v` `<` `>` and spaces
+- NO Unicode box-drawing characters (`┌` `─` `│` `└` etc.)
+- Spaces only (NO tabs)
+- Test alignment by verifying box corners align vertically
 
-**See `common/ascii-diagram-standards.md` for patterns and validation checklist.**
+**If `common/ascii-diagram-standards.md` is present** (installed from `community-extensions/standards/ascii-diagrams/`), load it for the full pattern library and validation checklist.
 
 ## Mermaid Diagram Validation
 
