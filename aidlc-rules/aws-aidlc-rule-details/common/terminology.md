@@ -30,7 +30,7 @@
 
 **Stages**:
 - Workspace Detection (ALWAYS)
-- Reverse Engineering (CONDITIONAL - Brownfield only)
+- Pre-Requirements Stage (CONDITIONAL - project-type extension only)
 - Requirements Analysis (ALWAYS - Adaptive depth)
 - User Stories (CONDITIONAL)
 - Workflow Planning (ALWAYS)
@@ -78,7 +78,7 @@
 - **Build and Test**: Building all units and executing comprehensive testing
 
 ### Conditional Stages
-- **Reverse Engineering**: Analyzing existing codebase (brownfield projects only)
+- **Pre-Requirements Stage**: Analysis stage added by a project-type extension (e.g., reverse engineering an existing codebase, or analyzing external resource contracts) — runs between Workspace Detection and Requirements Analysis
 - **User Stories**: Creating user stories and personas (includes Story Planning and Story Generation)
 - **Application Design**: Designing application components, methods, business rules, and services
 - **Design**: Designing system components (includes Units Planning, Units Generation, per-unit design)

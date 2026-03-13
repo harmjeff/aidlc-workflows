@@ -8,17 +8,15 @@
 
 ## Prerequisites
 - Workspace Detection must be complete
-- Reverse Engineering must be complete (if brownfield)
+- Pre-Requirements Stage must be complete (if a project-type extension is loaded)
 
 ## Execution Steps
 
-### Step 1: Load Reverse Engineering Context (if available)
+### Step 1: Load Project-Type Extension Context (if available)
 
-**IF brownfield project**:
-- Load `aidlc-docs/inception/reverse-engineering/architecture.md`
-- Load `aidlc-docs/inception/reverse-engineering/component-inventory.md`
-- Load `aidlc-docs/inception/reverse-engineering/technology-stack.md`
-- Use these to understand existing system when analyzing request
+**IF a project-type extension is loaded**:
+- Read the extension's rules file to determine where its pre-requirements stage wrote its artifacts
+- Load those artifacts to understand the existing system or external resource constraints when analyzing the request
 
 ### Step 2: Analyze User Request (Intent Analysis)
 

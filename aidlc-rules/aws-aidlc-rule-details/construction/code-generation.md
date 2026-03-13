@@ -5,7 +5,7 @@ This stage generates code for each unit of work through two integrated parts:
 - **Part 1 - Planning**: Create detailed code generation plan with explicit steps
 - **Part 2 - Generation**: Execute approved plan to generate code, tests, and artifacts
 
-**Note**: For brownfield projects, "generate" means modify existing files when appropriate, not create duplicates.
+**Note**: If a project-type extension is loaded, its Code Generation Addendum may define file-handling rules (e.g., modifying existing files in-place rather than creating new ones). Always check the active extension's addendum before generating files.
 
 ## Prerequisites
 - Unit Design Generation must be complete for the unit
@@ -26,7 +26,7 @@ This stage generates code for each unit of work through two integrated parts:
 ## Step 2: Create Detailed Unit Code Generation Plan
 - [ ] Read workspace root and project type from `aidlc-docs/aidlc-state.md`
 - [ ] Determine code location (see Critical Rules for structure patterns)
-- [ ] **Brownfield only**: Review reverse engineering code-structure.md for existing files to modify
+- [ ] **If a project-type extension is loaded**: Review its pre-requirements artifacts for code structure documentation or existing file inventory relevant to generation
 - [ ] Document exact paths (never aidlc-docs/)
 - [ ] Create explicit steps for unit generation:
   - Project Structure Setup (greenfield only)
@@ -102,10 +102,8 @@ This stage generates code for each unit of work through two integrated parts:
 
 ## Step 11: Execute Current Step
 - [ ] Verify target directory from plan (never aidlc-docs/)
-- [ ] **Brownfield only**: Check if target file exists
-- [ ] Generate exactly what the current step describes:
-  - **If file exists**: Modify it in-place (never create `ClassName_modified.java`, `ClassName_new.java`, etc.)
-  - **If file doesn't exist**: Create new file
+- [ ] **If a project-type extension is loaded**: Apply its Code Generation Addendum (if defined) — the addendum may specify file-handling rules such as modifying existing files in-place
+- [ ] Generate exactly what the current step describes
 - [ ] Write to correct locations:
   - **Application Code**: Workspace root per project structure
   - **Documentation**: `aidlc-docs/construction/{unit-name}/code/` (markdown only)
@@ -117,7 +115,7 @@ This stage generates code for each unit of work through two integrated parts:
 - [ ] Mark the completed step as [x] in the unit code generation plan
 - [ ] Mark associated unit stories as [x] when their generation is finished
 - [ ] Update `aidlc-docs/aidlc-state.md` current status
-- [ ] **Brownfield only**: Verify no duplicate files created (e.g., no `ClassName_modified.java` alongside `ClassName.java`)
+- [ ] **If a project-type extension is loaded**: Verify any post-generation rules defined in its Code Generation Addendum are satisfied
 - [ ] Save all generated artifacts
 
 ## Step 13: Continue or Complete Generation
@@ -133,8 +131,8 @@ This stage generates code for each unit of work through two integrated parts:
 ```
 
      2. **AI Summary** (optional): Provide structured bullet-point summary
-        - **Brownfield**: Distinguish modified vs created files (e.g., "• Modified: `src/services/user-service.ts`", "• Created: `src/services/auth-service.ts`")
-        - **Greenfield**: List created files with paths (e.g., "• Created: `src/services/user-service.ts`")
+        - If project-type extension defines file modification behavior: distinguish modified vs created files (e.g., "• Modified: `src/services/user-service.ts`", "• Created: `src/services/auth-service.ts`")
+        - Otherwise: list created files with paths (e.g., "• Created: `src/services/user-service.ts`")
         - List tests, documentation, deployment artifacts with paths
         - Keep factual, no workflow instructions
      3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
@@ -176,17 +174,12 @@ This stage generates code for each unit of work through two integrated parts:
 - **Documentation**: aidlc-docs/ only (markdown summaries)
 - **Read workspace root** from aidlc-state.md before generating code
 
-**Structure patterns by project type**:
-- **Brownfield**: Use existing structure (e.g., `src/main/java/`, `lib/`, `pkg/`)
-- **Greenfield single unit**: `src/`, `tests/`, `config/` in workspace root
-- **Greenfield multi-unit (microservices)**: `{unit-name}/src/`, `{unit-name}/tests/`
-- **Greenfield multi-unit (monolith)**: `src/{unit-name}/`, `tests/{unit-name}/`
+**Default structure patterns**:
+- **Single unit**: `src/`, `tests/`, `config/` in workspace root
+- **Multi-unit (microservices)**: `{unit-name}/src/`, `{unit-name}/tests/`
+- **Multi-unit (monolith)**: `src/{unit-name}/`, `tests/{unit-name}/`
 
-### Brownfield File Modification Rules
-- Check if file exists before generating
-- If exists: Modify in-place (never create copies like `ClassName_modified.java`)
-- If doesn't exist: Create new file
-- Verify no duplicate files after generation (Step 12)
+**If a project-type extension is loaded**: Read its `## Stage Addendums → Code Generation Addendum` section (if defined) and apply it. The extension may override structure patterns or add file-handling rules appropriate to the project type.
 
 ### Planning Phase Rules
 - Create explicit, numbered steps for all generation activities

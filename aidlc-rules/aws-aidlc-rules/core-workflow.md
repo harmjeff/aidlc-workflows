@@ -29,9 +29,10 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 **CRITICAL**: At workflow start, scan the `extensions/` directory recursively but load ONLY lightweight opt-in files — NOT full rule files. Full rule files are loaded on-demand after the user opts in.
 
 **Loading process**:
-1. List all subdirectories under `extensions/` (e.g., `extensions/security/`, `extensions/compliance/`)
-2. In each subdirectory, load ONLY `*.opt-in.md` files — these contain the extension's opt-in prompt. The corresponding rules file is derived by convention: strip the `.opt-in.md` suffix and append `.md` (e.g., `security-baseline.opt-in.md` → `security-baseline.md`)
+1. List all subdirectories under `extensions/`, **excluding `extensions/project-type/`** — project-type extensions are loaded by Workspace Detection based on user selection, not by this mechanism
+2. In each remaining subdirectory, load ONLY `*.opt-in.md` files — these contain the extension's opt-in prompt. The corresponding rules file is derived by convention: strip the `.opt-in.md` suffix and append `.md` (e.g., `security-baseline.opt-in.md` → `security-baseline.md`)
 3. Do NOT load full rule files (e.g., `security-baseline.md`) at this stage
+4. Ignore `README.md` files — these are documentation only
 
 **Deferred Rule Loading**:
 - During Requirements Analysis, opt-in prompts from the loaded `*.opt-in.md` files are presented to the user
@@ -85,7 +86,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 
 **Stages in INCEPTION PHASE**:
 - Workspace Detection (ALWAYS)
-- Reverse Engineering (CONDITIONAL - Brownfield only)
+- Pre-Requirements Stage (CONDITIONAL - project-type extension only)
 - Requirements Analysis (ALWAYS - Adaptive depth)
 - User Stories (CONDITIONAL)
 - Workflow Planning (ALWAYS)
@@ -100,39 +101,25 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 2. Load all steps from `inception/workspace-detection.md`
 3. Execute workspace detection:
    - Check for existing aidlc-state.md (resume if found)
-   - Scan workspace for existing code
-   - Determine if brownfield or greenfield
-   - Check for existing reverse engineering artifacts
-4. Determine next phase: Reverse Engineering (if brownfield and no artifacts) OR Requirements Analysis
-5. **MANDATORY**: Log findings in audit.md
-6. Present completion message to user (see workspace-detection.md for message formats)
-7. Automatically proceed to next phase
+   - Scan workspace for signals (existing code, external resource docs, etc.)
+   - Scan `extensions/project-type/` for installed extensions and build the project type question dynamically
+   - Present project type question and wait for user selection
+   - Load the selected project-type extension (if any)
+4. **MANDATORY**: Log findings and user's project type selection in audit.md
+5. Present completion message to user (see workspace-detection.md for message formats)
+6. Proceed to next stage: Pre-Requirements Stage if extension defines one, otherwise Requirements Analysis
 
-## Reverse Engineering (CONDITIONAL - Brownfield Only)
+## Pre-Requirements Stage (CONDITIONAL - project-type extension only)
 
-**Execute IF**:
-- Existing codebase detected
-- No previous reverse engineering artifacts found
+**Execute IF**: The loaded project-type extension defines a Pre-Requirements Stage in its `## Project Type Registration` section.
 
-**Skip IF**:
-- Greenfield project
-- Previous reverse engineering artifacts exist
+**Skip IF**: Greenfield (no extension loaded), or prior pre-requirements artifacts exist and the extension allows skipping them.
 
 **Execution**:
-1. **MANDATORY**: Log start of reverse engineering in audit.md
-2. Load all steps from `inception/reverse-engineering.md`
-3. Execute reverse engineering:
-   - Analyze all packages and components
-   - Generate a business overview of the whole system covering the business transactions
-   - Generate architecture documentation
-   - Generate code structure documentation
-   - Generate API documentation
-   - Generate component inventory
-   - Generate Interaction Diagrams depicting how business transactions are implemented across components
-   - Generate technology stack documentation
-   - Generate dependencies documentation
-
-4. **Wait for Explicit Approval**: Present detailed completion message (see reverse-engineering.md for message format) - DO NOT PROCEED until user confirms
+1. **MANDATORY**: Log start of stage in audit.md
+2. Read the Pre-Requirements Stage reference from the loaded extension's `## Project Type Registration` section
+3. Load and execute all steps from the stage file referenced there
+4. **Wait for Explicit Approval**: Present completion message per the stage file's format — DO NOT PROCEED until user confirms
 5. **MANDATORY**: Log user's response in audit.md with complete raw input
 
 ## Requirements Analysis (ALWAYS EXECUTE - Adaptive Depth)
@@ -146,7 +133,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 1. **MANDATORY**: Log any user input during this phase in audit.md
 2. Load all steps from `inception/requirements-analysis.md`
 3. Execute requirements analysis:
-   - Load reverse engineering artifacts (if brownfield)
+   - Load pre-requirements artifacts from the extension's stage output (if a project-type extension is loaded)
    - Analyze user request (intent analysis)
    - Determine requirements depth needed
    - Assess current requirements
@@ -217,7 +204,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 1. **MANDATORY**: Log any user input during this phase in audit.md
 2. Load all steps from `inception/user-stories.md`
 3. **MANDATORY**: Perform intelligent assessment (Step 1 in user-stories.md) to validate user stories are needed
-4. Load reverse engineering artifacts (if brownfield)
+4. Load pre-requirements artifacts (if a project-type extension is loaded)
 5. If Requirements exist, reference them when creating stories
 6. Execute at appropriate depth (minimal/standard/comprehensive)
 7. **PART 1 - Planning**: Create story plan with questions, wait for user answers, analyze for ambiguities, get approval
@@ -231,14 +218,14 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 2. Load all steps from `inception/workflow-planning.md`
 3. **MANDATORY**: Load content validation rules from `common/content-validation.md`
 4. Load all prior context:
-   - Reverse engineering artifacts (if brownfield)
+   - Pre-requirements artifacts (if a project-type extension is loaded)
    - Intent analysis
    - Requirements (if executed)
    - User stories (if executed)
 5. Execute workflow planning:
    - Determine which phases to execute
    - Determine depth level for each phase
-   - Create multi-package change sequence (if brownfield)
+   - Apply extension's Workflow Planning Addendum (if a project-type extension is loaded)
    - Generate workflow visualization (VALIDATE Mermaid syntax before writing)
 6. **MANDATORY**: Validate all content before file creation per content-validation.md rules
 7. **Wait for Explicit Approval**: Present recommendations using language from workflow-planning.md Step 9, emphasizing user control to override recommendations - DO NOT PROCEED until user confirms
@@ -260,7 +247,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 **Execution**:
 1. **MANDATORY**: Log any user input during this phase in audit.md
 2. Load all steps from `inception/application-design.md`
-3. Load reverse engineering artifacts (if brownfield)
+3. Load pre-requirements artifacts (if a project-type extension is loaded)
 4. Execute at appropriate depth (minimal/standard/comprehensive)
 5. **Wait for Explicit Approval**: Present detailed completion message (see application-design.md for message format) - DO NOT PROCEED until user confirms
 6. **MANDATORY**: Log user's response in audit.md with complete raw input
@@ -280,7 +267,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 **Execution**:
 1. **MANDATORY**: Log any user input during this phase in audit.md
 2. Load all steps from `inception/units-generation.md`
-3. Load reverse engineering artifacts (if brownfield)
+3. Load pre-requirements artifacts (if a project-type extension is loaded)
 4. Execute at appropriate depth (minimal/standard/comprehensive)
 5. **Wait for Explicit Approval**: Present detailed completion message (see units-generation.md for message format) - DO NOT PROCEED until user confirms
 6. **MANDATORY**: Log user's response in audit.md with complete raw input
@@ -514,7 +501,7 @@ The Operations stage will eventually include:
 ├── aidlc-docs/                     # 📄 DOCUMENTATION ONLY
 │   ├── inception/                  # 🔵 INCEPTION PHASE
 │   │   ├── plans/
-│   │   ├── reverse-engineering/    # Brownfield only
+│   │   ├── reverse-engineering/    # project-type extension output (if applicable)
 │   │   ├── requirements/
 │   │   ├── user-stories/
 │   │   └── application-design/

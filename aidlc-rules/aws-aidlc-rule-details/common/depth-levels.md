@@ -26,7 +26,7 @@ The model considers these factors when determining appropriate detail:
 2. **Problem Complexity**: How intricate is the solution space?
 3. **Scope**: Single file, component, multiple components, or system-wide?
 4. **Risk Level**: What's the impact of errors or omissions?
-5. **Available Context**: Greenfield vs brownfield, existing documentation
+5. **Available Context**: Project type and pre-requirements analysis artifacts (if a project-type extension is loaded)
 6. **User Preferences**: Has user expressed preference for brevity or detail?
 
 ## Example: Requirements Analysis Artifacts

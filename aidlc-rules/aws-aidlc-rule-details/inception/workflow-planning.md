@@ -6,11 +6,11 @@
 
 ## Step 1: Load All Prior Context
 
-### 1.1 Load Reverse Engineering Artifacts (if brownfield)
-- architecture.md
-- component-inventory.md
-- technology-stack.md
-- dependencies.md
+### 1.1 Load Project-Type Extension Artifacts (if applicable)
+
+**If a project-type extension is loaded**, read the extension's rules file to determine the output directory of its pre-requirements stage, then load the artifacts it generated there (typically architecture, inventory, technology-stack, and dependencies documents).
+
+**Also apply the extension's Workflow Planning Addendum** (if one is defined in the extension's `## Stage Addendums` section) before proceeding with the remaining steps.
 
 ### 1.2 Load Requirements Analysis
 - requirements.md (includes intent analysis)
@@ -24,31 +24,7 @@
 
 **Now that we have complete context (requirements + stories), perform detailed analysis:**
 
-### 2.1 Transformation Scope Detection (Brownfield Only)
-
-**IF brownfield project**, analyze transformation scope:
-
-#### Architectural Transformation
-- **Single component change** vs **architectural transformation**
-- **Infrastructure changes** vs **application changes**
-- **Deployment model changes** (Lambda→Container, EC2→Serverless, etc.)
-
-#### Related Component Identification
-For transformations, identify:
-- **Infrastructure code** that needs updates
-- **CDK stacks** requiring changes
-- **API Gateway** configurations
-- **Load balancer** requirements
-- **Networking** changes needed
-- **Monitoring/logging** adaptations
-
-#### Cross-Package Impact
-- **CDK infrastructure** packages requiring updates
-- **Shared models** needing version updates
-- **Client libraries** requiring endpoint changes
-- **Test packages** needing new test scenarios
-
-### 2.2 Change Impact Assessment
+### 2.1 Change Impact Assessment
 
 #### Impact Areas
 1. **User-facing changes**: Does this affect user experience?
@@ -75,25 +51,7 @@ For transformations, identify:
 - **Alerting**: Alarm configurations, notification channels
 - **Deployment**: CI/CD pipeline changes, rollback strategies
 
-### 2.3 Component Relationship Mapping (Brownfield Only)
-
-**IF brownfield project**, create component dependency graph:
-
-```markdown
-## Component Relationships
-- **Primary Component**: [Package being changed]
-- **Infrastructure Components**: [CDK/Terraform packages]
-- **Shared Components**: [Models, utilities, clients]
-- **Dependent Components**: [Services that call this component]
-- **Supporting Components**: [Monitoring, logging, deployment]
-```
-
-For each related component:
-- **Change Type**: Major, Minor, Configuration-only
-- **Change Reason**: Direct dependency, deployment model, networking
-- **Change Priority**: Critical, Important, Optional
-
-### 2.4 Risk Assessment
+### 2.2 Risk Assessment
 
 Evaluate risk level:
 1. **Low**: Isolated change, easy rollback, well-understood
@@ -162,38 +120,7 @@ For each stage that will execute:
 - Detail level within artifacts adapts to problem complexity
 - Model determines appropriate detail based on problem characteristics
 
-## Step 5: Multi-Module Coordination Analysis (Brownfield Only)
-
-**IF brownfield with multiple modules/packages**, analyze dependencies and determine optimal update strategy:
-
-### 5.1 Analyze Module Dependencies
-- Examine build system dependencies and dependency manifests
-- Identify build-time vs runtime dependencies
-- Map API contracts and shared interfaces between modules
-
-### 5.2 Determine Update Strategy
-Based on dependency analysis, decide:
-- **Update sequence**: Which modules must be updated first due to dependencies
-- **Parallelization opportunities**: Which modules can be updated simultaneously
-- **Coordination requirements**: Version compatibility, API contracts, deployment order
-- **Testing strategy**: Per-module vs integrated testing approach
-- **Rollback strategy**: Recovery plan if mid-sequence failures occur
-
-### 5.3 Document Coordination Plan
-```markdown
-## Module Update Strategy
-- **Update Approach**: [Sequential/Parallel/Hybrid]
-- **Critical Path**: [Modules that block other updates]
-- **Coordination Points**: [Shared APIs, infrastructure, data contracts]
-- **Testing Checkpoints**: [When to validate integration]
-```
-
-Identify for each affected module:
-- **Update priority**: Must-update-first vs can-update-later
-- **Dependency constraints**: What it depends on, what depends on it
-- **Change scope**: Major (breaking), Minor (compatible), Patch (fixes)
-
-## Step 6: Generate Workflow Visualization
+## Step 5: Generate Workflow Visualization
 
 Create Mermaid flowchart showing:
 - All phases in sequence
@@ -220,7 +147,7 @@ linkStyle default stroke:#333,stroke-width:2px
 - Start/End: `fill:#CE93D8,stroke:#6A1B9A,stroke-width:3px,color:#000` (Material Purple with black text)
 - Phase containers: Use lighter Material colors (INCEPTION: #BBDEFB, CONSTRUCTION: #C8E6C9, OPERATIONS: #FFF59D)
 
-## Step 7: Create Execution Plan Document
+## Step 6: Create Execution Plan Document
 
 Create `aidlc-docs/inception/plans/execution-plan.md`:
 
@@ -229,11 +156,6 @@ Create `aidlc-docs/inception/plans/execution-plan.md`:
 
 ## Detailed Analysis Summary
 
-### Transformation Scope (Brownfield Only)
-- **Transformation Type**: [Single component/Architectural/Infrastructure]
-- **Primary Changes**: [Description]
-- **Related Components**: [List]
-
 ### Change Impact Assessment
 - **User-facing changes**: [Yes/No - Description]
 - **Structural changes**: [Yes/No - Description]
@@ -241,8 +163,8 @@ Create `aidlc-docs/inception/plans/execution-plan.md`:
 - **API changes**: [Yes/No - Description]
 - **NFR impact**: [Yes/No - Description]
 
-### Component Relationships (Brownfield Only)
-[Component dependency graph]
+### Project-Type Extension Analysis (if applicable)
+[Transformation scope, component relationships, or external resource constraints from extension addendum — omit if greenfield]
 
 ### Risk Assessment
 - **Risk Level**: [Low/Medium/High/Critical]
@@ -329,8 +251,8 @@ flowchart TD
 - [ ] Operations - PLACEHOLDER
   - **Rationale**: Future deployment and monitoring workflows
 
-## Package Change Sequence (Brownfield Only)
-[If applicable, list package update sequence with dependencies]
+## Package Change Sequence (if applicable — from project-type extension addendum)
+[List package update sequence with dependencies, if the active extension's Workflow Planning Addendum defines one]
 
 ## Estimated Timeline
 - **Total Phases**: [Number]
@@ -341,12 +263,10 @@ flowchart TD
 - **Key Deliverables**: [List]
 - **Quality Gates**: [List]
 
-[IF brownfield]
-- **Integration Testing**: All components working together
-- **Operational Readiness**: Monitoring, logging, alerting working
+[Include extension-specific success criteria from the active extension's addendum, if any]
 ```
 
-## Step 8: Initialize State Tracking
+## Step 7: Initialize State Tracking
 
 Update `aidlc-docs/aidlc-state.md`:
 
@@ -354,7 +274,7 @@ Update `aidlc-docs/aidlc-state.md`:
 # AI-DLC State Tracking
 
 ## Project Information
-- **Project Type**: [Greenfield/Brownfield]
+- **Project Type**: [Greenfield/Brownfield/Greyfield]
 - **Start Date**: [ISO timestamp]
 - **Current Stage**: INCEPTION - Workflow Planning
 
@@ -367,7 +287,7 @@ Update `aidlc-docs/aidlc-state.md`:
 
 ### 🔵 INCEPTION PHASE
 - [x] Workspace Detection
-- [x] Reverse Engineering (if applicable)
+- [x] Reverse Engineering / External Resource Analysis (if applicable)
 - [x] Requirements Analysis
 - [x] User Stories (if applicable)
 - [x] Workflow Planning
@@ -394,14 +314,14 @@ Update `aidlc-docs/aidlc-state.md`:
 - **Status**: Ready to proceed
 ```
 
-## Step 9: Present Plan to User
+## Step 8: Present Plan to User
 
 ```markdown
 # 📋 Workflow Planning Complete
 
 I've created a comprehensive execution plan based on:
 - Your request: [Summary]
-- Existing system: [Summary if brownfield]
+- Pre-requirements analysis: [Summary if a project-type extension is loaded]
 - Requirements: [Summary if executed]
 - User stories: [Summary if executed]
 
@@ -436,7 +356,7 @@ I recommend skipping [Y] stages:
 4. [Stage name] - *Rationale:* [Why skipping]
 ...
 
-[IF brownfield with multiple packages]
+[IF project-type extension addendum defines a package update sequence]
 **Recommended Package Update Sequence**:
 1. [Package] - [Reason]
 2. [Package] - [Reason]
@@ -457,13 +377,13 @@ I recommend skipping [Y] stages:
 > ✅ **Approve & Continue** - Approve plan and proceed to **[Next Stage Name]**
 ```
 
-## Step 10: Handle User Response
+## Step 9: Handle User Response
 
 - **If approved**: Proceed to next stage in execution plan
 - **If changes requested**: Update execution plan and re-confirm
 - **If user wants to force include/exclude stages**: Update plan accordingly
 
-## Step 11: Log Interaction
+## Step 10: Log Interaction
 
 Log in `aidlc-docs/audit.md`:
 
