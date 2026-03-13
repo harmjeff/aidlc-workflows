@@ -14,7 +14,7 @@
 - Spaces only (NO tabs)
 - Test alignment by verifying box corners align vertically
 
-**If `common/ascii-diagram-standards.md` is present** (installed from `community-extensions/standards/ascii-diagrams/`), load it for the full pattern library and validation checklist.
+**If `extensions/standards/ascii-diagrams/ascii-diagram-standards.md` is present** (installed from `community-extensions/standards/ascii-diagrams/` and opted in during Requirements Analysis), load it for the full pattern library and validation checklist.
 
 ## Mermaid Diagram Validation
 
