@@ -668,6 +668,7 @@ AGENTS.md
 | Cursor Rules Documentation | [Docs](https://cursor.com/docs/context/rules) |
 | Claude Code Documentation | [GitHub](https://github.com/anthropics/claude-code) |
 | GitHub Copilot Documentation | [Docs](https://docs.github.com/en/copilot) |
+| Working with AI-DLC (interaction patterns and tips) | [working-with-aidlc.md](working-with-aidlc.md) |
 | Contributing Guidelines | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Code of Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
 
