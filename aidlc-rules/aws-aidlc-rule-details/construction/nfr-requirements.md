@@ -56,37 +56,7 @@ Determine non-functional requirements for the unit and make tech stack choices.
 - Create `aidlc-docs/construction/{unit-name}/nfr-requirements/tech-stack-decisions.md`
 
 ### Step 7: Present Completion Message
-- Present completion message in this structure:
-     1. **Completion Announcement** (mandatory): Always start with this:
-
-```markdown
-# 📊 NFR Requirements Complete - [unit-name]
-```
-
-     2. **AI Summary** (optional): Provide structured bullet-point summary of NFR requirements
-        - Format: "NFR requirements assessment has identified [description]:"
-        - List key scalability, performance, availability requirements (bullet points)
-        - List security and compliance requirements identified
-        - Mention tech stack decisions and rationale
-        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase", "before we proceed")
-        - Keep factual and content-focused
-     3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
-
-```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
-> Please examine the NFR requirements at: `aidlc-docs/construction/[unit-name]/nfr-requirements/`
-
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
->
-> **You may:**
->
-> 🔧 **Request Changes** - Ask for modifications to the NFR requirements based on your review  
-> ✅ **Continue to Next Stage** - Approve NFR requirements and proceed to **[next-stage-name]**
-
----
-```
+Present completion message: "NFR Requirements complete for [unit-name]. Please review `aidlc-docs/construction/[unit-name]/nfr-requirements/`. You may request changes or approve to continue to [next-stage-name]."
 
 ### Step 8: Wait for Explicit Approval
 - Do not proceed until the user explicitly approves the NFR requirements

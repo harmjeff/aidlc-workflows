@@ -20,44 +20,23 @@
 - stories.md
 - personas.md
 
-## Step 2: Detailed Scope and Impact Analysis
+## Step 2: Scope and Impact Analysis
 
-**Now that we have complete context (requirements + stories), perform detailed analysis:**
+Perform basic impact analysis:
 
-### 2.1 Change Impact Assessment
-
-#### Impact Areas
-1. **User-facing changes**: Does this affect user experience?
-2. **Structural changes**: Does this change system architecture?
-3. **Data model changes**: Does this affect database schemas or data structures?
-4. **API changes**: Does this affect interfaces or contracts?
-5. **NFR impact**: Does this affect performance, security, or scalability?
-
-#### Application Layer Impact (if applicable)
-- **Code changes**: New entry points, adapters, configurations
-- **Dependencies**: New libraries, framework changes
-- **Configuration**: Environment variables, config files
-- **Testing**: Unit tests, integration tests
-
-#### Infrastructure Layer Impact (if applicable)
-- **Deployment model**: Lambda→ECS, EC2→Fargate, etc.
-- **Networking**: VPC, security groups, load balancers
-- **Storage**: Persistent volumes, shared storage
-- **Scaling**: Auto-scaling policies, capacity planning
-
-#### Operations Layer Impact (if applicable)
-- **Monitoring**: CloudWatch, custom metrics, dashboards
-- **Logging**: Log aggregation, structured logging
-- **Alerting**: Alarm configurations, notification channels
-- **Deployment**: CI/CD pipeline changes, rollback strategies
+### 2.1 Change Impact
+Consider:
+- User-facing changes
+- Structural/architectural changes
+- Data model changes
+- API changes
+- Performance, security, or scalability impact
 
 ### 2.2 Risk Assessment
-
 Evaluate risk level:
-1. **Low**: Isolated change, easy rollback, well-understood
-2. **Medium**: Multiple components, moderate rollback, some unknowns
-3. **High**: System-wide impact, complex rollback, significant unknowns
-4. **Critical**: Production-critical, difficult rollback, high uncertainty
+- **Low**: Isolated change, easy rollback
+- **Medium**: Multiple components, moderate complexity
+- **High**: System-wide impact, significant unknowns
 
 ## Step 3: Phase Determination
 

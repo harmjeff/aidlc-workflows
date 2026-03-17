@@ -51,37 +51,7 @@ Map logical software components to actual infrastructure choices for deployment 
 - If shared infrastructure: Create `aidlc-docs/construction/shared-infrastructure.md`
 
 ### Step 7: Present Completion Message
-- Present completion message in this structure:
-     1. **Completion Announcement** (mandatory): Always start with this:
-
-```markdown
-# 🏢 Infrastructure Design Complete - [unit-name]
-```
-
-     2. **AI Summary** (optional): Provide structured bullet-point summary of infrastructure design
-        - Format: "Infrastructure design has mapped [description]:"
-        - List key infrastructure services and components (bullet points)
-        - List deployment architecture decisions and rationale
-        - Mention cloud provider choices and service mappings
-        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase", "before we proceed")
-        - Keep factual and content-focused
-     3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
-
-```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
-> Please examine the infrastructure design at: `aidlc-docs/construction/[unit-name]/infrastructure-design/`
-
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
->
-> **You may:**
->
-> 🔧 **Request Changes** - Ask for modifications to the infrastructure design based on your review  
-> ✅ **Continue to Next Stage** - Approve infrastructure design and proceed to **Code Generation**
-
----
-```
+Present completion message: "Infrastructure Design complete for [unit-name]. Please review `aidlc-docs/construction/[unit-name]/infrastructure-design/`. You may request changes or approve to continue to Code Generation."
 
 ### Step 8: Wait for Explicit Approval
 - Do not proceed until the user explicitly approves the infrastructure design

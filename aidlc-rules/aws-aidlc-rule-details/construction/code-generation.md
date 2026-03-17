@@ -39,9 +39,6 @@ This stage generates code for each unit of work through two integrated parts:
   - Repository Layer Generation
   - Repository Layer Unit Testing
   - Repository Layer Summary
-  - Frontend Components Generation (if applicable)
-  - Frontend Components Unit Testing (if applicable)
-  - Frontend Components Summary (if applicable)
   - Database Migration Scripts (if data models exist)
   - Documentation Generation (API docs, README updates)
   - Deployment Artifacts Generation
@@ -123,37 +120,7 @@ This stage generates code for each unit of work through two integrated parts:
 - [ ] If all steps complete, proceed to present completion message
 
 ## Step 14: Present Completion Message
-- Present completion message in this structure:
-     1. **Completion Announcement** (mandatory): Always start with this:
-
-```markdown
-# 💻 Code Generation Complete - [unit-name]
-```
-
-     2. **AI Summary** (optional): Provide structured bullet-point summary
-        - If project-type extension defines file modification behavior: distinguish modified vs created files (e.g., "• Modified: `src/services/user-service.ts`", "• Created: `src/services/auth-service.ts`")
-        - Otherwise: list created files with paths (e.g., "• Created: `src/services/user-service.ts`")
-        - List tests, documentation, deployment artifacts with paths
-        - Keep factual, no workflow instructions
-     3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
-
-```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
-> Please examine the generated code at:
-> - **Application Code**: `[actual-workspace-path]`
-> - **Documentation**: `aidlc-docs/construction/[unit-name]/code/`
-
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
->
-> **You may:**
->
-> 🔧 **Request Changes** - Ask for modifications to the generated code based on your review  
-> ✅ **Continue to Next Stage** - Approve code generation and proceed to **[next-unit/Build & Test]**
-
----
-```
+Present completion message: "Code Generation complete for [unit-name]. Please review generated code at [actual-workspace-path] and documentation at `aidlc-docs/construction/[unit-name]/code/`. You may request changes or approve to continue to [next-unit/Build & Test]."
 
 ## Step 15: Wait for Explicit Approval
 - Do not proceed until the user explicitly approves the generated code

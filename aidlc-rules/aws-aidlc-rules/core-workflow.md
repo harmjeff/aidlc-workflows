@@ -65,15 +65,6 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 - [Answer]: tag usage
 - Answer validation and ambiguity resolution
 
-## MANDATORY: Custom Welcome Message
-**CRITICAL**: When starting ANY software development request, you MUST display the welcome message.
-
-**How to Display Welcome Message**:
-1. Load the welcome message from `common/welcome-message.md` (in the resolved rule details directory)
-2. Display the complete message to the user
-3. This should only be done ONCE at the start of a new workflow
-4. Do NOT load this file in subsequent interactions to save context space
-
 # Adaptive Software Development Workflow
 
 ---

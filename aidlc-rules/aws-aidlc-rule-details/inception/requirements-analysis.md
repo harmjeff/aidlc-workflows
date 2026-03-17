@@ -74,17 +74,12 @@ Analyze whatever the user has provided:
    - Pasted content or file references
    - Convert any non-markdown documents to markdown format 
 
-### Step 5: Thorough Completeness Analysis
+### Step 5: Assess Requirements Completeness
 
-**CRITICAL**: Use comprehensive analysis to evaluate requirements completeness. Default to asking questions when there is ANY ambiguity or missing detail.
-
-**MANDATORY**: Evaluate ALL of these areas and ask questions for ANY that are unclear:
-- **Functional Requirements**: Core features, user interactions, system behaviors
-- **Non-Functional Requirements**: Performance, security, scalability, usability
-- **User Scenarios**: Use cases, user journeys, edge cases, error scenarios
-- **Business Context**: Goals, constraints, success criteria, stakeholder needs
-- **Technical Context**: Integration points, data requirements, system boundaries
-- **Quality Attributes**: Reliability, maintainability, testability, accessibility
+Evaluate whether the requirements are complete enough to proceed. Consider:
+- Are functional requirements clear?
+- Are non-functional requirements identified?
+- Is the business context understood?
 
 **When in doubt, ask questions** - incomplete requirements lead to poor implementations.
 
@@ -147,42 +142,8 @@ Update `aidlc-docs/aidlc-state.md`:
 
 ### Step 9: Log and Proceed
    - Log approval prompt with timestamp in `aidlc-docs/audit.md`
-   - Present completion message in this structure:
-     1. **Completion Announcement** (mandatory): Always start with this:
-
-```markdown
-# 🔍 Requirements Analysis Complete
-```
-
-     2. **AI Summary** (optional): Provide structured bullet-point summary of requirements
-        - Format: "Requirements analysis has identified [project type/complexity]:"
-        - List key functional requirements (bullet points)
-        - List key non-functional requirements (bullet points)
-        - Mention architectural considerations or technical decisions if relevant
-        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase", "before we proceed")
-        - Keep factual and content-focused
-     3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
-
-```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
-> Please examine the requirements document at: `aidlc-docs/inception/requirements/requirements.md`
-
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
->
-> **You may:**
->
-> 🔧 **Request Changes** -  Ask for modifications to the requirements if required based on your review 
-> [IF User Stories will be skipped, add this option:]
-> 📝 **Add User Stories** - Choose to Include **User Stories** stage (currently skipped based on project simplicity)  
-> ✅ **Approve & Continue** - Approve requirements and proceed to **[User Stories/Workflow Planning]**
-
----
-```
-
-**Note**: Include the "Add User Stories" option only when User Stories stage will be skipped. Replace [User Stories/Workflow Planning] with the actual next stage name.
-
+   - Present completion message: "Requirements Analysis complete. Please review `aidlc-docs/inception/requirements/requirements.md`. You may request changes or approve to continue to [User Stories/Workflow Planning]."
+   - If User Stories will be skipped, mention the option to add it: "You may also choose to add User Stories stage (currently skipped)."
    - Wait for explicit user approval before proceeding
    - Record approval response with timestamp
    - Update Requirements Analysis stage complete in aidlc-state.md

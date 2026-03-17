@@ -38,18 +38,11 @@ Application Design focuses on:
   - [ ] Validate design completeness and consistency
 
 ### 4. Generate Context-Appropriate Questions
-**DIRECTIVE**: Analyze the requirements and stories to generate ONLY questions relevant to THIS specific application design. Use the categories below as inspiration, NOT as a mandatory checklist. Skip entire categories if not applicable.
+Generate questions relevant to this specific application design.
 
 - EMBED questions using [Answer]: tag format
-- Focus on ambiguities and missing information specific to this context
-- Generate questions only where user input is needed for design decisions
-
-**Example question categories** (adapt as needed):
-- **Component Identification** - Only if component boundaries or organization is unclear
-- **Component Methods** - Only if method signatures need clarification (detailed business rules come later)
-- **Service Layer Design** - Only if service orchestration or boundaries are ambiguous
-- **Component Dependencies** - Only if communication patterns or dependency management is unclear
-- **Design Patterns** - Only if architectural style or pattern choice needs user input
+- Focus on ambiguities and missing information
+- Ask about component identification, methods, service layer, dependencies, and patterns as needed
 
 ### 5. Store Application Design Plan
 - Save as `aidlc-docs/inception/plans/application-design-plan.md`
@@ -66,23 +59,11 @@ Application Design focuses on:
 - Do not proceed until ALL [Answer]: tags are completed
 - Review the document to ensure no [Answer]: tags are left blank
 
-### 8. ANALYZE ANSWERS (MANDATORY)
-Before proceeding, you MUST carefully review all user answers for:
-- **Vague or ambiguous responses**: "mix of", "somewhere between", "not sure", "depends"
-- **Undefined criteria or terms**: References to concepts without clear definitions
-- **Contradictory answers**: Responses that conflict with each other
-- **Missing design details**: Answers that lack specific guidance
-- **Answers that combine options**: Responses that merge different approaches without clear decision rules
+### 8. Analyze Answers
+Review all user answers for clarity and completeness.
 
-### 9. MANDATORY Follow-up Questions
-If the analysis in step 8 reveals ANY ambiguous answers, you MUST:
-- Add specific follow-up questions to the plan document using [Answer]: tags
-- DO NOT proceed to approval until all ambiguities are resolved
-- Examples of required follow-ups:
-  - "You mentioned 'mix of A and B' - what specific criteria should determine when to use A vs B?"
-  - "You said 'somewhere between A and B' - can you define the exact middle ground approach?"
-  - "You indicated 'not sure' - what additional information would help you decide?"
-  - "You mentioned 'depends on complexity' - how do you define complexity levels?"
+### 9. Follow-up Questions
+If ambiguous answers are detected, add clarification questions to the plan document. Do not proceed until resolved.
 
 ### 10. Generate Application Design Artifacts
 - Execute the approved plan to generate design artifacts
@@ -111,24 +92,8 @@ If the analysis in step 8 reveals ANY ambiguous answers, you MUST:
 - Use ISO 8601 timestamp format
 
 ### 12. Present Completion Message
-
-```markdown
-# 🏗️ Application Design Complete
-
-[AI-generated summary of application design artifacts created in bullet points]
-
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
-> Please examine the application design artifacts at: `aidlc-docs/inception/application-design/`
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
->
-> **You may:**
->
-> 🔧 **Request Changes** - Ask for modifications to the application design if required
-> [IF Units Generation is skipped:]
-> 📝 **Add Units Generation** - Choose to include **Units Generation** stage (currently skipped)
-> ✅ **Approve & Continue** - Approve design and proceed to **[Units Generation/CONSTRUCTION PHASE]**
-```
+Present completion message: "Application Design complete. Please review `aidlc-docs/inception/application-design/`. You may request changes or approve to continue to [Units Generation/CONSTRUCTION PHASE]."
+If Units Generation is skipped, mention: "You may also choose to add Units Generation stage (currently skipped)."
 
 ### 13. Wait for Explicit Approval
 - Do not proceed until the user explicitly approves the application design
