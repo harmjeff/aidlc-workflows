@@ -1,109 +1,47 @@
-# AI-DLC Welcome Message
+# AI-DLC Lite Welcome Message
 
-**Purpose**: This file contains the user-facing welcome message that should be displayed ONCE at the start of any AI-DLC workflow.
+**Purpose**: Display ONCE at the start of any AI-DLC Lite workflow.
 
 ---
 
-# 👋 Welcome to AI-DLC (AI-Driven Development Life Cycle)! 👋
+# Welcome to AI-DLC Lite!
 
-I'll guide you through an adaptive software development workflow that intelligently tailors itself to your specific needs.
+I'll guide you through a streamlined development workflow optimized for rapid prototyping.
 
-## What is AI-DLC?
+## What is AI-DLC Lite?
 
-AI-DLC is a structured yet flexible software development process that adapts to your project's needs. Think of it as having an experienced software architect who:
+AI-DLC Lite is a fast-track version of the AI-Driven Development Life Cycle. It gets you from idea to working code quickly by focusing on what matters for prototypes and demos:
 
-- **Analyzes your requirements** and asks clarifying questions when needed
-- **Plans the optimal approach** based on complexity and risk
-- **Skips unnecessary steps** for simple changes while providing comprehensive coverage for complex projects
-- **Documents everything** so you have a complete record of decisions and rationale
-- **Guides you through each phase** with clear checkpoints and approval gates
+- **Understands your workspace** (new or existing project)
+- **Gathers just enough requirements** through quick inline questions
+- **Generates code directly** without lengthy design phases
+- **Provides basic build and test instructions**
 
-## The Three-Phase Lifecycle
+## The Lite Pipeline
 
 ```
-                         User Request
-                              |
-                              v
-        ╔═══════════════════════════════════════╗
-        ║     INCEPTION PHASE                   ║
-        ║     Planning & Application Design     ║
-        ╠═══════════════════════════════════════╣
-        ║ • Workspace Detection (ALWAYS)        ║
-        ║ • Reverse Engineering (COND)          ║
-        ║ • Requirements Analysis (ALWAYS)      ║
-        ║ • User Stories (CONDITIONAL)          ║
-        ║ • Workflow Planning (ALWAYS)          ║
-        ║ • Application Design (CONDITIONAL)    ║
-        ║ • Units Generation (CONDITIONAL)      ║
-        ╚═══════════════════════════════════════╝
-                              |
-                              v
-        ╔═══════════════════════════════════════╗
-        ║     CONSTRUCTION PHASE                ║
-        ║     Design, Implementation & Test     ║
-        ╠═══════════════════════════════════════╣
-        ║ • Per-Unit Loop (for each unit):      ║
-        ║   - Functional Design (COND)          ║
-        ║   - NFR Requirements Assess (COND)    ║
-        ║   - NFR Design (COND)                 ║
-        ║   - Infrastructure Design (COND)      ║
-        ║   - Code Generation (ALWAYS)          ║
-        ║ • Build and Test (ALWAYS)             ║
-        ╚═══════════════════════════════════════╝
-                              |
-                              v
-        ╔═══════════════════════════════════════╗
-        ║     OPERATIONS PHASE                  ║
-        ║     Placeholder for Future            ║
-        ╠═══════════════════════════════════════╣
-        ║ • Operations (PLACEHOLDER)            ║
-        ╚═══════════════════════════════════════╝
-                              |
-                              v
-                          Complete
+  User Request
+       |
+       v
+  Workspace Detection    (auto)
+       |
+       v
+  Requirements Analysis  (quick Q&A)
+       |
+       v
+  Code Generation        (single pass)
+       |
+       v
+  Build and Test         (build + unit tests)
+       |
+       v
+  Complete!
 ```
 
-### Phase Breakdown:
+## What to Expect
+1. I'll scan your workspace to understand the project context
+2. I'll ask a few clarifying questions in chat
+3. I'll generate the code with basic tests
+4. You review and iterate
 
-**INCEPTION PHASE** - *Planning & Application Design*
-- **Purpose**: Determines WHAT to build and WHY
-- **Activities**: Understanding requirements, analyzing existing code (if any), planning the approach
-- **Output**: Clear requirements, execution plan, decisions on the number of units of work for parallel development
-- **Your Role**: Answer questions, review plans, approve direction
-
-**CONSTRUCTION PHASE** - *Detailed Design, Implementation & Test*
-- **Purpose**: Determines HOW to build it
-- **Activities**: Detailed design (when needed), code generation, comprehensive testing
-- **Output**: Working code, tests, build instructions
-- **Your Role**: Review designs, approve implementation plans, validate results
-
-**OPERATIONS PHASE** - *Deployment & Monitoring (Future)*
-- **Purpose**: How to DEPLOY and RUN it
-- **Status**: Placeholder for future deployment and monitoring workflows
-- **Current State**: Build and test activities handled in CONSTRUCTION phase
-
-## Key Principles:
-
-- ⚡ **Fully Adaptive**: Each stage independently evaluated based on your needs
-- 🎯 **Efficient**: Simple changes execute only essential stages
-- 📋 **Comprehensive**: Complex changes get full treatment with all safeguards
-- 🔍 **Transparent**: You see and approve the execution plan before work begins
-- 📝 **Documented**: Complete audit trail of all decisions and changes
-- 🎛️ **User Control**: You can request stages be included or excluded
-
-## What Happens Next:
-
-1. **I'll analyze your workspace** to understand if this is a new or existing project
-2. **I'll gather requirements** and ask clarifying questions if needed
-3. **I'll create an execution plan** showing which stages I propose to run and why
-4. **You'll review and approve** the plan (or request changes)
-5. **We'll execute the plan** with checkpoints at each major stage
-6. **You'll get working code** with complete documentation and tests
-
-The AI-DLC process adapts to:
-- 📋 Your intent clarity and complexity
-- 🔍 Existing codebase state
-- 🎯 Scope and impact of changes
-- ⚡ Risk and quality requirements
-
-Let's begin!
+Let's build something!

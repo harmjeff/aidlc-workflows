@@ -1,17 +1,17 @@
 # Workspace Detection
 
-**Purpose**: Determine workspace state and check for existing AI-DLC projects
+**Purpose**: Determine workspace state and check for existing AI-DLC Lite projects
 
 ## Step 1: Check for Existing AI-DLC Project
 
 Check if `aidlc-docs/aidlc-state.md` exists:
-- **If exists**: Resume from last phase (load context from previous phases)
+- **If exists**: Resume from last stage (load context from previous stages)
 - **If not exists**: Continue with new project assessment
 
 ## Step 2: Scan Workspace for Existing Code
 
 **Determine if workspace has existing code:**
-- Scan workspace for source code files (.java, .py, .js, .ts, .jsx, .tsx, .kt, .kts, .scala, .groovy, .go, .rs, .rb, .php, .c, .h, .cpp, .hpp, .cc, .cs, .fs, etc.)
+- Scan workspace for source code files (.java, .py, .js, .ts, .jsx, .tsx, .kt, .go, .rs, .rb, .php, .c, .cpp, .cs, etc.)
 - Check for build files (pom.xml, package.json, build.gradle, etc.)
 - Look for project structure indicators
 - Identify workspace root directory (NOT aidlc-docs/)
@@ -26,68 +26,67 @@ Check if `aidlc-docs/aidlc-state.md` exists:
 - **Workspace Root**: [Absolute path]
 ```
 
-## Step 3: Determine Next Phase
+## Step 3: Determine Next Stage
 
 **IF workspace is empty (no existing code)**:
 - Set flag: `brownfield = false`
-- Next phase: Requirements Analysis
+- Next stage: Requirements Analysis
 
 **IF workspace has existing code**:
 - Set flag: `brownfield = true`
 - Check for existing reverse engineering artifacts in `aidlc-docs/inception/reverse-engineering/`
 - **IF reverse engineering artifacts exist**: Load them, skip to Requirements Analysis
-- **IF no reverse engineering artifacts**: Next phase is Reverse Engineering
+- **IF no reverse engineering artifacts**: Next stage is Reverse Engineering
 
 ## Step 4: Create Initial State File
 
 Create `aidlc-docs/aidlc-state.md`:
 
 ```markdown
-# AI-DLC State Tracking
+# AI-DLC Lite State Tracking
 
 ## Project Information
+- **Mode**: AI-DLC Lite
 - **Project Type**: [Greenfield/Brownfield]
 - **Start Date**: [ISO timestamp]
 - **Current Stage**: INCEPTION - Workspace Detection
-
-## Workspace State
-- **Existing Code**: [Yes/No]
-- **Reverse Engineering Needed**: [Yes/No]
 - **Workspace Root**: [Absolute path]
 
 ## Code Location Rules
 - **Application Code**: Workspace root (NEVER in aidlc-docs/)
 - **Documentation**: aidlc-docs/ only
-- **Structure patterns**: See code-generation.md Critical Rules
 
 ## Stage Progress
-[Will be populated as workflow progresses]
+### INCEPTION PHASE
+- [x] Workspace Detection
+- [ ] Reverse Engineering (if applicable)
+- [ ] Requirements Analysis
+
+### CONSTRUCTION PHASE
+- [ ] Code Generation
+- [ ] Build and Test
 ```
 
 ## Step 5: Present Completion Message
 
 **For Brownfield Projects:**
 ```markdown
-# 🔍 Workspace Detection Complete
+# Workspace Detection Complete
 
-Workspace analysis findings:
-• **Project Type**: Brownfield project
-• [AI-generated summary of workspace findings in bullet points]
-• **Next Step**: Proceeding to **Reverse Engineering** to analyze existing codebase...
+- **Project Type**: Brownfield project
+- [Summary of workspace findings]
+- **Next**: Proceeding to Reverse Engineering...
 ```
 
 **For Greenfield Projects:**
 ```markdown
-# 🔍 Workspace Detection Complete
+# Workspace Detection Complete
 
-Workspace analysis findings:
-• **Project Type**: Greenfield project
-• **Next Step**: Proceeding to **Requirements Analysis**...
+- **Project Type**: Greenfield project
+- **Next**: Proceeding to Requirements Analysis...
 ```
 
 ## Step 6: Automatically Proceed
 
 - **No user approval required** - this is informational only
-- Automatically proceed to next phase:
-  - **Brownfield**: Reverse Engineering (if no existing artifacts) or Requirements Analysis (if artifacts exist)
-  - **Greenfield**: Requirements Analysis
+- Automatically proceed to next stage
