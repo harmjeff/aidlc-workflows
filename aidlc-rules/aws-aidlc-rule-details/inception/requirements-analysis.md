@@ -15,9 +15,8 @@
 ### Step 1: Load Reverse Engineering Context (if available)
 
 **IF brownfield project**:
-- Load `aidlc-docs/inception/reverse-engineering/architecture.md`
-- Load `aidlc-docs/inception/reverse-engineering/component-inventory.md`
-- Load `aidlc-docs/inception/reverse-engineering/technology-stack.md`
+- Load `aidlc-docs/inception/reverse-engineering/system-overview.md`
+- Load `aidlc-docs/inception/reverse-engineering/api-and-dependencies.md`
 - Use these to understand existing system when analyzing request
 
 ### Step 2: Analyze User Request (Intent Analysis)
@@ -74,13 +73,13 @@ Analyze whatever the user has provided:
    - Intent statements or descriptions (already logged in audit.md)
    - Existing requirements documents (search workspace if mentioned)
    - Pasted content or file references
-   - Convert any non-markdown documents to markdown format 
+   - Convert any non-markdown documents to markdown format
 
 ### Step 5: Thorough Completeness Analysis
 
 **CRITICAL**: Use comprehensive analysis to evaluate requirements completeness. Default to asking questions when there is ANY ambiguity or missing detail.
 
-**MANDATORY**: Evaluate ALL of these areas and ask questions for ANY that are unclear:
+Evaluate these areas, focusing on those most relevant to the request. For clear requests, a brief analysis suffices:
 - **Functional Requirements**: Core features, user interactions, system behaviors
 - **Non-Functional Requirements**: Performance, security, scalability, usability
 - **User Scenarios**: Use cases, user journeys, edge cases, error scenarios
@@ -90,24 +89,8 @@ Analyze whatever the user has provided:
 
 **When in doubt, ask questions** - incomplete requirements lead to poor implementations.
 
-### Step 5.1: Extension Opt-In Prompts
-
-**MANDATORY**: Scan all loaded `*.opt-in.md` files (loaded at workflow start from `extensions/` subdirectories) for an `## Opt-In Prompt` section. For each extension that declares one, include that question in the clarifying questions file created in Step 6.
-
-After receiving answers:
-1. Record each extension's enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`:
-
-```markdown
-## Extension Configuration
-| Extension | Enabled | Decided At |
-|---|---|---|
-| [Extension Name] | [Yes/No] | Requirements Analysis |
-```
-
-2. **Deferred Rule Loading**: For each extension the user opted IN, load the full rules file now. The rules file is derived by naming convention: strip `.opt-in.md` from the opt-in filename and append `.md` (e.g., `security-baseline.opt-in.md` → `security-baseline.md`). For extensions the user opted OUT, do NOT load the full rules file.
-
 ### Step 6: Generate Clarifying Questions (PROACTIVE APPROACH)
-   - **ALWAYS** create `aidlc-docs/inception/requirements/requirement-verification-questions.md` unless requirements are exceptionally clear and complete
+   - Create `aidlc-docs/inception/requirements/requirement-verification-questions.md` only when the request has genuine ambiguity that would lead to wrong implementation direction. For clear, specific requests, proceed directly to generating the requirements document.
    - Ask questions about ANY missing, unclear, or ambiguous areas
    - Focus on functional requirements, non-functional requirements, user scenarios, and business context
    - Request user to fill in all [Answer]: tags directly in the questions document
@@ -116,15 +99,9 @@ After receiving answers:
      - Ensure options are mutually exclusive and don't overlap
      - ALWAYS include option for custom response: "X) Other (please describe after [Answer]: tag below)"
    - Wait for user answers in the document
-   - **MANDATORY**: Analyze ALL answers for ambiguities and create follow-up questions if needed
-   - **MANDATORY**: Keep asking questions until ALL ambiguities are resolved OR user explicitly asks to proceed
-
-### ⛔ GATE: Await User Answers
-DO NOT proceed to Step 7 until all questions in requirement-verification-questions.md are answered and validated.
-Present the question file to the user and STOP.
+   - Analyze answers. If critical ambiguity remains that would affect architecture or core functionality, ask up to 3 targeted follow-up questions in the same file. Then proceed.
 
 ### Step 7: Generate Requirements Document
-   - **PREREQUISITE**: Step 6 gate must be passed — all answers received and analyzed
    - Create `aidlc-docs/inception/requirements/requirements.md`
    - Include intent analysis summary at the top:
      - User request
@@ -141,7 +118,7 @@ Update `aidlc-docs/aidlc-state.md`:
 
 ```markdown
 ## Stage Progress
-### 🔵 INCEPTION PHASE
+### INCEPTION PHASE
 - [x] Workspace Detection
 - [x] Reverse Engineering (if applicable)
 - [x] Requirements Analysis
@@ -153,7 +130,7 @@ Update `aidlc-docs/aidlc-state.md`:
      1. **Completion Announcement** (mandatory): Always start with this:
 
 ```markdown
-# 🔍 Requirements Analysis Complete
+# Requirements Analysis Complete
 ```
 
      2. **AI Summary** (optional): Provide structured bullet-point summary of requirements
@@ -166,21 +143,17 @@ Update `aidlc-docs/aidlc-state.md`:
      3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
 
 ```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
+> **REVIEW REQUIRED:**
 > Please examine the requirements document at: `aidlc-docs/inception/requirements/requirements.md`
 
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
+> **WHAT'S NEXT?**
 >
 > **You may:**
 >
-> 🔧 **Request Changes** -  Ask for modifications to the requirements if required based on your review 
+> **Request Changes** - Ask for modifications to the requirements if required based on your review
 > [IF User Stories will be skipped, add this option:]
-> 📝 **Add User Stories** - Choose to Include **User Stories** stage (currently skipped based on project simplicity)  
-> ✅ **Approve & Continue** - Approve requirements and proceed to **[User Stories/Workflow Planning]**
-
----
+> **Add User Stories** - Choose to Include **User Stories** stage (currently skipped based on project simplicity)
+> **Approve & Continue** - Approve requirements and proceed to **[User Stories/Workflow Planning]**
 ```
 
 **Note**: Include the "Add User Stories" option only when User Stories stage will be skipped. Replace [User Stories/Workflow Planning] with the actual next stage name.

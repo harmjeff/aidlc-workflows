@@ -21,20 +21,19 @@ Map logical software components to actual infrastructure choices for deployment 
 - Each step should have a checkbox []
 
 ### Step 3: Generate Context-Appropriate Questions
-**DIRECTIVE**: Analyze the functional and NFR design to generate ONLY questions relevant to THIS specific unit's infrastructure needs. Use the categories below as inspiration, NOT as a mandatory checklist. Skip entire categories if not applicable.
+Analyze the functional and NFR design to generate only questions relevant to this unit's infrastructure needs. Use the categories below as reference, not a mandatory checklist. Skip categories that are not applicable.
 
 - EMBED questions using [Answer]: tag format
-- Focus on ambiguities and missing information specific to this unit
-- Generate questions only where user input is needed for infrastructure decisions
+- Focus on ambiguities specific to this unit's infrastructure decisions
 
-**Example question categories** (adapt as needed):
-- **Deployment Environment** - Only if cloud provider or environment setup is unclear
-- **Compute Infrastructure** - Only if compute service choice needs clarification
-- **Storage Infrastructure** - Only if database or storage selection is ambiguous
-- **Messaging Infrastructure** - Only if messaging/queuing services need specification
-- **Networking Infrastructure** - Only if load balancing or API gateway approach is unclear
-- **Monitoring Infrastructure** - Only if observability tooling needs clarification
-- **Shared Infrastructure** - Only if infrastructure sharing strategy is ambiguous
+**Suggested question categories** (adapt as needed):
+- **Deployment Environment** - If cloud provider or environment setup is unclear
+- **Compute Infrastructure** - If compute service choice needs clarification
+- **Storage Infrastructure** - If database or storage selection is ambiguous
+- **Messaging Infrastructure** - If messaging/queuing services need specification
+- **Networking Infrastructure** - If load balancing or API gateway approach is unclear
+- **Monitoring Infrastructure** - If observability tooling needs clarification
+- **Shared Infrastructure** - If infrastructure sharing strategy is ambiguous
 
 ### Step 4: Store Plan
 - Save as `aidlc-docs/construction/plans/{unit-name}-infrastructure-design-plan.md`
@@ -55,7 +54,7 @@ Map logical software components to actual infrastructure choices for deployment 
      1. **Completion Announcement** (mandatory): Always start with this:
 
 ```markdown
-# 🏢 Infrastructure Design Complete - [unit-name]
+# Infrastructure Design Complete - [unit-name]
 ```
 
      2. **AI Summary** (optional): Provide structured bullet-point summary of infrastructure design
@@ -63,24 +62,20 @@ Map logical software components to actual infrastructure choices for deployment 
         - List key infrastructure services and components (bullet points)
         - List deployment architecture decisions and rationale
         - Mention cloud provider choices and service mappings
-        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase", "before we proceed")
+        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase")
         - Keep factual and content-focused
      3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
 
 ```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
+> **REVIEW REQUIRED:**
 > Please examine the infrastructure design at: `aidlc-docs/construction/[unit-name]/infrastructure-design/`
 
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
+> **WHAT'S NEXT?**
 >
 > **You may:**
 >
-> 🔧 **Request Changes** - Ask for modifications to the infrastructure design based on your review  
-> ✅ **Continue to Next Stage** - Approve infrastructure design and proceed to **Code Generation**
-
----
+> **Request Changes** - Ask for modifications to the infrastructure design based on your review
+> **Continue to Next Stage** - Approve infrastructure design and proceed to **Code Generation**
 ```
 
 ### Step 8: Wait for Explicit Approval

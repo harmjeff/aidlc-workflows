@@ -1,332 +1,150 @@
-# Question Format Guide
+# Question Format Guide (Lite)
 
-## MANDATORY: All Questions Must Use This Format
+## Rule: Never Ask Questions in Chat
 
-### Rule: Never Ask Questions in Chat
-**CRITICAL**: You must NEVER ask questions directly in the chat. ALL questions must be placed in dedicated question files.
+ALL questions to the user MUST be placed in dedicated question files. Never ask questions directly in the chat interface. This ensures:
+- Questions are tracked and documented
+- Users can answer at their own pace
+- Responses are structured and machine-readable
+- No questions are lost in conversation history
 
-### Question File Format
+## Question File Format
 
-#### File Naming Convention
-- Use descriptive names: `{phase-name}-questions.md`
-- Examples:
-  - `classification-questions.md`
-  - `requirements-questions.md`
-  - `story-planning-questions.md`
-  - `design-questions.md`
+### File Naming Convention
 
-#### Question Structure
-Every question must include meaningful options plus "Other" as the last option:
+Question files MUST follow the naming pattern:
+```
+{phase-name}-questions.md
+```
 
+Place question files in the `.kiro/` directory alongside other project artifacts.
+
+### Question Structure
+
+Each question MUST use the following format with numbered options and an `[Answer]:` tag. The last option MUST always be "Other (please specify)".
+
+Example:
 ```markdown
-## Question [Number]
-[Clear, specific question text]
+## Q1: What is the primary deployment target?
+1. AWS Lambda
+2. Amazon ECS
+3. Amazon EC2
+4. Other (please specify)
 
-A) [First meaningful option]
-B) [Second meaningful option]
-[...additional options as needed...]
-X) Other (please describe after [Answer]: tag below)
+[Answer]:
 
-[Answer]: 
+## Q2: Which database engine do you prefer?
+1. Amazon DynamoDB
+2. Amazon Aurora PostgreSQL
+3. Amazon RDS MySQL
+4. Other (please specify)
+
+[Answer]:
 ```
 
-**CRITICAL**: 
-- "Other" is MANDATORY as the LAST option for every question
-- Only include meaningful options - don't make up options to fill slots
-- Use as many or as few options as make sense (minimum 2 + Other)
+The user fills in their choice after `[Answer]:` -- either the option number or free text for "Other".
 
-### Complete Example
+## Multiple Choice Guidelines
 
+### Option Count
+
+- Minimum: 2 options (including "Other")
+- Maximum: 6 options (including "Other")
+- Ideal: 3-5 options (including "Other")
+
+If there are more than 5 real choices, group them into categories or split into multiple questions.
+
+### Option Quality
+
+- Options must be mutually exclusive -- no overlapping choices
+- Options must be concrete and specific, not vague
+- Order options from most common/recommended to least common
+- Every question MUST end with "Other (please specify)" as the last option
+
+Good Example:
 ```markdown
-# Requirements Clarification Questions
+## Q1: What authentication method should be used?
+1. Amazon Cognito User Pools
+2. IAM-based authentication
+3. Third-party OAuth provider (e.g., Auth0, Okta)
+4. Other (please specify)
 
-Please answer the following questions to help clarify the requirements.
-
-## Question 1
-What is the primary user authentication method?
-
-A) Username and password
-B) Social media login (Google, Facebook)
-C) Single Sign-On (SSO)
-D) Multi-factor authentication
-E) Other (please describe after [Answer]: tag below)
-
-[Answer]: 
-
-## Question 2
-Will this be a web or mobile application?
-
-A) Web application
-B) Mobile application
-C) Both web and mobile
-D) Other (please describe after [Answer]: tag below)
-
-[Answer]: 
-
-## Question 3
-Is this a new project or existing codebase?
-
-A) New project (greenfield)
-B) Existing codebase (brownfield)
-C) Other (please describe after [Answer]: tag below)
-
-[Answer]: 
+[Answer]:
 ```
 
-### User Response Format
-Users will answer by filling in the letter choice after [Answer]: tag:
+## Workflow Integration
 
+When you need input from the user, follow these four steps in order:
+
+1. **Create** -- Write the question file (`{phase-name}-questions.md`) with all questions formatted per the structure above.
+2. **Inform** -- Tell the user the question file has been created, state how many questions it contains, and ask them to fill in the `[Answer]:` fields.
+3. **Wait** -- Do NOT proceed until the user confirms they have answered. Never assume or guess answers.
+4. **Read** -- Read the completed question file, parse all `[Answer]:` values, and validate them before continuing.
+
+## Error Handling
+
+After reading the question file, validate every answer. Handle the following cases:
+
+### Missing Answers
+
+If any `[Answer]:` tag is empty or missing:
+- List the unanswered questions by number.
+- Ask the user to complete them in the same question file.
+- Wait again before proceeding.
+
+### Invalid Answers
+
+If an answer does not match any provided option number and is not a valid "Other" response:
+- Identify the invalid answer and explain why it is invalid.
+- Ask the user to correct it in the question file.
+- Wait again before proceeding.
+
+### Ambiguous Answers
+
+If an answer is unclear or could map to multiple options:
+- State what you interpreted and ask the user to confirm or clarify.
+- Handle this via the Contradiction and Ambiguity Detection process below.
+
+## Contradiction and Ambiguity Detection (Modified)
+
+After reading user responses, check for contradictions and ambiguities across all answers in the question file. Look for:
+- Answers that conflict with each other (e.g., selecting "serverless" for architecture but "EC2" for deployment)
+- Answers that are internally inconsistent with stated requirements
+- Answers that are too vague to act on
+
+If contradictions or ambiguities are found:
+1. Append a **Clarification** section to the SAME question file -- do NOT create a separate clarification question file.
+2. Include 1-2 targeted clarification questions that address the specific contradictions.
+3. Inform the user that clarification questions have been added to the existing file.
+4. Wait for the user to answer the clarification questions.
+
+Example of appending clarification to an existing question file:
 ```markdown
-## Question 1
-What is the primary user authentication method?
+---
 
-A) Username and password
-B) Social media login (Google, Facebook)
-C) Single Sign-On (SSO)
-D) Multi-factor authentication
+## Clarification
 
-[Answer]: C
+Your answers to Q1 and Q3 appear to conflict: you selected "serverless" architecture but "EC2" as the compute target. Please clarify:
+
+## C1: Which compute model do you intend?
+1. Serverless (Lambda) -- aligning with Q1
+2. EC2-based -- aligning with Q3
+3. Other (please specify)
+
+[Answer]:
 ```
 
-### Reading User Responses
-After user confirms completion:
-1. Read the question file
-2. Extract answers after [Answer]: tags
-3. Validate all questions are answered
-4. Proceed with analysis based on responses
+## Follow-up Questions (Modified)
 
-### Multiple Choice Guidelines
+One round of follow-up is the maximum. The process is:
 
-#### Option Count
-- Minimum: 2 meaningful options + "Other" (A, B, C)
-- Typical: 3-4 meaningful options + "Other" (A, B, C, D, E)
-- Maximum: 5 meaningful options + "Other" (A, B, C, D, E, F)
-- **CRITICAL**: Don't make up options just to fill slots - only include meaningful choices
+1. After reading initial answers, check for contradictions and ambiguities (see above).
+2. If clarification is needed, append clarification questions to the same file (one round only).
+3. Read the user's clarification answers.
+4. If ambiguity remains after this single round of clarification, do the following:
+   - State your assumption explicitly and clearly.
+   - Document the assumption in the relevant artifact (e.g., design document, spec, or task file).
+   - Proceed with work based on that assumption.
+   - Do NOT create additional follow-up question files or additional clarification rounds.
 
-#### Option Quality
-- Make options mutually exclusive
-- Cover the most common scenarios
-- Only include meaningful, realistic options
-- **ALWAYS include "Other" as the LAST option** (MANDATORY)
-- Be specific and clear
-- **Don't make up options to fill A, B, C, D slots**
-
-#### Good Example:
-```markdown
-## Question 5
-What database technology will be used?
-
-A) Relational (PostgreSQL, MySQL)
-B) NoSQL Document (MongoDB, DynamoDB)
-C) NoSQL Key-Value (Redis, Memcached)
-D) Graph Database (Neo4j, Neptune)
-E) Other (please describe after [Answer]: tag below)
-
-[Answer]: 
-```
-
-#### Bad Example (Avoid):
-```markdown
-## Question 5
-What database will you use?
-
-A) Yes
-B) No
-C) Maybe
-
-[Answer]: 
-```
-
-### Workflow Integration
-
-#### Step 1: Create Question File
-```markdown
-Create aidlc-docs/{phase-name}-questions.md with all questions
-```
-
-#### Step 2: Inform User
-```
-"I've created {phase-name}-questions.md with [X] questions. 
-Please answer each question by filling in the letter choice after the [Answer]: tag. 
-If none of the options match your needs, choose the last option (Other) and describe your preference. Let me know when you're done."
-```
-
-#### Step 3: Wait for Confirmation
-Wait for user to say "done", "completed", "finished", or similar.
-
-#### Step 4: Read and Analyze
-```
-Read aidlc-docs/{phase-name}-questions.md
-Extract all answers
-Validate completeness
-Proceed with analysis
-```
-
-### Error Handling
-
-#### Missing Answers
-If any [Answer]: tag is empty:
-```
-"I noticed Question [X] is not answered. Please provide an answer using one of the letter choices 
-for all questions before proceeding."
-```
-
-#### Invalid Answers
-If answer is not a valid letter choice:
-```
-"Question [X] has an invalid answer '[answer]'. 
-Please use only the letter choices provided in the question."
-```
-
-#### Ambiguous Answers
-If user provides explanation instead of letter:
-```
-"For Question [X], please provide the letter choice that best matches your answer. 
-If none match, choose 'Other' and add your description after the [Answer]: tag."
-```
-
-### Contradiction and Ambiguity Detection
-
-**MANDATORY**: After reading user responses, you MUST check for contradictions and ambiguities.
-
-#### Detecting Contradictions
-Look for logically inconsistent answers:
-- Scope mismatch: "Bug fix" but "Entire codebase affected"
-- Risk mismatch: "Low risk" but "Breaking changes"
-- Timeline mismatch: "Quick fix" but "Multiple subsystems"
-- Impact mismatch: "Single component" but "Significant architecture changes"
-
-#### Detecting Ambiguities
-Look for unclear or borderline responses:
-- Answers that could fit multiple classifications
-- Responses that lack specificity
-- Conflicting indicators across multiple questions
-
-#### Creating Clarification Questions
-If contradictions or ambiguities detected:
-
-1. **Create clarification file**: `{phase-name}-clarification-questions.md`
-2. **Explain the issue**: Clearly state what contradiction/ambiguity was detected
-3. **Ask targeted questions**: Use multiple choice format to resolve the issue
-4. **Reference original questions**: Show which questions had conflicting answers
-
-**Example**:
-```markdown
-# [Phase Name] Clarification Questions
-
-I detected contradictions in your responses that need clarification:
-
-## Contradiction 1: [Brief Description]
-You indicated "[Answer A]" (Q[X]:[Letter]) but also "[Answer B]" (Q[Y]:[Letter]).
-These responses are contradictory because [explanation].
-
-### Clarification Question 1
-[Specific question to resolve contradiction]
-
-A) [Option that resolves toward first answer]
-B) [Option that resolves toward second answer]
-C) [Option that provides middle ground]
-D) [Option that reframes the question]
-
-[Answer]: 
-
-## Ambiguity 1: [Brief Description]
-Your response to Q[X] ("[Answer]") is ambiguous because [explanation].
-
-### Clarification Question 2
-[Specific question to clarify ambiguity]
-
-A) [Clear option 1]
-B) [Clear option 2]
-C) [Clear option 3]
-D) [Clear option 4]
-
-[Answer]: 
-```
-
-#### Workflow for Clarifications
-
-1. **Detect**: Analyze all responses for contradictions/ambiguities
-2. **Create**: Generate clarification question file if issues found
-3. **Inform**: Tell user about the issues and clarification file
-4. **Wait**: Do not proceed until user provides clarifications
-5. **Re-validate**: After clarifications, check again for consistency
-6. **Proceed**: Only move forward when all contradictions are resolved
-
-#### Example User Message
-```
-"I detected 2 contradictions in your responses:
-
-1. Bug fix scope vs. codebase impact (Q1 vs Q2)
-2. Low risk vs. breaking changes (Q7 vs Q4)
-
-I've created classification-clarification-questions.md with 2 questions to resolve these.
-Please answer these clarifying questions before I can proceed with classification."
-```
-
-### Best Practices
-
-1. **Be Specific**: Questions should be clear and unambiguous
-2. **Be Comprehensive**: Cover all necessary information
-3. **Be Concise**: Keep questions focused on one topic
-4. **Be Practical**: Options should be realistic and actionable
-5. **Be Consistent**: Use same format throughout all question files
-
-### Phase-Specific Examples
-
-#### Example with 2 meaningful options:
-```markdown
-## Question 1
-Is this a new project or existing codebase?
-
-A) New project (greenfield)
-B) Existing codebase (brownfield)
-C) Other (please describe after [Answer]: tag below)
-
-[Answer]: 
-```
-
-#### Example with 3 meaningful options:
-```markdown
-## Question 2
-What is the deployment target?
-
-A) Cloud (AWS, Azure, GCP)
-B) On-premises servers
-C) Hybrid (both cloud and on-premises)
-D) Other (please describe after [Answer]: tag below)
-
-[Answer]: 
-```
-
-#### Example with 4 meaningful options:
-```markdown
-## Question 3
-What architectural pattern should be used?
-
-A) Monolithic architecture
-B) Microservices architecture
-C) Serverless architecture
-D) Event-driven architecture
-E) Other (please describe after [Answer]: tag below)
-
-[Answer]: 
-```
-
-## Summary
-
-**Remember**: 
-- ✅ Always create question files
-- ✅ Always use multiple choice format
-- ✅ **Always include "Other" as the LAST option (MANDATORY)**
-- ✅ Only include meaningful options - don't make up options to fill slots
-- ✅ Always use [Answer]: tags
-- ✅ Always wait for user completion
-- ✅ Always validate responses for contradictions
-- ✅ Always create clarification files if needed
-- ✅ Always resolve contradictions before proceeding
-- ❌ Never ask questions in chat
-- ❌ Never make up options just to have A, B, C, D
-- ❌ Never proceed without answers
-- ❌ Never proceed with unresolved contradictions
-- ❌ Never make assumptions about ambiguous responses
+This keeps the process lightweight: ask once, clarify once if needed, then move forward.

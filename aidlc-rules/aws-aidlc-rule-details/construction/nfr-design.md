@@ -20,18 +20,17 @@ Incorporate NFR requirements into unit design using patterns and logical compone
 - Each step should have a checkbox []
 
 ### Step 3: Generate Context-Appropriate Questions
-**DIRECTIVE**: Analyze the NFR requirements to generate ONLY questions relevant to THIS specific unit's NFR design. Use the categories below as inspiration, NOT as a mandatory checklist. Skip entire categories if not applicable.
+Analyze the NFR requirements and generate only questions relevant to this unit's NFR design. Use the categories below as reference, not a mandatory checklist. Skip categories that are not applicable.
 
 - EMBED questions using [Answer]: tag format
-- Focus on ambiguities and missing information specific to this unit
-- Generate questions only where user input is needed for pattern and component decisions
+- Focus on ambiguities specific to this unit's pattern and component decisions
 
-**Example question categories** (adapt as needed):
-- **Resilience Patterns** - Only if fault tolerance approach needs clarification
-- **Scalability Patterns** - Only if scaling mechanisms are unclear
-- **Performance Patterns** - Only if performance optimization strategy is ambiguous
-- **Security Patterns** - Only if security implementation approach needs input
-- **Logical Components** - Only if infrastructure components (queues, caches, etc.) need clarification
+**Suggested question categories** (adapt as needed):
+- **Resilience Patterns** - If fault tolerance approach needs clarification
+- **Scalability Patterns** - If scaling mechanisms are unclear
+- **Performance Patterns** - If performance optimization strategy is ambiguous
+- **Security Patterns** - If security implementation approach needs input
+- **Logical Components** - If infrastructure components (queues, caches, etc.) need clarification
 
 ### Step 4: Store Plan
 - Save as `aidlc-docs/construction/plans/{unit-name}-nfr-design-plan.md`
@@ -51,7 +50,7 @@ Incorporate NFR requirements into unit design using patterns and logical compone
      1. **Completion Announcement** (mandatory): Always start with this:
 
 ```markdown
-# 🎨 NFR Design Complete - [unit-name]
+# NFR Design Complete - [unit-name]
 ```
 
      2. **AI Summary** (optional): Provide structured bullet-point summary of NFR design
@@ -59,24 +58,20 @@ Incorporate NFR requirements into unit design using patterns and logical compone
         - List key design patterns implemented (bullet points)
         - List logical components and infrastructure elements
         - Mention resilience, scalability, and performance patterns applied
-        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase", "before we proceed")
+        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase")
         - Keep factual and content-focused
      3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
 
 ```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
+> **REVIEW REQUIRED:**
 > Please examine the NFR design at: `aidlc-docs/construction/[unit-name]/nfr-design/`
 
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
+> **WHAT'S NEXT?**
 >
 > **You may:**
 >
-> 🔧 **Request Changes** - Ask for modifications to the NFR design based on your review  
-> ✅ **Continue to Next Stage** - Approve NFR design and proceed to **[next-stage-name]**
-
----
+> **Request Changes** - Ask for modifications to the NFR design based on your review
+> **Continue to Next Stage** - Approve NFR design and proceed to **[next-stage-name]**
 ```
 
 ### Step 8: Wait for Explicit Approval

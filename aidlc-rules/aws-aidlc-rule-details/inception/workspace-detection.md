@@ -40,49 +40,33 @@ Check if `aidlc-docs/aidlc-state.md` exists:
 
 ## Step 4: Create Initial State File
 
-Create `aidlc-docs/aidlc-state.md`:
-
-```markdown
-# AI-DLC State Tracking
-
-## Project Information
-- **Project Type**: [Greenfield/Brownfield]
-- **Start Date**: [ISO timestamp]
-- **Current Stage**: INCEPTION - Workspace Detection
-
-## Workspace State
-- **Existing Code**: [Yes/No]
-- **Reverse Engineering Needed**: [Yes/No]
-- **Workspace Root**: [Absolute path]
-
-## Code Location Rules
-- **Application Code**: Workspace root (NEVER in aidlc-docs/)
-- **Documentation**: aidlc-docs/ only
-- **Structure patterns**: See code-generation.md Critical Rules
-
-## Stage Progress
-[Will be populated as workflow progresses]
-```
+Create `aidlc-docs/aidlc-state.md` with:
+- Project Type (Greenfield/Brownfield)
+- Start Date (ISO timestamp)
+- Current Stage
+- Workspace State (Existing Code Y/N, Reverse Engineering Needed Y/N, Workspace Root)
+- Code Location Rules (Application Code at workspace root, Documentation in aidlc-docs/)
+- Stage Progress section (populated as workflow progresses)
 
 ## Step 5: Present Completion Message
 
 **For Brownfield Projects:**
 ```markdown
-# 🔍 Workspace Detection Complete
+# Workspace Detection Complete
 
 Workspace analysis findings:
-• **Project Type**: Brownfield project
-• [AI-generated summary of workspace findings in bullet points]
-• **Next Step**: Proceeding to **Reverse Engineering** to analyze existing codebase...
+- **Project Type**: Brownfield project
+- [AI-generated summary of workspace findings in bullet points]
+- **Next Step**: Proceeding to **Reverse Engineering** to analyze existing codebase...
 ```
 
 **For Greenfield Projects:**
 ```markdown
-# 🔍 Workspace Detection Complete
+# Workspace Detection Complete
 
 Workspace analysis findings:
-• **Project Type**: Greenfield project
-• **Next Step**: Proceeding to **Requirements Analysis**...
+- **Project Type**: Greenfield project
+- **Next Step**: Proceeding to **Requirements Analysis**...
 ```
 
 ## Step 6: Automatically Proceed

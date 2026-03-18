@@ -33,24 +33,19 @@ Design detailed business logic for the unit, technology-agnostic and focused pur
 - Each step should have a checkbox []
 
 ### Step 3: Generate Context-Appropriate Questions
-**DIRECTIVE**: Thoroughly analyze the unit definition and functional design artifacts to identify ALL areas where clarification would improve the functional design. Be proactive in asking questions to ensure comprehensive understanding.
-
-**CRITICAL**: Default to asking questions when there is ANY ambiguity or missing detail that could affect functional design quality. It's better to ask too many questions than to make incorrect assumptions.
+Ask 3-5 questions on the categories most relevant to this unit. Skip categories where the answer is evident from requirements, stories, or application design artifacts. Focus on areas where clarification would genuinely change the design.
 
 - EMBED questions using [Answer]: tag format
-- Focus on ANY ambiguities, missing information, or areas needing clarification
-- Generate questions wherever user input would improve functional design decisions
-- **When in doubt, ask the question** - overconfidence leads to poor designs
+- Only ask where user input would materially improve the functional design
 
-**Question categories to consider** (evaluate ALL categories):
-- **Business Logic Modeling** - Ask about core entities, workflows, data transformations, and business processes
-- **Domain Model** - Ask about domain concepts, entity relationships, data structures, and business objects
-- **Business Rules** - Ask about decision rules, validation logic, constraints, and business policies
-- **Data Flow** - Ask about data inputs, outputs, transformations, and persistence requirements
-- **Integration Points** - Ask about external system interactions, APIs, and data exchange
-- **Error Handling** - Ask about error scenarios, validation failures, and exception handling
-- **Business Scenarios** - Ask about edge cases, alternative flows, and complex business situations
-- **Frontend Components** (if applicable) - Ask about UI component structure, user interactions, state management, and form handling
+**Suggested question categories** (pick the most relevant):
+- **Business Logic Modeling** - Core entities, workflows, data transformations, and business processes
+- **Domain Model** - Domain concepts, entity relationships, data structures, and business objects
+- **Business Rules** - Decision rules, validation logic, constraints, and business policies
+- **Data Flow** - Data inputs, outputs, transformations, and persistence requirements
+- **Integration Points** - External system interactions, APIs, and data exchange
+- **Error Handling** - Error scenarios, validation failures, and exception handling
+- **Business Scenarios** - Edge cases, alternative flows, and complex business situations
 
 ### Step 4: Store Plan
 - Save as `aidlc-docs/construction/plans/{unit-name}-functional-design-plan.md`
@@ -58,29 +53,19 @@ Design detailed business logic for the unit, technology-agnostic and focused pur
 
 ### Step 5: Collect and Analyze Answers
 - Wait for user to complete all [Answer]: tags
-- **MANDATORY**: Carefully review ALL responses for vague or ambiguous answers
-- **CRITICAL**: Add follow-up questions for ANY unclear responses - do not proceed with ambiguity
-- Look for responses like "depends", "maybe", "not sure", "mix of", "somewhere between"
-- Create clarification questions file if ANY ambiguities are detected
-- **Do not proceed until ALL ambiguities are resolved**
+- Review responses. If critical design points are ambiguous, ask up to 2 targeted clarifications in the same plan document. Then proceed.
 
 ### Step 6: Generate Functional Design Artifacts
 - Create `aidlc-docs/construction/{unit-name}/functional-design/business-logic-model.md`
 - Create `aidlc-docs/construction/{unit-name}/functional-design/business-rules.md`
 - Create `aidlc-docs/construction/{unit-name}/functional-design/domain-entities.md`
-- If unit includes frontend/UI: Create `aidlc-docs/construction/{unit-name}/functional-design/frontend-components.md`
-  - Component hierarchy and structure
-  - Props and state definitions for each component
-  - User interaction flows
-  - Form validation rules
-  - API integration points (which backend endpoints each component uses)
 
 ### Step 7: Present Completion Message
 - Present completion message in this structure:
      1. **Completion Announcement** (mandatory): Always start with this:
 
 ```markdown
-# 🔧 Functional Design Complete - [unit-name]
+# Functional Design Complete - [unit-name]
 ```
 
      2. **AI Summary** (optional): Provide structured bullet-point summary of functional design
@@ -88,24 +73,20 @@ Design detailed business logic for the unit, technology-agnostic and focused pur
         - List key business logic models and entities (bullet points)
         - List business rules and validation logic defined
         - Mention domain model structure and relationships
-        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase", "before we proceed")
+        - DO NOT include workflow instructions ("please review", "let me know", "proceed to next phase")
         - Keep factual and content-focused
      3. **Formatted Workflow Message** (mandatory): Always end with this exact format:
 
 ```markdown
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
+> **REVIEW REQUIRED:**
 > Please examine the functional design artifacts at: `aidlc-docs/construction/[unit-name]/functional-design/`
 
-
-
-> **🚀 <u>**WHAT'S NEXT?**</u>**
+> **WHAT'S NEXT?**
 >
 > **You may:**
 >
-> 🔧 **Request Changes** - Ask for modifications to the functional design based on your review  
-> ✅ **Continue to Next Stage** - Approve functional design and proceed to **[next-stage-name]**
-
----
+> **Request Changes** - Ask for modifications to the functional design based on your review
+> **Continue to Next Stage** - Approve functional design and proceed to **[next-stage-name]**
 ```
 
 ### Step 8: Wait for Explicit Approval
