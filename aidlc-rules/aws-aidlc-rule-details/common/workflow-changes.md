@@ -1,8 +1,14 @@
-# Mid-Workflow Changes and Phase Management
+# Mid-Workflow Changes
 
-## Overview
+**Stage Type**: COMMON  
+**Load Timing**: When user requests workflow changes  
+**Unload Timing**: After change is processed
 
-Users may request changes to the execution plan or phase execution during the workflow. This document provides guidance on handling these requests safely and effectively.
+---
+
+## Purpose
+
+Handles user requests to modify the execution plan or phase execution during the workflow.
 
 ---
 
@@ -17,7 +23,7 @@ Users may request changes to the execution plan or phase execution during the wo
 **Handling**:
 1. **Confirm Request**: "You want to add User Stories stage. This will create user stories and personas. Confirm?"
 2. **Check Dependencies**: Verify all prerequisite phases are complete
-3. **Update Execution Plan**: Add phase to `execution-plan.md` with rationale
+3. **Update Execution Plan**: Add phase to workflow plan with rationale
 4. **Update State**: Mark phase as "PENDING" in `aidlc-state.md`
 5. **Execute Phase**: Follow normal phase execution process
 6. **Log Change**: Document in `audit.md` with timestamp and reason
@@ -111,7 +117,7 @@ Users may request changes to the execution plan or phase execution during the wo
 
 **Handling**:
 1. **Confirm Request**: "You want to change Requirements Analysis from Standard to Comprehensive depth. This will be more thorough but take longer. Confirm?"
-2. **Update Execution Plan**: Change depth level in `workflow-planning.md`
+2. **Update Execution Plan**: Change depth level in workflow plan
 3. **Adjust Approach**: Follow comprehensive depth guidelines for the stage
 4. **Update Estimates**: Inform user of new timeline estimate
 5. **Log Change**: Document depth change and reason
@@ -196,34 +202,6 @@ Users may request changes to the execution plan or phase execution during the wo
 
 ---
 
-## General Guidelines for Handling Changes
-
-### Before Making Changes
-
-1. **Understand the Request**: Ask clarifying questions about what user wants to change and why
-2. **Assess Impact**: Identify all affected stages, artifacts, and dependencies
-3. **Explain Consequences**: Clearly communicate what will need to be redone and timeline impact
-4. **Offer Alternatives**: Sometimes modification is better than restart
-5. **Get Explicit Confirmation**: User must understand and accept the impact
-
-### During Changes
-
-1. **Archive Existing Work**: Always backup before making destructive changes
-2. **Update All Tracking**: Keep `aidlc-state.md`, plan files, and `audit.md` in sync
-3. **Communicate Progress**: Keep user informed about what's happening
-4. **Validate Changes**: Ensure changes are consistent across all artifacts
-5. **Test Continuity**: Verify workflow can continue smoothly after changes
-
-### After Changes
-
-1. **Verify Consistency**: Check that all artifacts are aligned with changes
-2. **Update Documentation**: Ensure all references are updated
-3. **Log Completely**: Document full change history in `audit.md`
-4. **Confirm with User**: Verify changes meet user's expectations
-5. **Resume Workflow**: Continue with normal execution from new state
-
----
-
 ## Change Request Decision Tree
 
 ```
@@ -283,3 +261,16 @@ User requests change
 6. **Log Thoroughly**: Document all changes for audit trail
 7. **Validate After**: Ensure workflow can continue smoothly
 8. **Be Flexible**: Workflow should adapt to user needs, not force rigid process
+
+---
+
+## Context Management
+
+**When to Load**: When user requests workflow changes
+
+**When to Unload**: After change is processed and workflow continues
+
+**Related Files**:
+- `session-continuity.md` - Session resumption procedures
+- `audit-logging.md` - Change logging requirements
+- `error-handling.md` - Recovery procedures

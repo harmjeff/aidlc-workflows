@@ -1,311 +1,167 @@
 # Reverse Engineering
 
-**Purpose**: Analyze existing codebase and generate comprehensive design artifacts
+**Purpose:** Understand existing codebase structure, architecture, and components before making changes.
 
-**Execute when**: Brownfield project detected (existing code found in workspace)
+**Stage Type:** CONDITIONAL
 
-**Skip when**: Greenfield project (no existing code)
+**Phase:** INCEPTION
 
-**Rerun behavior**: Always rerun when brownfield project detected, even if artifacts exist. This ensures artifacts reflect current code state
+**Load this file when:** Starting Reverse Engineering stage for brownfield project
 
-## Step 1: Multi-Package Discovery
+**Unload this file after:** Reverse Engineering completes and user approves
 
-### 1.1 Scan Workspace
-- All packages (not just mentioned ones)
-- Package relationships via config files
-- Package types: Application, CDK/Infrastructure, Models, Clients, Tests
+---
 
-### 1.2 Understand the Business Context
-- The core business that the system is implementing overall
-- The business overview of every package
-- List of Business Transactions that are implemented in the system
+## Execute IF
 
-### 1.3 Infrastructure Discovery
-- CDK packages (package.json with CDK dependencies)
-- Terraform (.tf files)
-- CloudFormation (.yaml/.json templates)
-- Deployment scripts
+- Existing codebase detected (brownfield project) **AND**
+- No previous reverse engineering artifacts found **OR**
+- Previous artifacts are incomplete or outdated
 
-### 1.4 Build System Discovery
-- Build systems: Brazil, Maven, Gradle, npm
-- Config files for build-system declarations
-- Build dependencies between packages
+## Skip IF
 
-### 1.5 Service Architecture Discovery
-- Lambda functions (handlers, triggers)
-- Container services (Docker/ECS configs)
-- API definitions (Smithy models, OpenAPI specs)
-- Data stores (DynamoDB, S3, etc.)
+- Greenfield project (no existing code) **OR**
+- Previous reverse engineering artifacts already exist and are complete
 
-### 1.6 Code Quality Analysis
-- Programming languages and frameworks
-- Test coverage indicators
-- Linting configurations
-- CI/CD pipelines
+---
 
-## Step 1: Generate Business Overview Documentation
+## Steps
 
-Create `aidlc-docs/inception/reverse-engineering/business-overview.md`:
+### Step 1: Log Start of Reverse Engineering
+**Action:** Log start of reverse engineering in audit.md.
 
-```markdown
-# Business Overview
+**Template:** `../../templates/audit-logs/basic-entry.md`
 
-## Business Context Diagram
-[Mermaid diagram showing the Business Context]
+**Log with:**
+- Stage: Reverse Engineering
+- Context: Starting reverse engineering of existing codebase
 
-## Business Description
-- **Business Description**: [Overall Business description of what the system does]
-- **Business Transactions**: [List of Business Transactions that the system implements and their descriptions]
-- **Business Dictionary**: [Business dictionary terms that the system follows and their meaning]
+### Step 2: Analyze Codebase
+**Action:** Perform comprehensive codebase analysis:
 
-## Component Level Business Descriptions
-### [Package/Component Name]
-- **Purpose**: [What it does from the business perspective]
-- **Responsibilities**: [Key responsibilities]
-```
+**Analysis Areas:**
+1. **Multi-Package Discovery** - Identify all packages, modules, components
+2. **Business Context** - Understand business domain, transactions, workflows
+3. **Infrastructure Discovery** - Identify IaC files, cloud resources, deployment patterns
+4. **Build System Discovery** - Identify build tools, configurations, dependencies
+5. **Service Architecture** - Identify service boundaries, communication patterns, APIs
+6. **Code Quality** - Assess code organization, patterns, test coverage, technical debt
 
-## Step 2: Generate Architecture Documentation
+### Step 3: Generate Reverse Engineering Artifacts
+**Action:** Create 9 mandatory artifacts in `aidlc-docs/inception/reverse-engineering/`:
 
-Create `aidlc-docs/inception/reverse-engineering/architecture.md`:
+**Artifacts to Create:**
+1. **business-overview.md** - Business domain, transactions, terminology
+2. **architecture.md** - System architecture, components, patterns
+3. **code-structure.md** - Directory structure, packages, modules
+4. **api-documentation.md** - APIs, endpoints, contracts
+5. **component-inventory.md** - All components with responsibilities
+6. **interaction-diagrams.md** - Component interactions, data flow
+7. **technology-stack.md** - Languages, frameworks, tools, versions
+8. **dependencies.md** - Internal and external dependencies
+9. **reverse-engineering-timestamp.md** - Timestamp and metadata
 
-```markdown
-# System Architecture
+**Each artifact should:**
+- Document findings from codebase analysis
+- Be comprehensive and detailed
+- Include examples from actual code
+- Provide context for future changes
 
-## System Overview
-[High-level description of the system]
+### Step 4: Update State Tracking
+**Action:** Update `aidlc-docs/aidlc-state.md` to reflect completion.
 
-## Architecture Diagram
-[Mermaid diagram showing all packages, services, data stores, relationships]
+**Template:** `../../templates/state/aidlc-state.md`
 
-## Component Descriptions
-### [Package/Component Name]
-- **Purpose**: [What it does]
-- **Responsibilities**: [Key responsibilities]
-- **Dependencies**: [What it depends on]
-- **Type**: [Application/Infrastructure/Model/Client/Test]
+### Step 5: Present Completion Message
+**Action:** Present completion message to user.
 
-## Data Flow
-[Mermaid sequence diagram of key workflows]
-
-## Integration Points
-- **External APIs**: [List with purposes]
-- **Databases**: [List with purposes]
-- **Third-party Services**: [List with purposes]
-
-## Infrastructure Components
-- **CDK Stacks**: [List with purposes]
-- **Deployment Model**: [Description]
-- **Networking**: [VPC, subnets, security groups]
-```
-
-## Step 3: Generate Code Structure Documentation
-
-Create `aidlc-docs/inception/reverse-engineering/code-structure.md`:
-
-```markdown
-# Code Structure
-
-## Build System
-- **Type**: [Maven/Gradle/npm/Brazil]
-- **Configuration**: [Key build files and settings]
-
-## Key Classes/Modules
-[Mermaid class diagram or module hierarchy]
-
-### Existing Files Inventory
-[List all source files with their purposes - these are candidates for modification in brownfield projects]
-
-**Example format**:
-- `[path/to/file]` - [Purpose/responsibility]
-
-## Design Patterns
-### [Pattern Name]
-- **Location**: [Where used]
-- **Purpose**: [Why used]
-- **Implementation**: [How implemented]
-
-## Critical Dependencies
-### [Dependency Name]
-- **Version**: [Version number]
-- **Usage**: [How and where used]
-- **Purpose**: [Why needed]
-```
-
-## Step 4: Generate API Documentation
-
-Create `aidlc-docs/inception/reverse-engineering/api-documentation.md`:
-
-```markdown
-# API Documentation
-
-## REST APIs
-### [Endpoint Name]
-- **Method**: [GET/POST/PUT/DELETE]
-- **Path**: [/api/path]
-- **Purpose**: [What it does]
-- **Request**: [Request format]
-- **Response**: [Response format]
-
-## Internal APIs
-### [Interface/Class Name]
-- **Methods**: [List with signatures]
-- **Parameters**: [Parameter descriptions]
-- **Return Types**: [Return type descriptions]
-
-## Data Models
-### [Model Name]
-- **Fields**: [Field descriptions]
-- **Relationships**: [Related models]
-- **Validation**: [Validation rules]
-```
-
-## Step 5: Generate Component Inventory
-
-Create `aidlc-docs/inception/reverse-engineering/component-inventory.md`:
-
-```markdown
-# Component Inventory
-
-## Application Packages
-- [Package name] - [Purpose]
-
-## Infrastructure Packages
-- [Package name] - [CDK/Terraform] - [Purpose]
-
-## Shared Packages
-- [Package name] - [Models/Utilities/Clients] - [Purpose]
-
-## Test Packages
-- [Package name] - [Integration/Load/Unit] - [Purpose]
-
-## Total Count
-- **Total Packages**: [Number]
-- **Application**: [Number]
-- **Infrastructure**: [Number]
-- **Shared**: [Number]
-- **Test**: [Number]
-```
-
-## Step 6: Generate Technology Stack Documentation
-
-Create `aidlc-docs/inception/reverse-engineering/technology-stack.md`:
-
-```markdown
-# Technology Stack
-
-## Programming Languages
-- [Language] - [Version] - [Usage]
-
-## Frameworks
-- [Framework] - [Version] - [Purpose]
-
-## Infrastructure
-- [Service] - [Purpose]
-
-## Build Tools
-- [Tool] - [Version] - [Purpose]
-
-## Testing Tools
-- [Tool] - [Version] - [Purpose]
-```
-
-## Step 7: Generate Dependencies Documentation
-
-Create `aidlc-docs/inception/reverse-engineering/dependencies.md`:
-
-```markdown
-# Dependencies
-
-## Internal Dependencies
-[Mermaid diagram showing package dependencies]
-
-### [Package A] depends on [Package B]
-- **Type**: [Compile/Runtime/Test]
-- **Reason**: [Why dependency exists]
-
-## External Dependencies
-### [Dependency Name]
-- **Version**: [Version]
-- **Purpose**: [Why used]
-- **License**: [License type]
-```
-
-## Step 8: Generate Code Quality Assessment
-
-Create `aidlc-docs/inception/reverse-engineering/code-quality-assessment.md`:
-
-```markdown
-# Code Quality Assessment
-
-## Test Coverage
-- **Overall**: [Percentage or Good/Fair/Poor/None]
-- **Unit Tests**: [Status]
-- **Integration Tests**: [Status]
-
-## Code Quality Indicators
-- **Linting**: [Configured/Not configured]
-- **Code Style**: [Consistent/Inconsistent]
-- **Documentation**: [Good/Fair/Poor]
-
-## Technical Debt
-- [Issue description and location]
-
-## Patterns and Anti-patterns
-- **Good Patterns**: [List]
-- **Anti-patterns**: [List with locations]
-```
-
-## Step 9: Create Timestamp File
-
-Create `aidlc-docs/inception/reverse-engineering/reverse-engineering-timestamp.md`:
-
-```markdown
-# Reverse Engineering Metadata
-
-**Analysis Date**: [ISO timestamp]
-**Analyzer**: AI-DLC
-**Workspace**: [Workspace path]
-**Total Files Analyzed**: [Number]
-
-## Artifacts Generated
-- [x] architecture.md
-- [x] code-structure.md
-- [x] api-documentation.md
-- [x] component-inventory.md
-- [x] technology-stack.md
-- [x] dependencies.md
-- [x] code-quality-assessment.md
-```
-
-## Step 10: Update State Tracking
-
-Update `aidlc-docs/aidlc-state.md`:
-
-```markdown
-## Reverse Engineering Status
-- [x] Reverse Engineering - Completed on [timestamp]
-- **Artifacts Location**: aidlc-docs/inception/reverse-engineering/
-```
-
-## Step 11: Present Completion Message to User
-
+**Message:**
 ```markdown
 # 🔍 Reverse Engineering Complete
 
-[AI-generated summary of key findings from analysis in the form of bullet points]
+I've analyzed your existing codebase and created comprehensive documentation.
 
-> **📋 <u>**REVIEW REQUIRED:**</u>**  
-> Please examine the reverse engineering artifacts at: `aidlc-docs/inception/reverse-engineering/`
+**Artifacts Created:**
+- ✅ business-overview.md - Business domain and transactions
+- ✅ architecture.md - System architecture
+- ✅ code-structure.md - Code organization
+- ✅ api-documentation.md - API documentation
+- ✅ component-inventory.md - Component catalog
+- ✅ interaction-diagrams.md - Component interactions
+- ✅ technology-stack.md - Technology stack
+- ✅ dependencies.md - Dependencies
+- ✅ reverse-engineering-timestamp.md - Analysis metadata
 
-> **🚀 <u>**WHAT'S NEXT?**</u>**
->
-> **You may:**
->
-> 🔧 **Request Changes** - Ask for modifications to the reverse engineering analysis if required
-> ✅ **Approve & Continue** - Approve analysis and proceed to **Requirements Analysis**
+**Location:** `aidlc-docs/inception/reverse-engineering/`
+
+---
+
+**What would you like to do?**
+
+🔧 **Request Changes** - Ask for modifications to the analysis
+
+✅ **Continue to Next Stage** - Approve and proceed to Requirements Analysis
+
+---
+
+Please choose one of the options above.
 ```
 
-## Step 12: Wait for User Approval
+### Step 6: Wait for User Response
+**Action:** **WAIT FOR EXPLICIT APPROVAL** - Do NOT proceed until user confirms.
 
-- **MANDATORY**: Do not proceed until user explicitly approves
-- **MANDATORY**: Log user's response in audit.md with complete raw input
+**Handle response:**
+- If "Request Changes" → Make modifications and return to Step 5
+- If "Continue" → Proceed to Step 7
+
+### Step 7: Log User Approval
+**Action:** Record approval in audit.md with complete raw input.
+
+**Template:** `../../templates/audit-logs/basic-entry.md`
+
+---
+
+## Artifacts Created
+
+1. **business-overview.md** - Business domain understanding
+2. **architecture.md** - System architecture documentation
+3. **code-structure.md** - Code organization documentation
+4. **api-documentation.md** - API documentation
+5. **component-inventory.md** - Component catalog
+6. **interaction-diagrams.md** - Component interaction documentation
+7. **technology-stack.md** - Technology stack documentation
+8. **dependencies.md** - Dependency documentation
+9. **reverse-engineering-timestamp.md** - Analysis metadata
+
+All artifacts in: `aidlc-docs/inception/reverse-engineering/`
+
+---
+
+## Key Principles
+
+1. **Comprehensive Analysis:** Analyze all aspects of the codebase
+2. **Business Context:** Understand business domain and transactions
+3. **Technical Detail:** Document architecture, components, APIs
+4. **Reusable Artifacts:** Create artifacts that inform future stages
+5. **Complete Audit Trail:** Log all user inputs
+6. **Explicit Approval:** WAIT for user approval before proceeding
+
+---
+
+## Templates Reference
+
+All templates are located in `../../templates/` directory:
+
+- **Audit Logs:** `audit-logs/basic-entry.md`
+- **State:** `state/aidlc-state.md`
+
+---
+
+## Next Stage
+
+After approval:
+- **Requirements Analysis** stage
+
+---
+
+**End of Reverse Engineering Stage Instructions**

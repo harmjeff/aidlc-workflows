@@ -1,78 +1,174 @@
 # Content Validation Rules
 
-## MANDATORY: Content Validation Before File Creation
+**Purpose:** Prevent file creation errors through pre-validation
 
-**CRITICAL**: All generated content MUST be validated before writing to files to prevent parsing errors.
+**CRITICAL:** All content MUST be validated before writing to files.
 
-## ASCII Diagram Standards
-
-**CRITICAL**: Before creating ANY file with ASCII diagrams:
-
-1. **LOAD** `common/ascii-diagram-standards.md`
-2. **VALIDATE** each diagram:
-   - Count characters per line (all lines MUST be same width)
-   - Use ONLY: `+` `-` `|` `^` `v` `<` `>` and spaces
-   - NO Unicode box-drawing characters
-   - Spaces only (NO tabs)
-3. **TEST** alignment by verifying box corners align vertically
-
-**See `common/ascii-diagram-standards.md` for patterns and validation checklist.**
+---
 
 ## Mermaid Diagram Validation
 
 ### Required Validation Steps
-1. **Syntax Check**: Validate Mermaid syntax before file creation
-2. **Character Escaping**: Ensure special characters are properly escaped
-3. **Fallback Content**: Provide text alternative if Mermaid fails validation
 
-### Mermaid Validation Rules
-```markdown
-## BEFORE creating any file with Mermaid diagrams:
+**BEFORE creating any file with Mermaid diagrams:**
 
-1. Check for invalid characters in node IDs (use alphanumeric + underscore only)
-2. Escape special characters in labels: " → \" and ' → \'
-3. Validate flowchart syntax: node connections must be valid
-4. Test diagram parsing with simple validation
+1. **Syntax Check**
+   - Validate Mermaid syntax is correct
+   - Check flowchart/sequence/class diagram syntax
+   - Verify all node connections are valid
 
-## FALLBACK: If Mermaid validation fails, use text-based workflow representation
-```
+2. **Character Escaping**
+   - Escape double quotes: `"` → `\"`
+   - Escape single quotes: `'` → `\'`
+   - Escape special characters in labels
 
-### Implementation Pattern
+3. **Node ID Validation**
+   - Use alphanumeric characters only
+   - Use underscores for spaces: `user_login` not `user login`
+   - Avoid special characters in node IDs
+
+4. **Connection Validation**
+   - Ensure all referenced nodes exist
+   - Verify arrow syntax is correct
+   - Check for circular references
+
+### Fallback Strategy
+
+**ALWAYS provide text alternative:**
+
 ```markdown
 ## Workflow Visualization
 
-### Mermaid Diagram (if syntax valid)
+### Mermaid Diagram
 ```mermaid
 [validated diagram content]
 ```
 
-### Text Alternative (always include)
+### Text Alternative
 ```
 Phase 1: INCEPTION
 - Stage 1: Workspace Detection (COMPLETED)
-- Stage 2: Requirements Analysis (COMPLETED)
-[continue with text representation]
+- Stage 2: Requirements Analysis (IN PROGRESS)
+- Stage 3: Workflow Planning (PENDING)
+
+Phase 2: CONSTRUCTION
+- Stage 4: Code Generation (PENDING)
+- Stage 5: Build and Test (PENDING)
 ```
+```
+
+**If Mermaid validation fails:** Use text alternative only, do not write invalid Mermaid.
+
+---
 
 ## General Content Validation
 
 ### Pre-Creation Validation Checklist
-- [ ] Validate embedded code blocks (Mermaid, JSON, YAML)
-- [ ] Check special character escaping
-- [ ] Verify markdown syntax correctness
-- [ ] Test content parsing compatibility
-- [ ] Include fallback content for complex elements
 
-### Error Prevention Rules
-1. **Always validate before using tools/commands to write files**: Never write unvalidated content
-2. **Escape special characters**: Particularly in diagrams and code blocks
-3. **Provide alternatives**: Include text versions of visual content
-4. **Test syntax**: Validate complex content structures
+Before writing ANY file, validate:
 
-## Validation Failure Handling
+- [ ] **Embedded code blocks** - Check JSON, YAML, Mermaid syntax
+- [ ] **Special characters** - Ensure proper escaping in markdown
+- [ ] **Markdown syntax** - Verify headers, lists, links are correct
+- [ ] **File paths** - Ensure referenced paths exist or will be created
+- [ ] **Content parsing** - Test that content can be parsed correctly
 
-### When Validation Fails
-1. **Log the error**: Record what failed validation
-2. **Use fallback content**: Switch to text-based alternative
-3. **Continue workflow**: Don't block on content validation failures
-4. **Inform user**: Mention simplified content was used due to parsing constraints
+### Common Issues to Check
+
+**Markdown Issues:**
+- Unclosed code blocks (missing ```)
+- Incorrect header levels (### followed by #)
+- Broken links or references
+- Unescaped special characters in text
+
+**Code Block Issues:**
+- Invalid JSON (missing commas, quotes)
+- Invalid YAML (incorrect indentation)
+- Invalid Mermaid (syntax errors)
+- Unclosed code blocks
+
+**Path Issues:**
+- References to non-existent files
+- Incorrect relative paths
+- Missing directory structure
+
+---
+
+## Validation Process
+
+### Step 1: Identify Content Type
+- Plain markdown text
+- Mermaid diagram
+- JSON configuration
+- YAML configuration
+- Code examples
+
+### Step 2: Apply Appropriate Validation
+- Use syntax checker for code blocks
+- Validate Mermaid with simple test
+- Check JSON/YAML parsing
+- Verify markdown structure
+
+### Step 3: Prepare Fallback
+- For Mermaid: Create text alternative
+- For complex content: Simplify if needed
+- For code: Ensure syntax is valid
+
+### Step 4: Write File
+- Only write if validation passes
+- Include fallback content where appropriate
+- Log any validation issues
+
+---
+
+## Example: Mermaid Validation
+
+### ❌ Invalid Mermaid (DO NOT WRITE)
+
+```mermaid
+graph TD
+    A[User's Request] --> B[Process Request]
+    B --> C[Generate "Response"]
+    C --> D[Return to User]
+```
+
+**Issue:** Unescaped quotes in node label
+
+### ✅ Valid Mermaid (SAFE TO WRITE)
+
+```mermaid
+graph TD
+    A[User's Request] --> B[Process Request]
+    B --> C[Generate Response]
+    C --> D[Return to User]
+```
+
+**Or with escaped quotes:**
+
+```mermaid
+graph TD
+    A[User's Request] --> B[Process Request]
+    B --> C[Generate \"Response\"]
+    C --> D[Return to User]
+```
+
+---
+
+## Rationale
+
+**Why validate before writing?**
+- Prevents file creation errors
+- Avoids corrupted artifacts
+- Ensures all content is parseable
+- Maintains workflow integrity
+- Reduces debugging time
+
+**Why provide fallbacks?**
+- Ensures information is never lost
+- Provides alternative representation
+- Maintains workflow progress
+- Improves accessibility
+
+---
+
+**Keep this file loaded:** Content validation applies throughout entire workflow.

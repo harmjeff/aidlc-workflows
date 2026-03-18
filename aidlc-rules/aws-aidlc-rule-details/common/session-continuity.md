@@ -1,47 +1,247 @@
-# Session Continuity Templates
+# Session Continuity
 
-## Welcome Back Prompt Template
-When a user returns to continue work on an existing AI-DLC project, present this prompt:
+**Purpose:** Resume workflow from any interruption point
+
+---
+
+## Resume Workflow Process
+
+### Step 1: Read aidlc-state.md FIRST
+
+**MANDATORY:** Always read aidlc-state.md before any other action when resuming.
+
+Extract:
+- Current phase (INCEPTION/CONSTRUCTION/OPERATIONS)
+- Current stage name
+- Completed stages list
+- Skipped stages list
+- Current unit (if in per-unit loop)
+- Last update timestamp
+
+### Step 2: Load Previous Stage Artifacts
+
+**MANDATORY:** Load all artifacts from previous stages before resuming.
+
+See "Smart Context Loading" section below for stage-specific artifacts.
+
+### Step 3: Determine Resume Point
+
+Based on aidlc-state.md:
+- If stage is "IN PROGRESS" → Resume within that stage
+- If stage is "COMPLETED" → Move to next stage
+- If stage is "PENDING" → Start that stage
+- If stage is "SKIPPED" → Move to next non-skipped stage
+
+### Step 4: Present Welcome Back Message
 
 ```markdown
-**Welcome back! I can see you have an existing AI-DLC project in progress.**
+# Welcome Back to AIDLC Workflow
 
-Based on your aidlc-state.md, here's your current status:
-- **Project**: [project-name]
-- **Current Phase**: [INCEPTION/CONSTRUCTION/OPERATIONS]
-- **Current Stage**: [Stage Name]
-- **Last Completed**: [Last completed step]
-- **Next Step**: [Next step to work on]
+I've reviewed your workflow state and found:
+- **Current Phase:** [INCEPTION/CONSTRUCTION/OPERATIONS]
+- **Current Stage:** [Stage name]
+- **Status:** [IN PROGRESS/COMPLETED/PENDING]
+- **Completed Stages:** [List]
+- **Skipped Stages:** [List]
 
-**What would you like to work on today?**
+**Context Summary:**
+[Brief summary of what has been done so far]
 
-A) Continue where you left off ([Next step description])
-B) Review a previous stage ([Show available stages])
+**Next Steps:**
+[Specific next steps based on current stage]
 
-[Answer]: 
+Would you like to:
+A) Continue from where we left off
+B) Review previous work
+C) Make changes to the workflow plan
+D) Start a different stage
+
+[Answer]:
 ```
 
-## MANDATORY: Session Continuity Instructions
-1. **Always read aidlc-state.md first** when detecting existing project
-2. **Parse current status** from the workflow file to populate the prompt
-3. **MANDATORY: Load Previous Stage Artifacts** - Before resuming any stage, automatically read all relevant artifacts from previous stages:
-   - **Reverse Engineering**: Read architecture.md, code-structure.md, api-documentation.md
-   - **Requirements Analysis**: Read requirements.md, requirement-verification-questions.md
-   - **User Stories**: Read stories.md, personas.md, story-generation-plan.md
-   - **Application Design**: Read application-design artifacts (components.md, component-methods.md, services.md)
-   - **Design (Units)**: Read unit-of-work.md, unit-of-work-dependency.md, unit-of-work-story-map.md
-   - **Per-Unit Design**: Read functional-design.md, nfr-requirements.md, nfr-design.md, infrastructure-design.md
-   - **Code Stages**: Read all code files, plans, AND all previous artifacts
-4. **Smart Context Loading by Stage**:
-   - **Early Stages (Workspace Detection, Reverse Engineering)**: Load workspace analysis
-   - **Requirements/Stories**: Load reverse engineering + requirements artifacts
-   - **Design Stages**: Load requirements + stories + architecture + design artifacts
-   - **Code Stages**: Load ALL artifacts + existing code files
-5. **Adapt options** based on architectural choice and current phase
-6. **Show specific next steps** rather than generic descriptions
-7. **Log the continuity prompt** in audit.md with timestamp
-8. **Context Summary**: After loading artifacts, provide brief summary of what was loaded for user awareness
-9. **Asking questions**: ALWAYS ask clarification or user feedback questions by placing them in .md files. DO NOT place the multiple-choice questions in-line in the chat session.
+### Step 5: Load Stage Detail File
+
+Load the appropriate detail file for current stage:
+- `aidlc-workflow/details/{phase}/{stage-name}.md`
+
+### Step 6: Continue Execution
+
+Resume stage execution from current checkpoint.
+
+---
+
+## Smart Context Loading by Stage
+
+### Early Stages (Workspace Detection, Reverse Engineering)
+
+**Load:**
+- aidlc-state.md
+- audit.md
+- workspace-detection.md (if resuming workspace detection)
+
+### Requirements/Stories Stages
+
+**Load:**
+- aidlc-state.md
+- audit.md
+- Reverse engineering artifacts (if brownfield):
+  - architecture.md
+  - component-inventory.md
+  - technology-stack.md
+- requirements.md (if exists)
+
+### Design Stages (Application Design, Units Generation)
+
+**Load:**
+- aidlc-state.md
+- audit.md
+- requirements.md
+- stories.md (if executed)
+- personas.md (if executed)
+- architecture.md (if brownfield)
+
+### Construction Stages (Functional Design, NFR, Infrastructure, Code)
+
+**Load:**
+- aidlc-state.md
+- audit.md
+- ALL inception artifacts:
+  - requirements.md
+  - stories.md (if executed)
+  - components.md (if executed)
+  - unit-of-work.md (if executed)
+- Unit-specific artifacts:
+  - Previous design artifacts for this unit
+  - Code files for this unit (if any)
+
+### Build and Test Stage
+
+**Load:**
+- aidlc-state.md
+- audit.md
+- ALL unit code generation plans
+- ALL generated code files
+
+---
 
 ## Error Handling
-If artifacts are missing or corrupted during session resumption, see [error-handling.md](error-handling.md) for guidance on recovery procedures. 
+
+### Missing aidlc-state.md
+
+If aidlc-state.md doesn't exist:
+1. Assume new workflow
+2. Start with Workspace Detection
+3. Create aidlc-state.md
+
+### Corrupted aidlc-state.md
+
+If aidlc-state.md is corrupted or unreadable:
+1. Check audit.md for last known state
+2. Reconstruct state from audit log
+3. Ask user to confirm reconstructed state
+4. Regenerate aidlc-state.md
+
+### Missing Artifacts
+
+If expected artifacts are missing:
+1. Identify which artifacts are missing
+2. Determine if they're critical for current stage
+3. If critical: Offer to regenerate
+4. If non-critical: Offer to skip or regenerate
+5. Get user approval before proceeding
+
+### Inconsistent State
+
+If aidlc-state.md conflicts with actual artifacts:
+1. List the inconsistencies
+2. Ask user which is correct
+3. Update aidlc-state.md or regenerate artifacts
+4. Log the resolution in audit.md
+
+---
+
+## Checkpoint Strategy
+
+### When to Update aidlc-state.md
+
+Update after:
+- Stage completion
+- Stage start
+- Plan approval
+- Significant progress within stage
+- User-requested changes
+
+### What to Track in aidlc-state.md
+
+```markdown
+# AIDLC Workflow State
+
+**Last Updated:** [ISO 8601 timestamp]
+
+## Current Status
+- **Phase:** [INCEPTION/CONSTRUCTION/OPERATIONS]
+- **Stage:** [Stage name]
+- **Status:** [IN PROGRESS/COMPLETED/PENDING]
+- **Current Unit:** [Unit name if in per-unit loop]
+
+## Completed Stages
+- [x] Workspace Detection
+- [x] Requirements Analysis
+- [x] Workflow Planning
+
+## Skipped Stages
+- [ ] Reverse Engineering (Greenfield project)
+- [ ] User Stories (Simple bug fix)
+
+## Pending Stages
+- [ ] Code Generation - Unit 1
+- [ ] Code Generation - Unit 2
+- [ ] Build and Test
+
+## Notes
+[Any important context or decisions]
+```
+
+---
+
+## Resume from Mid-Stage
+
+### If Stage Has Plan File
+
+1. Read plan file (e.g., `{unit-name}-code-generation-plan.md`)
+2. Check which steps are marked [x] as complete
+3. Resume from first unchecked [ ] step
+4. Continue execution
+
+### If Stage Has No Plan File
+
+1. Check audit.md for last action in this stage
+2. Determine what was completed
+3. Ask user to confirm resume point
+4. Continue execution
+
+---
+
+## Rationale
+
+**Why read aidlc-state.md first?**
+- Provides immediate context
+- Prevents redundant work
+- Ensures continuity
+- Enables smart artifact loading
+
+**Why load previous artifacts?**
+- Maintains consistency
+- Provides necessary context
+- Prevents contradictions
+- Enables informed decisions
+
+**Why smart context loading?**
+- Minimizes context usage
+- Loads only what's needed
+- Improves performance
+- Reduces token consumption
+
+---
+
+**Load this file:** Only when resuming an existing workflow (aidlc-state.md exists).

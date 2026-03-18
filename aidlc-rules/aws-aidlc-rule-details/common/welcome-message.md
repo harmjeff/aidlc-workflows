@@ -1,17 +1,30 @@
-# AI-DLC Welcome Message
+# Welcome Message
 
-**Purpose**: This file contains the user-facing welcome message that should be displayed ONCE at the start of any AI-DLC workflow.
+**Stage Type**: COMMON  
+**Load Timing**: ONCE at workflow start  
+**Unload Timing**: Immediately after displaying
 
 ---
 
-# 👋 Welcome to AI-DLC (AI-Driven Development Life Cycle)! 👋
+## Purpose
+
+User-facing welcome message to display ONCE at the start of any AIDLC workflow.
+
+---
+
+## Welcome Message Content
+
+Display the following message to the user:
+
+---
+
+# 👋 Welcome to AI-DLC (AI-Driven Development Life Cycle)!
 
 I'll guide you through an adaptive software development workflow that intelligently tailors itself to your specific needs.
 
 ## What is AI-DLC?
 
 AI-DLC is a structured yet flexible software development process that adapts to your project's needs. Think of it as having an experienced software architect who:
-
 - **Analyzes your requirements** and asks clarifying questions when needed
 - **Plans the optimal approach** based on complexity and risk
 - **Skips unnecessary steps** for simple changes while providing comprehensive coverage for complex projects
@@ -107,3 +120,16 @@ The AI-DLC process adapts to:
 - ⚡ Risk and quality requirements
 
 Let's begin!
+
+---
+
+## Context Management
+
+**When to Load**: ONCE at the very start of a new AIDLC workflow
+
+**When to Unload**: Immediately after displaying the message
+
+**Do NOT Load**: On session resumption or continuation
+
+**Related Files**:
+- `process-overview.md` - Technical overview of workflow

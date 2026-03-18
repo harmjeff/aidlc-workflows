@@ -1,354 +1,217 @@
-# Build and Test
+# Build and Test Stage
 
-**Purpose**: Build all units and execute comprehensive testing strategy
+**Purpose:** Generate comprehensive build and test instructions for all units.
+
+**Stage Type:** ALWAYS
+
+**Phase:** CONSTRUCTION
+
+**Load this file when:** Starting Build and Test stage (after all units are coded)
+
+**Unload this file after:** Build and Test stage completes and user approves
+
+---
+
+## Execute IF
+
+This stage ALWAYS executes after all units have completed code generation.
+
+## Skip IF
+
+This stage is never skipped - it always executes.
+
+---
 
 ## Prerequisites
-- Code Generation must be complete for all units
-- All code artifacts must be generated
-- Project is ready for build and testing
+
+Before starting this stage, ensure:
+1. All units have completed Code Generation stage
+2. All code has been generated for all units
+3. All tests have been generated for all units
+4. Technology stack decisions are documented
 
 ---
 
-## Step 1: Analyze Testing Requirements
+## Detailed Steps
 
-Analyze the project to determine appropriate testing strategy:
-- **Unit tests**: Already generated per unit during code generation
-- **Integration tests**: Test interactions between units/services
-- **Performance tests**: Load, stress, and scalability testing
-- **End-to-end tests**: Complete user workflows
-- **Contract tests**: API contract validation between services
-- **Security tests**: Vulnerability scanning, penetration testing
+### Step 1: Log User Input
+**Action:** Log any user input during this stage in `audit.md`.
 
----
+**Template:** `../../templates/audit-logs/basic-entry.md`
 
-## Step 2: Generate Build Instructions
+**Log with:**
+- Stage: Build and Test
+- Context: Starting Build and Test stage for all units
 
-Create `aidlc-docs/construction/build-and-test/build-instructions.md`:
+### Step 2: Load All Unit Context
+**Action:** Read and analyze all unit artifacts:
 
+**Required Artifacts:**
+- `aidlc-docs/inception/application-design/unit-of-work.md` - All units
+- `aidlc-docs/construction/plans/*-code-generation-plan.md` - All code generation plans
+- `aidlc-docs/construction/*/nfr-requirements/tech-stack-decisions.md` - Tech stack for each unit
+
+**Optional Artifacts:**
+- `aidlc-docs/construction/*/infrastructure-design/` - Infrastructure for each unit
+
+### Step 3: Identify All Units
+**Action:** Create a list of all units that need build and test instructions.
+
+**For each unit, identify:**
+- Unit name
+- Technology stack
+- Dependencies on other units
+- Test types needed (unit, integration, performance, etc.)
+
+### Step 4: Generate Build Instructions
+**Action:** Create comprehensive build instructions for all units.
+
+**File Location:** `aidlc-docs/construction/build-and-test/build-instructions.md`
+
+**Include:**
+- Prerequisites (tools, dependencies)
+- Build steps for each unit
+- Build order (considering dependencies)
+- Build verification steps
+- Troubleshooting common build issues
+
+### Step 5: Generate Unit Test Instructions
+**Action:** Create unit test instructions for all units.
+
+**File Location:** `aidlc-docs/construction/build-and-test/unit-test-instructions.md`
+
+**Include:**
+- How to run unit tests for each unit
+- Test coverage requirements
+- Test data setup
+- Expected test results
+- Troubleshooting test failures
+
+### Step 6: Generate Integration Test Instructions
+**Action:** Create integration test instructions for interactions between units.
+
+**File Location:** `aidlc-docs/construction/build-and-test/integration-test-instructions.md`
+
+**Include:**
+- How to run integration tests
+- Test environment setup
+- Test data requirements
+- Integration test scenarios
+- Expected results
+- Troubleshooting
+
+### Step 7: Generate Performance Test Instructions
+**Action:** Create performance test instructions (if applicable).
+
+**File Location:** `aidlc-docs/construction/build-and-test/performance-test-instructions.md`
+
+**Include:**
+- How to run performance tests
+- Performance test scenarios
+- Load patterns
+- Performance metrics to measure
+- Performance targets
+- Troubleshooting performance issues
+
+### Step 8: Generate Additional Test Instructions
+**Action:** Create additional test instructions as needed:
+- Contract tests (if microservices)
+- Security tests (if security requirements)
+- E2E tests (if user-facing)
+
+**File Locations:** `aidlc-docs/construction/build-and-test/[test-type]-test-instructions.md`
+
+### Step 9: Generate Build and Test Summary
+**Action:** Create summary document with overview of all build and test activities.
+
+**File Location:** `aidlc-docs/construction/build-and-test/build-and-test-summary.md`
+
+**Include:**
+- Overview of all units
+- Build order and dependencies
+- Test types and coverage
+- Quality gates
+- CI/CD integration points
+- Next steps
+
+### Step 10: Update State Tracking
+**Action:** Update `aidlc-docs/aidlc-state.md` to reflect completion.
+
+**Template:** `../../templates/state/aidlc-state.md`
+
+### Step 11: Present Completion Message
+**Action:** Present completion message to user.
+
+**Message:**
 ```markdown
-# Build Instructions
+# 🔧 Build and Test Instructions Complete
 
-## Prerequisites
-- **Build Tool**: [Tool name and version]
-- **Dependencies**: [List all required dependencies]
-- **Environment Variables**: [List required env vars]
-- **System Requirements**: [OS, memory, disk space]
+Artifacts Created:
+- ✅ `build-instructions.md` - Build instructions for all units
+- ✅ `unit-test-instructions.md` - Unit test instructions
+- ✅ `integration-test-instructions.md` - Integration test instructions
+- ✅ `performance-test-instructions.md` - Performance test instructions (if applicable)
+- ✅ `build-and-test-summary.md` - Summary of all build and test activities
 
-## Build Steps
+Location: `aidlc-docs/construction/build-and-test/`
 
-### 1. Install Dependencies
-\`\`\`bash
-[Command to install dependencies]
-# Example: npm install, mvn dependency:resolve, pip install -r requirements.txt
-\`\`\`
+---
 
-### 2. Configure Environment
-\`\`\`bash
-[Commands to set up environment]
-# Example: export variables, configure credentials
-\`\`\`
+**Ready to proceed to Operations stage?**
 
-### 3. Build All Units
-\`\`\`bash
-[Command to build all units]
-# Example: mvn clean install, npm run build, brazil-build
-\`\`\`
+A) Yes, proceed to Operations stage
+B) No, I want to review/modify the instructions first
 
-### 4. Verify Build Success
-- **Expected Output**: [Describe successful build output]
-- **Build Artifacts**: [List generated artifacts and locations]
-- **Common Warnings**: [Note any acceptable warnings]
-
-## Troubleshooting
-
-### Build Fails with Dependency Errors
-- **Cause**: [Common causes]
-- **Solution**: [Step-by-step fix]
-
-### Build Fails with Compilation Errors
-- **Cause**: [Common causes]
-- **Solution**: [Step-by-step fix]
+[Answer]: 
 ```
 
----
+### Step 12: Wait for User Response
+**Action:** **WAIT FOR EXPLICIT APPROVAL** - Do NOT proceed until user confirms.
 
-## Step 3: Generate Unit Test Execution Instructions
+### Step 13: Log User Approval
+**Action:** Record approval in audit.md with complete raw input.
 
-Create `aidlc-docs/construction/build-and-test/unit-test-instructions.md`:
-
-```markdown
-# Unit Test Execution
-
-## Run Unit Tests
-
-### 1. Execute All Unit Tests
-\`\`\`bash
-[Command to run all unit tests]
-# Example: mvn test, npm test, pytest tests/unit
-\`\`\`
-
-### 2. Review Test Results
-- **Expected**: [X] tests pass, 0 failures
-- **Test Coverage**: [Expected coverage percentage]
-- **Test Report Location**: [Path to test reports]
-
-### 3. Fix Failing Tests
-If tests fail:
-1. Review test output in [location]
-2. Identify failing test cases
-3. Fix code issues
-4. Rerun tests until all pass
-```
+**Template:** `../../templates/audit-logs/basic-entry.md`
 
 ---
 
-## Step 4: Generate Integration Test Instructions
+## Artifacts Created
 
-Create `aidlc-docs/construction/build-and-test/integration-test-instructions.md`:
-
-```markdown
-# Integration Test Instructions
-
-## Purpose
-Test interactions between units/services to ensure they work together correctly.
-
-## Test Scenarios
-
-### Scenario 1: [Unit A] → [Unit B] Integration
-- **Description**: [What is being tested]
-- **Setup**: [Required test environment setup]
-- **Test Steps**: [Step-by-step test execution]
-- **Expected Results**: [What should happen]
-- **Cleanup**: [How to clean up after test]
-
-### Scenario 2: [Unit B] → [Unit C] Integration
-[Similar structure]
-
-## Setup Integration Test Environment
-
-### 1. Start Required Services
-\`\`\`bash
-[Commands to start services]
-# Example: docker-compose up, start test database
-\`\`\`
-
-### 2. Configure Service Endpoints
-\`\`\`bash
-[Commands to configure endpoints]
-# Example: export API_URL=http://localhost:8080
-\`\`\`
-
-## Run Integration Tests
-
-### 1. Execute Integration Test Suite
-\`\`\`bash
-[Command to run integration tests]
-# Example: mvn integration-test, npm run test:integration
-\`\`\`
-
-### 2. Verify Service Interactions
-- **Test Scenarios**: [List key integration test scenarios]
-- **Expected Results**: [Describe expected outcomes]
-- **Logs Location**: [Where to check logs]
-
-### 3. Cleanup
-\`\`\`bash
-[Commands to clean up test environment]
-# Example: docker-compose down, stop test services
-\`\`\`
-```
+1. **Build Instructions:** `aidlc-docs/construction/build-and-test/build-instructions.md`
+2. **Unit Test Instructions:** `aidlc-docs/construction/build-and-test/unit-test-instructions.md`
+3. **Integration Test Instructions:** `aidlc-docs/construction/build-and-test/integration-test-instructions.md`
+4. **Performance Test Instructions:** `aidlc-docs/construction/build-and-test/performance-test-instructions.md` (if applicable)
+5. **Additional Test Instructions:** As needed
+6. **Build and Test Summary:** `aidlc-docs/construction/build-and-test/build-and-test-summary.md`
 
 ---
 
-## Step 5: Generate Performance Test Instructions (If Applicable)
+## Key Principles
 
-Create `aidlc-docs/construction/build-and-test/performance-test-instructions.md`:
-
-```markdown
-# Performance Test Instructions
-
-## Purpose
-Validate system performance under load to ensure it meets requirements.
-
-## Performance Requirements
-- **Response Time**: < [X]ms for [Y]% of requests
-- **Throughput**: [X] requests/second
-- **Concurrent Users**: Support [X] concurrent users
-- **Error Rate**: < [X]%
-
-## Setup Performance Test Environment
-
-### 1. Prepare Test Environment
-\`\`\`bash
-[Commands to set up performance testing]
-# Example: scale services, configure load balancers
-\`\`\`
-
-### 2. Configure Test Parameters
-- **Test Duration**: [X] minutes
-- **Ramp-up Time**: [X] seconds
-- **Virtual Users**: [X] users
-
-## Run Performance Tests
-
-### 1. Execute Load Tests
-\`\`\`bash
-[Command to run load tests]
-# Example: jmeter -n -t test.jmx, k6 run script.js
-\`\`\`
-
-### 2. Execute Stress Tests
-\`\`\`bash
-[Command to run stress tests]
-# Example: gradually increase load until failure
-\`\`\`
-
-### 3. Analyze Performance Results
-- **Response Time**: [Actual vs Expected]
-- **Throughput**: [Actual vs Expected]
-- **Error Rate**: [Actual vs Expected]
-- **Bottlenecks**: [Identified bottlenecks]
-- **Results Location**: [Path to performance reports]
-
-## Performance Optimization
-
-If performance doesn't meet requirements:
-1. Identify bottlenecks from test results
-2. Optimize code/queries/configurations
-3. Rerun tests to validate improvements
-```
+1. **Comprehensive Instructions:** Cover all units and test types
+2. **Clear Steps:** Provide step-by-step instructions
+3. **Troubleshooting:** Include troubleshooting guidance
+4. **Quality Gates:** Define quality gates and acceptance criteria
+5. **CI/CD Ready:** Instructions should be automatable
+6. **Complete Audit Trail:** Log ALL user inputs
+7. **Explicit Approval:** WAIT for user approval before proceeding
 
 ---
 
-## Step 6: Generate Additional Test Instructions (As Needed)
+## Templates Reference
 
-Based on project requirements, generate additional test instruction files:
+All templates are located in `../../templates/` directory:
 
-### Contract Tests (For Microservices)
-Create `aidlc-docs/construction/build-and-test/contract-test-instructions.md`:
-- API contract validation between services
-- Consumer-driven contract testing
-- Schema validation
-
-### Security Tests
-Create `aidlc-docs/construction/build-and-test/security-test-instructions.md`:
-- Vulnerability scanning
-- Dependency security checks
-- Authentication/authorization testing
-- Input validation testing
-
-### End-to-End Tests
-Create `aidlc-docs/construction/build-and-test/e2e-test-instructions.md`:
-- Complete user workflow testing
-- Cross-service scenarios
-- UI testing (if applicable)
+- **Audit Logs:** `audit-logs/basic-entry.md`
+- **State:** `state/aidlc-state.md`
 
 ---
 
-## Step 7: Generate Test Summary
+## Next Stage
 
-Create `aidlc-docs/construction/build-and-test/build-and-test-summary.md`:
-
-```markdown
-# Build and Test Summary
-
-## Build Status
-- **Build Tool**: [Tool name]
-- **Build Status**: [Success/Failed]
-- **Build Artifacts**: [List artifacts]
-- **Build Time**: [Duration]
-
-## Test Execution Summary
-
-### Unit Tests
-- **Total Tests**: [X]
-- **Passed**: [X]
-- **Failed**: [X]
-- **Coverage**: [X]%
-- **Status**: [Pass/Fail]
-
-### Integration Tests
-- **Test Scenarios**: [X]
-- **Passed**: [X]
-- **Failed**: [X]
-- **Status**: [Pass/Fail]
-
-### Performance Tests
-- **Response Time**: [Actual] (Target: [Expected])
-- **Throughput**: [Actual] (Target: [Expected])
-- **Error Rate**: [Actual] (Target: [Expected])
-- **Status**: [Pass/Fail]
-
-### Additional Tests
-- **Contract Tests**: [Pass/Fail/N/A]
-- **Security Tests**: [Pass/Fail/N/A]
-- **E2E Tests**: [Pass/Fail/N/A]
-
-## Overall Status
-- **Build**: [Success/Failed]
-- **All Tests**: [Pass/Fail]
-- **Ready for Operations**: [Yes/No]
-
-## Next Steps
-[If all pass]: Ready to proceed to Operations phase for deployment planning
-[If failures]: Address failing tests and rebuild
-```
+After approval:
+- **Operations** stage (placeholder for future deployment and monitoring workflows)
 
 ---
 
-## Step 8: Update State Tracking
-
-Update `aidlc-docs/aidlc-state.md`:
-- Mark Build and Test stage as complete
-- Update current status
-
----
-
-## Step 9: Present Results to User
-
-Present comprehensive message:
-
-```
-"🔨 Build and Test Complete!
-
-**Build Status**: [Success/Failed]
-
-**Test Results**:
-✅ Unit Tests: [X] passed
-✅ Integration Tests: [X] scenarios passed
-✅ Performance Tests: [Status]
-✅ Additional Tests: [Status]
-
-**Generated Files**:
-1. ✅ build-instructions.md
-2. ✅ unit-test-instructions.md
-3. ✅ integration-test-instructions.md
-4. ✅ performance-test-instructions.md (if applicable)
-5. ✅ [additional test files as needed]
-6. ✅ build-and-test-summary.md
-
-Review the summary in aidlc-docs/construction/build-and-test/build-and-test-summary.md
-
-**Ready to proceed to Operations stage for deployment planning?""
-```
-
----
-
-## Step 10: Log Interaction
-
-**MANDATORY**: Log the phase completion in `aidlc-docs/audit.md`:
-
-```markdown
-## Build and Test Stage
-**Timestamp**: [ISO timestamp]
-**Build Status**: [Success/Failed]
-**Test Status**: [Pass/Fail]
-**Files Generated**:
-- build-instructions.md
-- unit-test-instructions.md
-- integration-test-instructions.md
-- performance-test-instructions.md
-- build-and-test-summary.md
-
----
-```
+**End of Build and Test Stage Instructions**

@@ -1,10 +1,22 @@
-# Adaptive Depth
+# Adaptive Depth Levels
 
-**Purpose**: Explain how AI-DLC adapts detail level to problem complexity
+**Stage Type**: COMMON  
+**Load Timing**: Load when understanding adaptive depth concept  
+**Unload Timing**: After understanding depth principle
+
+---
+
+## Purpose
+
+Explains how AIDLC adapts detail level to problem complexity.
+
+---
 
 ## Core Principle
 
 **When a stage executes, ALL its defined artifacts are created. The "depth" refers to the level of detail and rigor within those artifacts, which adapts to the problem's complexity.**
+
+---
 
 ## Stage Selection vs Detail Level
 
@@ -18,6 +30,8 @@
 - **Complex problems**: Comprehensive artifacts with extensive detail
 - **Model decides**: Based on problem characteristics, not prescriptive rules
 
+---
+
 ## Factors Influencing Detail Level
 
 The model considers these factors when determining appropriate detail:
@@ -28,6 +42,8 @@ The model considers these factors when determining appropriate detail:
 4. **Risk Level**: What's the impact of errors or omissions?
 5. **Available Context**: Greenfield vs brownfield, existing documentation
 6. **User Preferences**: Has user expressed preference for brevity or detail?
+
+---
 
 ## Example: Requirements Analysis Artifacts
 
@@ -40,12 +56,14 @@ The model considers these factors when determining appropriate detail:
 **Detail level varies by complexity**:
 
 ### Simple Scenario (Bug Fix)
-- **requirement-verification-questions.md**: necessary clarifying questions
+- **requirement-verification-questions.md**: Necessary clarifying questions
 - **requirements.md**: Concise functional requirement, minimal sections
 
 ### Complex Scenario (System Migration)
 - **requirement-verification-questions.md**: Multiple rounds, 10+ questions
 - **requirements.md**: Comprehensive functional + non-functional requirements, traceability, acceptance criteria
+
+---
 
 ## Example: Application Design Artifacts
 
@@ -63,6 +81,8 @@ The model considers these factors when determining appropriate detail:
 - **application-design.md**: Detailed component responsibilities, all methods with signatures, design patterns, alternatives considered
 - **component-diagram.md**: Comprehensive diagram with all relationships, data flows, integration points
 
+---
+
 ## Guiding Principle for Model
 
 **"Create exactly the detail needed for the problem at hand - no more, no less."**
@@ -71,3 +91,15 @@ The model considers these factors when determining appropriate detail:
 - Don't shortchange complex problems by omitting critical detail
 - Let problem characteristics drive detail level naturally
 - All required artifacts are always created when stage executes
+
+---
+
+## Context Management
+
+**When to Load**: When you need to understand how depth adapts to complexity
+
+**When to Unload**: After understanding the adaptive depth principle
+
+**Related Files**:
+- `process-overview.md` - References adaptive execution
+- All stage files - Apply adaptive depth principle

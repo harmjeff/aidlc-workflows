@@ -1,57 +1,50 @@
-# Overconfidence Prevention Guide
+# Overconfidence Prevention
+
+**Stage Type**: COMMON  
+**Load Timing**: Load at workflow start, reference throughout  
+**Unload Timing**: Keep in context throughout workflow
+
+---
+
+## Purpose
+
+Prevents AI overconfidence by encouraging proactive questioning and thorough requirements gathering.
+
+---
 
 ## Problem Statement
 
-AI-DLC was exhibiting overconfidence by not asking enough clarifying questions, even for complex project intent statements. This led to assumptions being made instead of gathering proper requirements.
+AI-DLC can exhibit overconfidence by not asking enough clarifying questions, even for complex project intent statements. This leads to assumptions being made instead of gathering proper requirements.
 
-## Root Cause Analysis
+---
 
-The overconfidence issue was caused by directives in multiple stages that encouraged skipping questions:
+## Root Cause
 
-1. **Functional Design**: "Skip entire categories if not applicable"
-2. **User Stories**: "Use categories as inspiration, NOT as mandatory checklist"
-3. **Requirements Analysis**: Similar patterns encouraging minimal questioning
-4. **NFR Requirements**: "Only if" conditions that discouraged thorough analysis
+Overconfidence is caused by directives that encourage skipping questions:
+- "Skip entire categories if not applicable"
+- "Use categories as inspiration, NOT as mandatory checklist"
+- "Only if" conditions that discourage thorough analysis
 
-These directives were telling the AI to avoid asking questions rather than encouraging comprehensive requirements gathering.
+These directives tell the AI to avoid asking questions rather than encouraging comprehensive requirements gathering.
 
-## Solution Implemented
+---
 
-### Updated Question Generation Philosophy
+## Solution: Proactive Questioning Approach
 
-**OLD APPROACH**: "Only ask questions if absolutely necessary"
+### Updated Philosophy
+
+**OLD APPROACH**: "Only ask questions if absolutely necessary"  
 **NEW APPROACH**: "When in doubt, ask the question - overconfidence leads to poor outcomes"
 
-### Key Changes Made
-
-#### 1. Requirements Analysis Stage
-- Changed from "only if needed" to "ALWAYS create questions unless exceptionally clear"
-- Added comprehensive evaluation areas (functional, non-functional, business context, technical context)
-- Emphasized proactive questioning approach
-
-#### 2. User Stories Stage
-- Removed "skip entire categories" directive
-- Added comprehensive question categories to evaluate
-- Enhanced answer analysis requirements
-- Strengthened follow-up question mandates
-
-#### 3. Functional Design Stage
-- Replaced "only if" conditions with comprehensive evaluation
-- Added more question categories (data flow, integration points, error handling)
-- Strengthened ambiguity detection and resolution requirements
-
-#### 4. NFR Requirements Stage
-- Expanded question categories beyond basic NFRs
-- Added reliability, maintainability, and usability considerations
-- Enhanced answer analysis for technical ambiguities
-
-### New Guiding Principles
+### Key Principles
 
 1. **Default to Asking**: When there's any ambiguity, ask clarifying questions
 2. **Comprehensive Coverage**: Evaluate ALL relevant categories, don't skip areas
 3. **Thorough Analysis**: Carefully analyze ALL user responses for ambiguities
 4. **Mandatory Follow-up**: Create follow-up questions for ANY unclear responses
 5. **No Proceeding with Ambiguity**: Don't move forward until ALL ambiguities are resolved
+
+---
 
 ## Implementation Guidelines
 
@@ -62,16 +55,21 @@ These directives were telling the AI to avoid asking questions rather than encou
 - Default to inclusion rather than exclusion of questions
 
 ### For Answer Analysis
-- Look for vague responses: "depends", "maybe", "not sure", "mix of", "somewhere between"
-- Detect undefined terms and references to external concepts
-- Identify contradictory or incomplete answers
-- Create follow-up questions for ANY ambiguities
+Look for vague responses:
+- "depends", "maybe", "not sure"
+- "mix of", "somewhere between"
+- Undefined terms and references to external concepts
+- Contradictory or incomplete answers
+
+Create follow-up questions for ANY ambiguities.
 
 ### For Follow-up Questions
 - Create separate clarification files when ambiguities are detected
 - Ask specific questions to resolve each ambiguity
 - Don't proceed until ALL unclear responses are clarified
 - Be thorough - better to over-clarify than under-clarify
+
+---
 
 ## Quality Assurance
 
@@ -87,14 +85,22 @@ These directives were telling the AI to avoid asking questions rather than encou
 - Clear, unambiguous requirements before proceeding to implementation
 - Reduced need for changes during later stages due to better upfront clarification
 
-## Maintenance
-
-This guide should be referenced when:
-- Adding new stages to AI-DLC
-- Updating existing stage instructions
-- Reviewing AI-DLC performance for overconfidence issues
-- Training team members on AI-DLC question generation principles
+---
 
 ## Key Takeaway
 
-**It's better to ask too many questions than to make incorrect assumptions.** The cost of asking clarifying questions upfront is far less than the cost of implementing the wrong solution based on assumptions.
+**It's better to ask too many questions than to make incorrect assumptions.**
+
+The cost of asking clarifying questions upfront is far less than the cost of implementing the wrong solution based on assumptions.
+
+---
+
+## Context Management
+
+**When to Load**: At workflow start
+
+**When to Keep**: Throughout entire workflow execution
+
+**Related Files**:
+- `question-format.md` - How to format questions
+- All stage files - Apply proactive questioning principle
