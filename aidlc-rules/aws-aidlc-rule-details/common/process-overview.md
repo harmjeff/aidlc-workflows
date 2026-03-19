@@ -13,14 +13,14 @@
 • **OPERATIONS PHASE**: Placeholder for future deployment and monitoring workflows
 
 ## The Adaptive Workflow:
-• **Workspace Detection** (always) → **Extension Discovery** (always, auto-enables installed extensions) → **Reverse Engineering** (brownfield only) → **Requirements Analysis** (always, with extensions loaded) → **Conditional Phases** (as needed) → **Workflow Planning** (always) → **Code Generation** (always, per-unit) → **Build and Test** (always)
+• **Workspace Detection** (always) → **Reverse Engineering** (brownfield only) → **Requirements Analysis** (always — questions → Extension Discovery → document generation with extensions) → **Conditional Phases** (as needed) → **Workflow Planning** (always) → **Code Generation** (always, per-unit) → **Build and Test** (always)
 
 ## How It Works:
 • **AI analyzes** your request, workspace, and complexity to determine which stages are needed
-• **These stages always execute**: Workspace Detection, Extension Discovery, Requirements Analysis (adaptive depth), Workflow Planning, Code Generation (per-unit), Build and Test
+• **These stages always execute**: Workspace Detection, Requirements Analysis (adaptive depth, includes Extension Discovery), Workflow Planning, Code Generation (per-unit), Build and Test
 • **All other stages are conditional**: Reverse Engineering, User Stories, Application Design, Units Generation, per-unit design stages (Functional Design, NFR Requirements, NFR Design, Infrastructure Design)
 • **No fixed sequences**: Stages execute in the order that makes sense for your specific task
-• **Installed extensions are auto-enabled**: If you installed it, you want it — no redundant opt-in. Extensions inject compliance-driven questions and constraints into Requirements Analysis and all subsequent stages
+• **Installed extensions are auto-enabled**: If you installed it, you want it — no redundant opt-in. Extensions are discovered after requirements questions are answered, then inject compliance content into the requirements document and all subsequent stages
 
 ## Your Team's Role:
 • **Answer questions** in dedicated question files using [Answer]: tags with letter choices (A, B, C, D, E)
@@ -37,9 +37,8 @@ flowchart TD
     
     subgraph INCEPTION["🔵 INCEPTION PHASE"]
         WD["Workspace Detection<br/><b>ALWAYS</b>"]
-        ED["Extension Discovery<br/><b>ALWAYS</b>"]
         RE["Reverse Engineering<br/><b>CONDITIONAL</b>"]
-        RA["Requirements Analysis<br/><b>ALWAYS</b>"]
+        RA["Requirements Analysis<br/>+ Extension Discovery<br/><b>ALWAYS</b>"]
         Stories["User Stories<br/><b>CONDITIONAL</b>"]
         WP["Workflow Planning<br/><b>ALWAYS</b>"]
         AppDesign["Application Design<br/><b>CONDITIONAL</b>"]
@@ -60,9 +59,8 @@ flowchart TD
     end
     
     Start --> WD
-    WD --> ED
-    ED -.-> RE
-    ED --> RA
+    WD -.-> RE
+    WD --> RA
     RE --> RA
     
     RA -.-> Stories
@@ -88,7 +86,6 @@ flowchart TD
     BT --> End(["Complete"])
     
     style WD fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
-    style ED fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
     style RA fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
     style WP fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
 
@@ -117,9 +114,8 @@ flowchart TD
 
 **🔵 INCEPTION PHASE** - Planning and Architecture
 - Workspace Detection: Analyze workspace state and project type (ALWAYS)
-- Extension Discovery: Auto-enable installed extensions, generate compliance phase files via extension-generator (ALWAYS)
 - Reverse Engineering: Analyze existing codebase (CONDITIONAL - Brownfield only)
-- Requirements Analysis: Full requirements with extension content injected — compliance-driven questions and constraints included (ALWAYS - Adaptive depth)
+- Requirements Analysis: Clarifying questions → Extension Discovery (auto-enable, generate phase files) → Requirements document with compliance content baked in (ALWAYS - Adaptive depth)
 - User Stories: Create user stories and personas, with extension acceptance criteria injected (CONDITIONAL)
 - Workflow Planning: Create execution plan (ALWAYS)
 - Application Design: High-level component identification and service layer design, with extension constraints injected (CONDITIONAL)

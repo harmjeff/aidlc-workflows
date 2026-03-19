@@ -8,8 +8,9 @@
 
 ## Prerequisites
 - Workspace Detection must be complete
-- Extension Discovery must be complete — extensions are loaded and will inject content into this stage
 - Reverse Engineering must be complete (if brownfield)
+
+**Note**: Extension Discovery runs WITHIN this stage — after questions are answered but before the requirements document is generated. See core-workflow.md for the full flow.
 
 ## Execution Steps
 
@@ -91,13 +92,15 @@ Analyze whatever the user has provided:
 
 **When in doubt, ask questions** - incomplete requirements lead to poor implementations.
 
-### Step 5.1: Extension Content Injection
+### Step 5.1: Extension Discovery and Content Injection
 
-**Extensions are already loaded** from the Extension Discovery stage. At this point:
-1. Check the in-memory manifest index for extensions with `applies_to` entries for `requirements-analysis`
-2. For each matching enabled extension, load its `requirements.md` phase file
-3. Inject extension-driven requirements and questions alongside core requirements questions
-4. This may add compliance-driven requirements the user didn't specify (e.g., NIST AC-3 access enforcement requirements for PII fields, role-based access definitions)
+**Extension Discovery runs here** — after questions are answered, before the requirements document is generated. See core-workflow.md for full Extension Discovery execution steps.
+
+After Extension Discovery completes:
+1. Check the manifest index for extensions with `applies_to` entries for `requirements-analysis`
+2. For each enabled extension, load its `requirements.md` phase file
+3. Inject extension-driven requirements into the requirements document about to be generated
+4. This adds compliance-driven requirements the user didn't specify (e.g., NIST AC-3 access enforcement requirements for PII fields, role-based access definitions)
 
 ### Step 6: Generate Clarifying Questions (PROACTIVE APPROACH)
    - **ALWAYS** create `aidlc-docs/inception/requirements/requirement-verification-questions.md` unless requirements are exceptionally clear and complete
