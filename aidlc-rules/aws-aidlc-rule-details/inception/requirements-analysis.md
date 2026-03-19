@@ -92,7 +92,7 @@ Analyze whatever the user has provided:
 
 ### Step 5.1: Extension Applicability Questions
 
-**MANDATORY**: Scan all loaded extension files for an `## Applicability Question` section. For each extension that declares one, include that question in the clarifying questions file created in Step 6. After receiving answers, record each extension's enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`:
+**MANDATORY**: Scan all loaded extension files for an `## Applicability Question` or `## Opt-In Prompt` section (both formats are supported). For each extension that declares one, include that question in the clarifying questions file created in Step 6. After receiving answers, record each extension's enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`:
 
 ```markdown
 ## Extension Configuration

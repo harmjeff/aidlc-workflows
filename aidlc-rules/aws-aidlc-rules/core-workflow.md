@@ -35,7 +35,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 If the same extension name exists in both locations, the generated version in `aidlc-docs/extensions/` takes precedence (user customizations override built-in).
 
 **Loading process (lightweight scan at startup)**:
-1. Read `{rule-details-dir}/extensions/_registry.md` for built-in extensions
+1. Scan `{rule-details-dir}/extensions/` subdirectories for installed extensions (each containing a `rule-manifest.yaml`)
 2. Scan `aidlc-docs/extensions/` for generated extension directories (each must contain a `rule-manifest.yaml`)
 3. For each extension, read ONLY its `rule-manifest.yaml` (metadata: name, category, rule_type, applies_to stages, priority, tags)
 4. Build an in-memory index: which extensions apply to which stages
@@ -146,8 +146,8 @@ If the same extension name exists in both locations, the generated version in `a
 
 **Execution**:
 1. **MANDATORY**: Scan for extensions in both locations:
-   - Built-in: `{rule-details-dir}/extensions/_registry.md`
-   - Generated: `aidlc-docs/extensions/` (scan for directories containing `rule-manifest.yaml`)
+   - Built-in: `{rule-details-dir}/extensions/` (scan subdirectories for `rule-manifest.yaml`)
+   - Generated: `aidlc-docs/extensions/` (scan subdirectories for `rule-manifest.yaml`)
 2. Check if `aidlc-docs/enabled-extensions.md` already exists with pre-enabled extensions
 3. For each extension, read its `rule-manifest.yaml` and check trigger conditions against the user's request and workspace context
 4. Present available extensions to the user:
