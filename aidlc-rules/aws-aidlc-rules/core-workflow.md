@@ -116,9 +116,9 @@ If the same extension name exists in both locations, the generated version in `a
 
 **Stages in INCEPTION PHASE**:
 - Workspace Detection (ALWAYS)
-- Extension Discovery and Selection (ALWAYS)
 - Reverse Engineering (CONDITIONAL - Brownfield only)
-- Requirements Analysis (ALWAYS - Adaptive depth)
+- Requirements Analysis (ALWAYS - Adaptive depth, initial context gathering)
+- Extension Discovery and Selection (ALWAYS - informed by requirements context)
 - User Stories (CONDITIONAL)
 - Workflow Planning (ALWAYS)
 - Application Design (CONDITIONAL)
@@ -138,45 +138,7 @@ If the same extension name exists in both locations, the generated version in `a
 4. Determine next phase: Reverse Engineering (if brownfield and no artifacts) OR Requirements Analysis
 5. **MANDATORY**: Log findings in audit.md
 6. Present completion message to user (see workspace-detection.md for message formats)
-7. Automatically proceed to Extension Discovery
-
-## Extension Discovery and Selection (ALWAYS EXECUTE)
-
-**Purpose**: Discover and enable extensions BEFORE any analysis begins, so all subsequent stages benefit from extension guidance.
-
-**Execution**:
-1. **MANDATORY**: Scan for extensions in both locations:
-   - Built-in: `{rule-details-dir}/extensions/` (scan subdirectories for `rule-manifest.yaml`)
-   - Generated: `aidlc-docs/extensions/` (scan subdirectories for `rule-manifest.yaml`)
-2. Check if `aidlc-docs/enabled-extensions.md` already exists with pre-enabled extensions
-3. For each extension, read its `rule-manifest.yaml` and check trigger conditions against the user's request and workspace context
-4. Present available extensions to the user:
-
-```markdown
-**Extensions Available**
-
-Based on your project, I suggest:
-
-| # | Extension | Description | Status |
-|---|-----------|-------------|--------|
-| 1 | [name] | [description] | Suggested |
-| 2 | [name] | [description] | Available |
-
-Options:
-- A) Enable all suggested extensions
-- B) Let me pick which ones to enable (list numbers)
-- C) Skip extensions, proceed without
-
-[Answer]:
-```
-
-5. **Wait for user selection**
-6. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` skill runs — it asks what the user needs (name a standard, point to existing docs, or describe rules), researches, and generates structured extension folders.
-7. Save enabled extensions to `aidlc-docs/enabled-extensions.md`
-8. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
-9. Automatically proceed to next phase (Reverse Engineering or Requirements Analysis)
-
-**After this stage, all enabled extensions are active and will inject content at every subsequent stage.**
+7. Automatically proceed to next phase (Reverse Engineering if brownfield, or Requirements Analysis)
 
 ## Reverse Engineering (CONDITIONAL - Brownfield Only)
 
@@ -225,6 +187,48 @@ Options:
 4. Execute at appropriate depth (minimal/standard/comprehensive)
 5. **Wait for Explicit Approval**: Follow approval format from requirements-analysis.md detailed steps - DO NOT PROCEED until user confirms
 6. **MANDATORY**: Log user's response in audit.md with complete raw input
+7. Automatically proceed to Extension Discovery
+
+## Extension Discovery and Selection (ALWAYS EXECUTE)
+
+**Purpose**: Discover and enable extensions AFTER initial requirements are gathered, so recommendations are informed by what the user is actually building — not just keyword matching from the prompt.
+
+**Context available at this point**: workspace type (greenfield/brownfield), app type, data handled, cloud platform, compliance mentions, technical stack — all gathered during Requirements Analysis.
+
+**Execution**:
+1. **MANDATORY**: Scan for extensions in both locations:
+   - Built-in: `{rule-details-dir}/extensions/` (scan subdirectories for `rule-manifest.yaml`)
+   - Generated: `aidlc-docs/extensions/` (scan subdirectories for `rule-manifest.yaml`)
+2. Check if `aidlc-docs/enabled-extensions.md` already exists with pre-enabled extensions
+3. For each extension, read its `rule-manifest.yaml` and check trigger conditions against the gathered requirements context (not just the raw prompt)
+4. Present available extensions with informed recommendations:
+
+```markdown
+**Extensions Available**
+
+Based on your requirements, I suggest:
+
+| # | Extension | Description | Why Recommended |
+|---|-----------|-------------|-----------------|
+| 1 | [name] | [description] | [reason from requirements context] |
+| 2 | [name] | [description] | [reason from requirements context] |
+
+Options:
+- A) Enable all suggested extensions
+- B) Let me pick which ones to enable (list numbers)
+- C) Skip extensions, proceed without
+
+[Answer]:
+```
+
+5. **Wait for user selection**
+6. **Extension opt-in/applicability questions**: For each selected extension, scan for `## Opt-In Prompt` or `## Applicability Question` sections and present them. Record enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`.
+7. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` runs — it reads control data from installed extensions with `depends_on: ["extension-generator"]`, classifies controls to phases, and generates lazy-loaded phase files to `aidlc-docs/extensions/`. The generator can skip redundant scoping questions by pulling app type, language, and cloud platform from the requirements already gathered.
+8. Save enabled extensions to `aidlc-docs/enabled-extensions.md`
+9. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
+10. Automatically proceed to next phase (User Stories or Workflow Planning)
+
+**After this stage, all enabled extensions are active and will inject content at every subsequent stage.**
 
 ## User Stories (CONDITIONAL)
 

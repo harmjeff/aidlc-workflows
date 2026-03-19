@@ -90,16 +90,15 @@ Analyze whatever the user has provided:
 
 **When in doubt, ask questions** - incomplete requirements lead to poor implementations.
 
-### Step 5.1: Extension Applicability Questions
+### Step 5.1: Extension-Relevant Context Gathering
 
-**MANDATORY**: Scan all loaded extension files for an `## Applicability Question` or `## Opt-In Prompt` section (both formats are supported). For each extension that declares one, include that question in the clarifying questions file created in Step 6. After receiving answers, record each extension's enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`:
+**Note**: Extension discovery and opt-in happens AFTER this stage (in Extension Discovery). However, during requirements gathering, pay attention to signals that will inform extension recommendations:
+- Compliance/regulatory mentions (NIST, HIPAA, PCI-DSS, FedRAMP, GDPR, etc.)
+- Data sensitivity (PII, PHI, financial data, classified data)
+- Cloud platform and services mentioned
+- Industry/domain context (government, healthcare, finance, etc.)
 
-```markdown
-## Extension Configuration
-| Extension | Enabled | Decided At |
-|---|---|---|
-| [Extension Name] | [Yes/No] | Requirements Analysis |
-```
+These signals are used by Extension Discovery to make informed recommendations.
 
 ### Step 6: Generate Clarifying Questions (PROACTIVE APPROACH)
    - **ALWAYS** create `aidlc-docs/inception/requirements/requirement-verification-questions.md` unless requirements are exceptionally clear and complete

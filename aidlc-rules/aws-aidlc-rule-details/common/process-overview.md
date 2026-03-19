@@ -13,14 +13,14 @@
 • **OPERATIONS PHASE**: Placeholder for future deployment and monitoring workflows
 
 ## The Adaptive Workflow:
-• **Workspace Detection** (always) → **Extension Discovery** (always) → **Reverse Engineering** (brownfield only) → **Requirements Analysis** (always, adaptive depth) → **Conditional Phases** (as needed) → **Workflow Planning** (always) → **Code Generation** (always, per-unit) → **Build and Test** (always)
+• **Workspace Detection** (always) → **Reverse Engineering** (brownfield only) → **Requirements Analysis** (always, adaptive depth) → **Extension Discovery** (always, informed by initial requirements) → **Conditional Phases** (as needed) → **Workflow Planning** (always) → **Code Generation** (always, per-unit) → **Build and Test** (always)
 
 ## How It Works:
 • **AI analyzes** your request, workspace, and complexity to determine which stages are needed
-• **These stages always execute**: Workspace Detection, Extension Discovery, Requirements Analysis (adaptive depth), Workflow Planning, Code Generation (per-unit), Build and Test
+• **These stages always execute**: Workspace Detection, Requirements Analysis (adaptive depth), Extension Discovery, Workflow Planning, Code Generation (per-unit), Build and Test
 • **All other stages are conditional**: Reverse Engineering, User Stories, Application Design, Units Generation, per-unit design stages (Functional Design, NFR Requirements, NFR Design, Infrastructure Design)
 • **No fixed sequences**: Stages execute in the order that makes sense for your specific task
-• **Extensions are discovered early**: Right after Workspace Detection, so all subsequent stages benefit from compliance/standard guidance
+• **Extensions are informed by context**: Extension Discovery runs after initial requirements gathering, so recommendations are based on what the user is actually building — not just keyword matching
 
 ## Your Team's Role:
 • **Answer questions** in dedicated question files using [Answer]: tags with letter choices (A, B, C, D, E)
@@ -60,13 +60,13 @@ flowchart TD
     end
     
     Start --> WD
-    WD --> ED
-    ED -.-> RE
-    ED --> RA
+    WD -.-> RE
+    WD --> RA
     RE --> RA
+    RA --> ED
     
-    RA -.-> Stories
-    RA --> WP
+    ED -.-> Stories
+    ED --> WP
     Stories --> WP
     
     WP -.-> AppDesign
@@ -117,9 +117,9 @@ flowchart TD
 
 **🔵 INCEPTION PHASE** - Planning and Architecture
 - Workspace Detection: Analyze workspace state and project type (ALWAYS)
-- Extension Discovery: Scan, present, and enable extensions — including generating compliance extensions via the extension-generator skill (ALWAYS)
 - Reverse Engineering: Analyze existing codebase (CONDITIONAL - Brownfield only)
-- Requirements Analysis: Gather and validate requirements, with extension content injected (ALWAYS - Adaptive depth)
+- Requirements Analysis: Gather and validate initial requirements context (ALWAYS - Adaptive depth)
+- Extension Discovery: Scan, present, and enable extensions informed by requirements context — including generating compliance extensions via the extension-generator (ALWAYS)
 - User Stories: Create user stories and personas, with extension acceptance criteria injected (CONDITIONAL)
 - Workflow Planning: Create execution plan (ALWAYS)
 - Application Design: High-level component identification and service layer design, with extension constraints injected (CONDITIONAL)
