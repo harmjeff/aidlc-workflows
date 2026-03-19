@@ -20,7 +20,7 @@
 • **These stages always execute**: Workspace Detection, Initial Context Gathering, Extension Discovery, Requirements Analysis (adaptive depth), Workflow Planning, Code Generation (per-unit), Build and Test
 • **All other stages are conditional**: Reverse Engineering, User Stories, Application Design, Units Generation, per-unit design stages (Functional Design, NFR Requirements, NFR Design, Infrastructure Design)
 • **No fixed sequences**: Stages execute in the order that makes sense for your specific task
-• **Extensions are informed before requirements**: Lightweight context gathering feeds Extension Discovery, then extensions inject compliance-driven questions and constraints into full Requirements Analysis
+• **Installed extensions are auto-enabled**: If you installed it, you want it — no redundant opt-in. Context gathering is adaptive (only asks what the prompt didn't cover), then extensions inject compliance-driven questions into Requirements Analysis
 
 ## Your Team's Role:
 • **Answer questions** in dedicated question files using [Answer]: tags with letter choices (A, B, C, D, E)

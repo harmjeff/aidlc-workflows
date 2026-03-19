@@ -63,7 +63,7 @@ If the same extension name exists in both locations, the generated version in `a
 - Non-compliance with any applicable enabled extension rule is a **blocking finding** — do NOT present stage completion until resolved
 - When presenting stage completion, include a compliance summary for the loaded extension rules (compliant/non-compliant/N/A per rule)
 
-**Conditional Enforcement**: Extensions may be conditionally enabled/disabled. See `inception/requirements-analysis.md` for the collection mechanism. Before enforcing any extension at ANY stage, check its `Enabled` status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`. Skip disabled extensions and log the skip in audit.md. Default to enforced if no configuration exists. Extensions without an `## Applicability Question` are always enforced.
+**Conditional Enforcement**: Installed extensions are auto-enabled — if a user installed it, they want it. Before enforcing any extension at ANY stage, check its `Enabled` status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`. Users can disable extensions by request during Extension Discovery. Default to enforced if no configuration exists.
 
 ## MANDATORY: Content Validation
 **CRITICAL**: Before creating ANY file, you MUST validate content according to `common/content-validation.md` rules:
@@ -170,71 +170,52 @@ If the same extension name exists in both locations, the generated version in `a
 
 ## Initial Context Gathering (ALWAYS EXECUTE)
 
-**Purpose**: Gather enough project context to make informed extension recommendations. This is a lightweight pass — NOT full requirements analysis.
+**Purpose**: Gather enough project context to inform Extension Discovery and the rest of the workflow. This is adaptive — only ask what the prompt didn't already tell you.
 
 **Execution**:
 1. **MANDATORY**: Log any user input during this phase in audit.md
-2. Analyze the user's request and ask focused context questions:
-
-```markdown
-**Project Context**
-
-To recommend the right extensions and tailor the workflow, I need some quick context:
-
-1. **What are you building?** (e.g., API, web app, data pipeline, infrastructure)
-2. **What domain/industry?** (e.g., government, healthcare, finance, general)
-3. **What cloud platform?** (e.g., AWS, Azure, GCP, multi-cloud, none)
-4. **What language/framework?** (e.g., TypeScript/React, Python/FastAPI, Java/Spring)
-5. **Any compliance or regulatory requirements?** (e.g., NIST, HIPAA, PCI-DSS, FedRAMP, none)
-6. **What data sensitivity?** (e.g., PII, PHI, financial, public, internal)
-
-[Answer]:
-```
-
-3. **Wait for user answers**
-4. Save context to `aidlc-docs/inception/project-context.md`
-5. **MANDATORY**: Log context in audit.md
-6. Automatically proceed to Extension Discovery
+2. **Extract what you already know** from the user's prompt — app type, domain, platform, language, compliance mentions, data sensitivity. Do NOT re-ask anything the user already provided.
+3. **Ask only about gaps** — if the prompt already says "federal app on AWS with NIST 800-53 compliance storing PII", you already know domain (government), platform (AWS), compliance (NIST 800-53), and data sensitivity (PII). You might only need to ask about language/framework preference.
+4. Present gap questions naturally, not as a rigid questionnaire. Only ask what's missing.
+5. **Wait for user answers** (if any questions were needed)
+6. Save context to `aidlc-docs/inception/project-context.md`
+7. **MANDATORY**: Log context in audit.md
+8. Automatically proceed to Extension Discovery
 
 ## Extension Discovery and Selection (ALWAYS EXECUTE)
 
-**Purpose**: Discover and enable extensions informed by the project context gathered above. Recommendations are based on what the user is actually building — not just keyword matching.
+**Purpose**: Discover installed extensions, auto-enable them, and execute any generation logic. Extensions that the user installed into `extensions/` are treated as intentionally enabled — no opt-in needed.
+
+**Auto-enable rule**: If a user manually installed an extension into `{rule-details-dir}/extensions/`, they want it. Auto-enable it. Do not ask "do you want to use this?" — that's redundant. The Discovery stage informs the user what's active, not asks permission.
 
 **Execution**:
 1. **MANDATORY**: Scan for extensions in both locations:
    - Built-in: `{rule-details-dir}/extensions/` (scan subdirectories for `rule-manifest.yaml`)
    - Generated: `aidlc-docs/extensions/` (scan subdirectories for `rule-manifest.yaml`)
-2. Check if `aidlc-docs/enabled-extensions.md` already exists with pre-enabled extensions
-3. For each extension, read its `rule-manifest.yaml` and check trigger conditions against the gathered project context
-4. Present available extensions with informed recommendations:
+2. **Auto-enable all installed extensions**. Present what's active:
 
 ```markdown
-**Extensions Available**
+**Extensions Enabled**
 
-Based on your project context, I suggest:
+The following extensions are installed and active for this project:
 
-| # | Extension | Description | Why Recommended |
-|---|-----------|-------------|-----------------|
-| 1 | [name] | [description] | [reason from project context] |
-| 2 | [name] | [description] | [reason from project context] |
+| # | Extension | Category | Description |
+|---|-----------|----------|-------------|
+| 1 | security-baseline | security | 15 security rules (OWASP-mapped) |
+| 2 | nist-800-53 | compliance | NIST 800-53 AC controls mapped to AWS Control Tower |
+| 3 | extension-generator | process | Generates phase-specific files for compliance extensions |
 
-Options:
-- A) Enable all suggested extensions
-- B) Let me pick which ones to enable (list numbers)
-- C) Skip extensions, proceed without
-
-[Answer]:
+These will be applied throughout the workflow. If you need to disable any, let me know.
 ```
 
-5. **Wait for user selection**
-6. **Extension opt-in/applicability questions**: For each selected extension, scan for `## Opt-In Prompt` or `## Applicability Question` sections and present them. Record enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`.
-7. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` runs — it reads control data from installed extensions with `depends_on: ["extension-generator"]`, classifies controls to phases, and generates lazy-loaded phase files to `aidlc-docs/extensions/`. The generator pulls app type, language, and cloud platform from the project context — no redundant questions.
-8. Save all Extension Discovery questions and answers to `aidlc-docs/extensions/extension-discovery.md`
-9. Save enabled extensions to `aidlc-docs/extensions/enabled-extensions.md`
-10. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
-11. Automatically proceed to Requirements Analysis
+3. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` runs — it reads control data from installed extensions with `depends_on: ["extension-generator"]`, classifies controls to phases, and generates lazy-loaded phase files to `aidlc-docs/extensions/`. The generator pulls app type, language, and cloud platform from the project context — no redundant questions.
+4. Record enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`
+5. Save extension discovery summary to `aidlc-docs/extensions/extension-discovery.md`
+6. Save enabled extensions list to `aidlc-docs/extensions/enabled-extensions.md`
+7. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
+8. Automatically proceed to Requirements Analysis
 
-**After this stage, all enabled extensions are active and will inject content at every subsequent stage — starting with Requirements Analysis.**
+**After this stage, all installed extensions are active and will inject content at every subsequent stage — starting with Requirements Analysis.**
 
 ## Requirements Analysis (ALWAYS EXECUTE - Adaptive Depth)
 
