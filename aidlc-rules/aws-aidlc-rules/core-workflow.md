@@ -25,28 +25,45 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 - Load `common/question-format-guide.md` for question formatting rules
 - Reference these throughout the workflow execution
 
-## MANDATORY: Extensions Loading (Context-Optimized)
-**CRITICAL**: At workflow start, scan the `extensions/` directory recursively but load ONLY lightweight opt-in files — NOT full rule files. Full rule files are loaded on-demand after the user opts in.
+## MANDATORY: Extensions Loading
+**CRITICAL**: At workflow start, scan for enabled extensions in two locations. **Do NOT load all extension content upfront** — this wastes context window. Instead, use lazy loading:
 
-**Loading process**:
-1. List all subdirectories under `extensions/` (e.g., `extensions/security/`, `extensions/compliance/`)
-2. In each subdirectory, load ONLY `*.opt-in.md` files — these contain the extension's opt-in prompt. The corresponding rules file is derived by convention: strip the `.opt-in.md` suffix and append `.md` (e.g., `security-baseline.opt-in.md` → `security-baseline.md`)
-3. Do NOT load full rule files (e.g., `security-baseline.md`) at this stage
+**Extension locations** (scan both, merge results):
+1. **Built-in extensions**: `{rule-details-dir}/extensions/` — ships with AI-DLC (e.g., security-baseline). The `{rule-details-dir}` is whichever path was resolved above (`.aidlc-rule-details/`, `.kiro/aws-aidlc-rule-details/`, or `.amazonq/aws-aidlc-rule-details/`).
+2. **Generated extensions**: `aidlc-docs/extensions/` — created by the extension-generator skill. This is a fixed, IDE-agnostic path that is always the same regardless of which IDE or AI tool is being used.
 
-**Deferred Rule Loading**:
-- During Requirements Analysis, opt-in prompts from the loaded `*.opt-in.md` files are presented to the user
-- When the user opts IN for an extension, load the corresponding rules file (derived by naming convention) at that point
-- When the user opts OUT, the full rules file is never loaded — saving context
-- Extensions without a matching `*.opt-in.md` file are always enforced — load their rule files immediately at workflow start
+If the same extension name exists in both locations, the generated version in `aidlc-docs/extensions/` takes precedence (user customizations override built-in).
 
-**Enforcement** (applies only to loaded/enabled extensions):
+**Loading process (lightweight scan at startup)**:
+1. Read `{rule-details-dir}/extensions/_registry.md` for built-in extensions
+2. Scan `aidlc-docs/extensions/` for generated extension directories (each must contain a `rule-manifest.yaml`)
+3. For each extension, read ONLY its `rule-manifest.yaml` (metadata: name, category, rule_type, applies_to stages, priority, tags)
+4. Build an in-memory index: which extensions apply to which stages
+5. Do NOT read any `.md` content files yet — those are loaded on-demand per stage
+
+**Exception — always-loaded extensions**: The security-baseline rules (`{rule-details-dir}/extensions/security/baseline/security-baseline.md`) are cross-cutting hard constraints that apply to EVERY stage. Load at startup. All other extension content is deferred.
+
+**Per-stage content injection (on-demand loading)**:
+1. When entering a stage, check the in-memory index for extensions that have an `applies_to` entry for this stage
+2. For each matching extension, read ONLY the specific `.md` file referenced in the `applies_to` entry (e.g., at `code-generation` stage, read only `code-guidelines.md` — not `requirements.md`, `design.md`, or `overview.md`)
+3. Apply the content per the `action` field (append/prepend) alongside core stage content
+4. Cite extension sources: *(Source: [extension-name]/[filename])*
+5. After the stage completes, the extension content can be released from context — it is NOT needed in subsequent stages unless that stage also references it
+6. If multiple extensions apply to the same stage, load and apply them in `priority` order (lower number first)
+
+**What this means for context window**:
+- At startup: only manifests are loaded (~20-50 lines per extension, not hundreds)
+- At each stage: only the 1-2 relevant content files are loaded
+- After each stage: stage-specific extension content is released
+- A project with 5 extensions × 7 stage files = 35 files total, but only 1-3 are in context at any time
+
+**Enforcement**:
 - Extension rules are hard constraints, not optional guidance
-- At each stage, the model intelligently evaluates which extension rules are applicable based on the stage's purpose, the artifacts being produced, and the context of the work — enforce only those rules that are relevant
-- Rules that are not applicable to the current stage should be marked as N/A in the compliance summary (this is not a blocking finding)
+- At each stage, enforce only the rules from the loaded stage-specific file — do not evaluate rules from files not loaded for this stage
 - Non-compliance with any applicable enabled extension rule is a **blocking finding** — do NOT present stage completion until resolved
-- When presenting stage completion, include a summary of extension rule compliance (compliant/non-compliant/N/A per rule, with brief rationale for N/A determinations)
+- When presenting stage completion, include a compliance summary for the loaded extension rules (compliant/non-compliant/N/A per rule)
 
-**Conditional Enforcement**: Extensions may be conditionally enabled/disabled. See `inception/requirements-analysis.md` for the opt-in mechanism. Before enforcing any extension at ANY stage, check its `Enabled` status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`. Skip disabled extensions and log the skip in audit.md. Default to enforced if no configuration exists. 
+**Conditional Enforcement**: Extensions may be conditionally enabled/disabled. See `inception/requirements-analysis.md` for the collection mechanism. Before enforcing any extension at ANY stage, check its `Enabled` status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`. Skip disabled extensions and log the skip in audit.md. Default to enforced if no configuration exists. Extensions without an `## Applicability Question` are always enforced.
 
 ## MANDATORY: Content Validation
 **CRITICAL**: Before creating ANY file, you MUST validate content according to `common/content-validation.md` rules:
@@ -73,6 +90,20 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 3. This should only be done ONCE at the start of a new workflow
 4. Do NOT load this file in subsequent interactions to save context space
 
+## MANDATORY: Extension Content Injection at Every Stage
+**CRITICAL**: After extensions are enabled during Extension Discovery, the per-stage content injection described in "Extensions Loading" above applies at EVERY stage throughout the entire workflow.
+
+**At each stage** (summary — see Extensions Loading for full details):
+1. Check the in-memory manifest index for extensions with `applies_to` entries for the current stage
+2. For each matching enabled extension, read ONLY the referenced `.md` file
+3. Apply content (append/prepend per `action` field) alongside core stage content
+4. Cite sources: *(Source: [extension-name]/[filename])*
+5. Extensions ADD to core guidance — they never replace it
+6. Apply in `priority` order (lower number first)
+7. Release extension content from context after stage completion
+
+**This applies to ALL stages**: Requirements Analysis, User Stories, Workflow Planning, Application Design, Units Generation, Functional Design, NFR Requirements, NFR Design, Infrastructure Design, Code Generation, Build and Test.
+
 # Adaptive Software Development Workflow
 
 ---
@@ -85,6 +116,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 
 **Stages in INCEPTION PHASE**:
 - Workspace Detection (ALWAYS)
+- Extension Discovery and Selection (ALWAYS)
 - Reverse Engineering (CONDITIONAL - Brownfield only)
 - Requirements Analysis (ALWAYS - Adaptive depth)
 - User Stories (CONDITIONAL)
@@ -106,7 +138,45 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 4. Determine next phase: Reverse Engineering (if brownfield and no artifacts) OR Requirements Analysis
 5. **MANDATORY**: Log findings in audit.md
 6. Present completion message to user (see workspace-detection.md for message formats)
-7. Automatically proceed to next phase
+7. Automatically proceed to Extension Discovery
+
+## Extension Discovery and Selection (ALWAYS EXECUTE)
+
+**Purpose**: Discover and enable extensions BEFORE any analysis begins, so all subsequent stages benefit from extension guidance.
+
+**Execution**:
+1. **MANDATORY**: Scan for extensions in both locations:
+   - Built-in: `{rule-details-dir}/extensions/_registry.md`
+   - Generated: `aidlc-docs/extensions/` (scan for directories containing `rule-manifest.yaml`)
+2. Check if `aidlc-docs/enabled-extensions.md` already exists with pre-enabled extensions
+3. For each extension, read its `rule-manifest.yaml` and check trigger conditions against the user's request and workspace context
+4. Present available extensions to the user:
+
+```markdown
+**Extensions Available**
+
+Based on your project, I suggest:
+
+| # | Extension | Description | Status |
+|---|-----------|-------------|--------|
+| 1 | [name] | [description] | Suggested |
+| 2 | [name] | [description] | Available |
+
+Options:
+- A) Enable all suggested extensions
+- B) Let me pick which ones to enable (list numbers)
+- C) Skip extensions, proceed without
+
+[Answer]:
+```
+
+5. **Wait for user selection**
+6. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` skill runs — it asks what the user needs (name a standard, point to existing docs, or describe rules), researches, and generates structured extension folders.
+7. Save enabled extensions to `aidlc-docs/enabled-extensions.md`
+8. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
+9. Automatically proceed to next phase (Reverse Engineering or Requirements Analysis)
+
+**After this stage, all enabled extensions are active and will inject content at every subsequent stage.**
 
 ## Reverse Engineering (CONDITIONAL - Brownfield Only)
 
@@ -235,6 +305,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
    - Intent analysis
    - Requirements (if executed)
    - User stories (if executed)
+   - Enabled extensions (from Extension Discovery stage)
 5. Execute workflow planning:
    - Determine which phases to execute
    - Determine depth level for each phase
@@ -512,6 +583,11 @@ The Operations stage will eventually include:
 ├── [project-specific structure]    # Varies by project (see code-generation.md)
 │
 ├── aidlc-docs/                     # 📄 DOCUMENTATION ONLY
+│   ├── extensions/                 # 🔌 GENERATED EXTENSIONS (IDE-agnostic, fixed path)
+│   │   ├── [category]-[name]/      # e.g., compliance-hipaa/, quality-coding-standards/
+│   │   │   ├── rule-manifest.yaml
+│   │   │   ├── overview.md
+│   │   │   └── [stage-files].md
 │   ├── inception/                  # 🔵 INCEPTION PHASE
 │   │   ├── plans/
 │   │   ├── reverse-engineering/    # Brownfield only

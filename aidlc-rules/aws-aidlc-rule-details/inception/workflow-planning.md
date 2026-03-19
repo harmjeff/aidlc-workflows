@@ -20,6 +20,46 @@
 - stories.md
 - personas.md
 
+### 1.4 Load Enabled Extensions
+- Check `aidlc-docs/enabled-extensions.md` for pre-enabled extensions
+
+---
+
+## Step 1.5: Extension Discovery and Selection
+
+**MANDATORY**: Before proceeding with scope analysis, scan for available extensions.
+
+### 1.5.1 Scan Available Extensions
+1. Read `{rule-details-dir}/extensions/_registry.md` for built-in extensions
+2. Scan `aidlc-docs/extensions/` for generated extensions (directories containing `rule-manifest.yaml`)
+3. For each extension, read its `rule-manifest.yaml` to check trigger conditions against the current project context (project type, requirements keywords, languages detected)
+4. Check if `aidlc-docs/enabled-extensions.md` exists with pre-enabled extensions
+
+### 1.5.2 Present Extensions to User
+
+```markdown
+**Extensions Available**
+
+Based on your project, I suggest:
+
+| # | Extension | Description | Status |
+|---|-----------|-------------|--------|
+| 1 | [name] | [description] | Suggested |
+| 2 | [name] | [description] | Available |
+
+Options:
+- A) Enable all suggested extensions
+- B) Let me pick which ones to enable (list numbers)
+- C) Skip extensions, proceed without
+
+[Answer]:
+```
+
+### 1.5.3 Execute Enabled Extension Logic
+For each enabled extension, load its content file for the `workflow-planning` stage (if it has one) and execute its instructions. This is where the `extension-generator` skill runs — it asks what the user needs, researches standards, reads user docs, and generates structured extension folders during this step.
+
+---
+
 ## Step 2: Detailed Scope and Impact Analysis
 
 **Now that we have complete context (requirements + stories), perform detailed analysis:**
