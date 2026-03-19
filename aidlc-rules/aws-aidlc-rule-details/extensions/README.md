@@ -44,3 +44,18 @@ At workflow start, the AI scans subdirectories under `extensions/`:
 - A subfolder containing a `*.opt-in.md` file is an **opt-in extension** — the user is asked during Requirements Analysis whether to enable it for this project
 - A subfolder with rule `.md` files but no `*.opt-in.md` is **always enforced** — its rules are loaded immediately at workflow start
 - The `project-type/` subfolder is **excluded from this scan** — project-type extensions are loaded by Workspace Detection based on the user's project type selection, not by the standard opt-in mechanism
+
+---
+
+## Extension Generator Integration
+
+Extensions installed here that declare `depends_on: ["extension-generator"]` in their `rule-manifest.yaml` contain raw control data (e.g., compliance frameworks) that needs to be processed into phase-specific files before it can be used by the AI-DLC workflow.
+
+When the extension-generator runs, it:
+1. Scans this `extensions/` folder for any extension with `depends_on: ["extension-generator"]`
+2. Reads the extension's control data file
+3. Classifies each control to the relevant AI-DLC phases
+4. Generates phase-specific files (requirements.md, design.md, infrastructure.md, etc.) into `aidlc-docs/extensions/[category]/[standard-name]/`
+5. Creates a lazy-loading manifest so each phase loads only its specific file
+
+This currently focuses on compliance extensions. Future versions will support user-provided rules (coding standards, business rules, etc.) through the same mechanism.

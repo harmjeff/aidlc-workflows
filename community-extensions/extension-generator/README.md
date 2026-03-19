@@ -1,32 +1,45 @@
 # Extension Generator
 
-**Version**: 1.0.0 | **Status**: Experimental
+**Version**: 1.1.0 | **Status**: Experimental
 
 ## Overview
 
-The Extension Generator is an experimental extension that allows users to create custom extension rules for their AI-DLC workflows. It currently focuses on **regulatory and compliance impact** (e.g., HIPAA, PCI-DSS, GDPR, SOC 2, NIST, OWASP), but the underlying pattern is extensible to any internal rules creation based on documentation resources — including coding standards, business rules, architecture patterns, and team processes.
+The Extension Generator is an experimental extension that allows users to create custom extension rules for their AI-DLC workflows. It handles **regulatory and compliance impact** (e.g., HIPAA, PCI-DSS, GDPR, SOC 2, NIST, OWASP) as well as coding standards, business rules, architecture patterns, and team processes.
 
 ## How It Works
 
 1. **Opt-in**: The generator is gated behind an opt-in prompt during Requirements Analysis. It only activates when explicitly requested.
 2. **Classification**: User input is classified by rule type (compliance, coding, business, architecture, or process) to determine the appropriate generation path.
 3. **Scoping**: Targeted questions gather context — strictness level, applicable phases, technology stack, and cloud platform.
-4. **Generation**: Extension folders are created with structured rule files, manifests, and (for compliance rules) CCM v4.1 normalization mappings.
+4. **Generation**: Phase-specific files are created with lazy-loading manifests so only the relevant file is loaded at each AI-DLC stage — not the entire extension.
 
-### Two Entry Paths
+### Three Entry Paths
 
-- **Recommended Path** — The extension analyzes your project context and recommends applicable extensions based on detected domain keywords.
-- **Manual Path** — You specify directly by naming a standard, pointing to existing rule documents, or describing your rules.
+- **Recommended Path** — The extension analyzes your project context, scans for installed community-extensions that need phase files, and recommends applicable extensions based on detected domain keywords.
+- **Manual Path** — You specify directly by naming a standard, pointing to existing rule documents, describing your rules, or selecting a community-extension to process.
+- **Compliance Extension Processing** — The generator scans the `extensions/` folder for any installed extension with `depends_on: ["extension-generator"]` in its manifest, reads the control data, and generates phase-specific files. Each control is intelligently classified to only the phases where it produces actionable guidance — this is what enables lazy loading. Future versions will extend this to user-provided rules beyond compliance.
+
+### Lazy Loading
+
+The generator produces a `rule-manifest.yaml` with `applies_to` entries that map each phase to its specific file. At runtime, the AI-DLC workflow loads **only** the file for the current phase — not the full controls data, not other phase files, not the overview. This keeps the context window lean.
+
+Example: A NIST 800-53 AC-3 (Access Enforcement) control generates content for `design.md`, `infrastructure.md`, `code-guidelines.md`, and `testing.md` — but NOT `stories.md` or `nfr-additions.md`. Those files are never created, never referenced in the manifest, and never loaded.
 
 ## Output
 
-Generated extensions are placed at:
+All generated phase files are placed in `aidlc-docs/extensions/` — keeping all AI-DLC runtime artifacts in one location:
 
 ```
-aidlc-docs/extensions/[category]/[standard-name]/
+aidlc-docs/extensions/compliance/[standard-name]/
+aidlc-docs/extensions/quality/[standard-name]/
+aidlc-docs/extensions/process/[standard-name]/
 ```
 
-Each extension includes a `rule-manifest.yaml`, an `overview.md`, and stage-specific guideline files tailored to the phases you select. Compliance extensions additionally include a `ccm-mapping.md` with full framework-to-CCM crosswalk.
+The source data (control definitions, READMEs) stays in `community-extensions/`. The generated output (`aidlc-docs/extensions/`) contains only the lazy-loaded phase files and manifest that the AI-DLC workflow reads at runtime.
+
+Each generated extension includes a `rule-manifest.yaml` (with lazy-loading `applies_to`), an `overview.md`, and only the stage-specific files that have applicable controls. Compliance extensions additionally include a `ccm-mapping.md` with full framework-to-CCM crosswalk.
+
+**Note**: The security baseline extension (`community-extensions/security/baseline/`) is excluded from this generator — it is a cross-cutting hard constraint loaded directly by the core workflow.
 
 ## Important Disclaimers
 
