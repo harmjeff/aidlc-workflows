@@ -8,9 +8,8 @@
 
 ## Prerequisites
 - Workspace Detection must be complete
+- Extension Discovery must be complete — extensions are loaded and will inject content into this stage
 - Reverse Engineering must be complete (if brownfield)
-- Initial Context Gathering must be complete
-- Extension Discovery must be complete — extensions are now loaded and will inject content into this stage
 
 ## Execution Steps
 

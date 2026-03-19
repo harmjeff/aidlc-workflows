@@ -116,9 +116,8 @@ If the same extension name exists in both locations, the generated version in `a
 
 **Stages in INCEPTION PHASE**:
 - Workspace Detection (ALWAYS)
+- Extension Discovery (ALWAYS - auto-enables installed extensions)
 - Reverse Engineering (CONDITIONAL - Brownfield only)
-- Initial Context Gathering (ALWAYS - lightweight, informs Extension Discovery)
-- Extension Discovery and Selection (ALWAYS - informed by context)
 - Requirements Analysis (ALWAYS - Adaptive depth, with extensions loaded)
 - User Stories (CONDITIONAL)
 - Workflow Planning (ALWAYS)
@@ -139,7 +138,40 @@ If the same extension name exists in both locations, the generated version in `a
 4. Determine next phase: Reverse Engineering (if brownfield and no artifacts) OR Requirements Analysis
 5. **MANDATORY**: Log findings in audit.md
 6. Present completion message to user (see workspace-detection.md for message formats)
-7. Automatically proceed to next phase (Reverse Engineering if brownfield, or Requirements Analysis)
+7. Automatically proceed to Extension Discovery
+
+## Extension Discovery (ALWAYS EXECUTE)
+
+**Purpose**: Auto-enable installed extensions and execute any generation logic. If a user installed an extension, they want it — no opt-in needed.
+
+**Execution**:
+1. **MANDATORY**: Scan for extensions in both locations:
+   - Built-in: `{rule-details-dir}/extensions/` (scan subdirectories for `rule-manifest.yaml`)
+   - Generated: `aidlc-docs/extensions/` (scan subdirectories for `rule-manifest.yaml`)
+2. **Auto-enable all installed extensions**. Present what's active:
+
+```markdown
+**Extensions Enabled**
+
+The following extensions are installed and active for this project:
+
+| # | Extension | Category | Description |
+|---|-----------|----------|-------------|
+| 1 | security-baseline | security | 15 security rules (OWASP-mapped) |
+| 2 | nist-800-53 | compliance | NIST 800-53 AC controls mapped to AWS Control Tower |
+| 3 | extension-generator | process | Generates phase-specific files for compliance extensions |
+
+These will be applied throughout the workflow. If you need to disable any, let me know.
+```
+
+3. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` runs — it reads control data from installed extensions with `depends_on: ["extension-generator"]`, classifies controls to phases, and generates lazy-loaded phase files to `aidlc-docs/extensions/`.
+4. Record enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`
+5. Save extension discovery summary to `aidlc-docs/extensions/extension-discovery.md`
+6. Save enabled extensions list to `aidlc-docs/extensions/enabled-extensions.md`
+7. **MANDATORY**: Log extensions and any generated files in `audit.md`
+8. Automatically proceed to next phase (Reverse Engineering if brownfield, or Requirements Analysis)
+
+**After this stage, all installed extensions are active and will inject content at every subsequent stage.**
 
 ## Reverse Engineering (CONDITIONAL - Brownfield Only)
 
@@ -168,55 +200,6 @@ If the same extension name exists in both locations, the generated version in `a
 4. **Wait for Explicit Approval**: Present detailed completion message (see reverse-engineering.md for message format) - DO NOT PROCEED until user confirms
 5. **MANDATORY**: Log user's response in audit.md with complete raw input
 
-## Initial Context Gathering (ALWAYS EXECUTE)
-
-**Purpose**: Gather enough project context to inform Extension Discovery and the rest of the workflow. This is adaptive — only ask what the prompt didn't already tell you.
-
-**Execution**:
-1. **MANDATORY**: Log any user input during this phase in audit.md
-2. **Extract what you already know** from the user's prompt — app type, domain, platform, language, compliance mentions, data sensitivity. Do NOT re-ask anything the user already provided.
-3. **Ask only about gaps** — if the prompt already says "federal app on AWS with NIST 800-53 compliance storing PII", you already know domain (government), platform (AWS), compliance (NIST 800-53), and data sensitivity (PII). You might only need to ask about language/framework preference.
-4. Present gap questions naturally, not as a rigid questionnaire. Only ask what's missing.
-5. **Wait for user answers** (if any questions were needed)
-6. Save context to `aidlc-docs/inception/project-context.md`
-7. **MANDATORY**: Log context in audit.md
-8. Automatically proceed to Extension Discovery
-
-## Extension Discovery and Selection (ALWAYS EXECUTE)
-
-**Purpose**: Discover installed extensions, auto-enable them, and execute any generation logic. Extensions that the user installed into `extensions/` are treated as intentionally enabled — no opt-in needed.
-
-**Auto-enable rule**: If a user manually installed an extension into `{rule-details-dir}/extensions/`, they want it. Auto-enable it. Do not ask "do you want to use this?" — that's redundant. The Discovery stage informs the user what's active, not asks permission.
-
-**Execution**:
-1. **MANDATORY**: Scan for extensions in both locations:
-   - Built-in: `{rule-details-dir}/extensions/` (scan subdirectories for `rule-manifest.yaml`)
-   - Generated: `aidlc-docs/extensions/` (scan subdirectories for `rule-manifest.yaml`)
-2. **Auto-enable all installed extensions**. Present what's active:
-
-```markdown
-**Extensions Enabled**
-
-The following extensions are installed and active for this project:
-
-| # | Extension | Category | Description |
-|---|-----------|----------|-------------|
-| 1 | security-baseline | security | 15 security rules (OWASP-mapped) |
-| 2 | nist-800-53 | compliance | NIST 800-53 AC controls mapped to AWS Control Tower |
-| 3 | extension-generator | process | Generates phase-specific files for compliance extensions |
-
-These will be applied throughout the workflow. If you need to disable any, let me know.
-```
-
-3. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` runs — it reads control data from installed extensions with `depends_on: ["extension-generator"]`, classifies controls to phases, and generates lazy-loaded phase files to `aidlc-docs/extensions/`. The generator pulls app type, language, and cloud platform from the project context — no redundant questions.
-4. Record enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`
-5. Save extension discovery summary to `aidlc-docs/extensions/extension-discovery.md`
-6. Save enabled extensions list to `aidlc-docs/extensions/enabled-extensions.md`
-7. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
-8. Automatically proceed to Requirements Analysis
-
-**After this stage, all installed extensions are active and will inject content at every subsequent stage — starting with Requirements Analysis.**
-
 ## Requirements Analysis (ALWAYS EXECUTE - Adaptive Depth)
 
 **Always executes** but depth varies based on request clarity and complexity:
@@ -224,13 +207,12 @@ These will be applied throughout the workflow. If you need to disable any, let m
 - **Standard**: Normal complexity - gather functional and non-functional requirements
 - **Comprehensive**: Complex, high-risk - detailed requirements with traceability
 
-**Extensions are now loaded**: Enabled extensions inject compliance-driven requirements, additional questions, and constraints into this stage. For example, NIST 800-53 AC-3 may add access control requirements the user didn't think to specify.
+**Extensions are loaded**: Enabled extensions inject compliance-driven requirements, additional questions, and constraints into this stage. For example, NIST 800-53 AC-3 may add access control requirements the user didn't think to specify.
 
 **Execution**:
 1. **MANDATORY**: Log any user input during this phase in audit.md
 2. Load all steps from `inception/requirements-analysis.md`
-3. Load project context from `aidlc-docs/inception/project-context.md`
-4. Execute requirements analysis:
+3. Execute requirements analysis:
    - Load reverse engineering artifacts (if brownfield)
    - Analyze user request (intent analysis)
    - Determine requirements depth needed
@@ -238,9 +220,9 @@ These will be applied throughout the workflow. If you need to disable any, let m
    - **Inject extension content** for requirements-analysis stage (per lazy-loading)
    - Ask clarifying questions (if needed) — including extension-driven questions
    - Generate requirements document
-5. Execute at appropriate depth (minimal/standard/comprehensive)
-6. **Wait for Explicit Approval**: Follow approval format from requirements-analysis.md detailed steps - DO NOT PROCEED until user confirms
-7. **MANDATORY**: Log user's response in audit.md with complete raw input
+4. Execute at appropriate depth (minimal/standard/comprehensive)
+5. **Wait for Explicit Approval**: Follow approval format from requirements-analysis.md detailed steps - DO NOT PROCEED until user confirms
+6. **MANDATORY**: Log user's response in audit.md with complete raw input
 
 ## User Stories (CONDITIONAL)
 

@@ -13,14 +13,14 @@
 • **OPERATIONS PHASE**: Placeholder for future deployment and monitoring workflows
 
 ## The Adaptive Workflow:
-• **Workspace Detection** (always) → **Reverse Engineering** (brownfield only) → **Initial Context Gathering** (always) → **Extension Discovery** (always, informed by context) → **Requirements Analysis** (always, with extensions loaded) → **Conditional Phases** (as needed) → **Workflow Planning** (always) → **Code Generation** (always, per-unit) → **Build and Test** (always)
+• **Workspace Detection** (always) → **Extension Discovery** (always, auto-enables installed extensions) → **Reverse Engineering** (brownfield only) → **Requirements Analysis** (always, with extensions loaded) → **Conditional Phases** (as needed) → **Workflow Planning** (always) → **Code Generation** (always, per-unit) → **Build and Test** (always)
 
 ## How It Works:
 • **AI analyzes** your request, workspace, and complexity to determine which stages are needed
-• **These stages always execute**: Workspace Detection, Initial Context Gathering, Extension Discovery, Requirements Analysis (adaptive depth), Workflow Planning, Code Generation (per-unit), Build and Test
+• **These stages always execute**: Workspace Detection, Extension Discovery, Requirements Analysis (adaptive depth), Workflow Planning, Code Generation (per-unit), Build and Test
 • **All other stages are conditional**: Reverse Engineering, User Stories, Application Design, Units Generation, per-unit design stages (Functional Design, NFR Requirements, NFR Design, Infrastructure Design)
 • **No fixed sequences**: Stages execute in the order that makes sense for your specific task
-• **Installed extensions are auto-enabled**: If you installed it, you want it — no redundant opt-in. Context gathering is adaptive (only asks what the prompt didn't cover), then extensions inject compliance-driven questions into Requirements Analysis
+• **Installed extensions are auto-enabled**: If you installed it, you want it — no redundant opt-in. Extensions inject compliance-driven questions and constraints into Requirements Analysis and all subsequent stages
 
 ## Your Team's Role:
 • **Answer questions** in dedicated question files using [Answer]: tags with letter choices (A, B, C, D, E)
@@ -37,9 +37,8 @@ flowchart TD
     
     subgraph INCEPTION["🔵 INCEPTION PHASE"]
         WD["Workspace Detection<br/><b>ALWAYS</b>"]
-        RE["Reverse Engineering<br/><b>CONDITIONAL</b>"]
-        ICG["Initial Context Gathering<br/><b>ALWAYS</b>"]
         ED["Extension Discovery<br/><b>ALWAYS</b>"]
+        RE["Reverse Engineering<br/><b>CONDITIONAL</b>"]
         RA["Requirements Analysis<br/><b>ALWAYS</b>"]
         Stories["User Stories<br/><b>CONDITIONAL</b>"]
         WP["Workflow Planning<br/><b>ALWAYS</b>"]
@@ -61,11 +60,10 @@ flowchart TD
     end
     
     Start --> WD
-    WD -.-> RE
-    WD --> ICG
-    RE --> ICG
-    ICG --> ED
+    WD --> ED
+    ED -.-> RE
     ED --> RA
+    RE --> RA
     
     RA -.-> Stories
     RA --> WP
@@ -90,7 +88,6 @@ flowchart TD
     BT --> End(["Complete"])
     
     style WD fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
-    style ICG fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
     style ED fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
     style RA fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
     style WP fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#fff
@@ -120,9 +117,8 @@ flowchart TD
 
 **🔵 INCEPTION PHASE** - Planning and Architecture
 - Workspace Detection: Analyze workspace state and project type (ALWAYS)
+- Extension Discovery: Auto-enable installed extensions, generate compliance phase files via extension-generator (ALWAYS)
 - Reverse Engineering: Analyze existing codebase (CONDITIONAL - Brownfield only)
-- Initial Context Gathering: Lightweight questions — what are you building, domain, platform, compliance needs (ALWAYS)
-- Extension Discovery: Scan, present, and enable extensions informed by context — including generating compliance phase files via the extension-generator (ALWAYS)
 - Requirements Analysis: Full requirements with extension content injected — compliance-driven questions and constraints included (ALWAYS - Adaptive depth)
 - User Stories: Create user stories and personas, with extension acceptance criteria injected (CONDITIONAL)
 - Workflow Planning: Create execution plan (ALWAYS)
