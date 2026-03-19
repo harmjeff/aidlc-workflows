@@ -1,10 +1,8 @@
-# Security Baseline — Opt-In
+## SECURITY_BASELINE_OPT_IN
 
-**Extension**: Security Baseline
+Extension: Security Baseline
 
-## Opt-In Prompt
-
-The following question is automatically included in the Requirements Analysis clarifying questions when this extension is loaded:
+Auto-included in Requirements Analysis clarifying questions when extension loaded:
 
 ```markdown
 ## Question: Security Extensions
