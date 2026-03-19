@@ -1,5 +1,5 @@
 name: "extension-generator"
-version: "1.1.0"
+version: "1.2.0"
 displayName: "Extension Generator Extension"
 description: "IDE-agnostic extension that generates AI-DLC extensions for any ruleset — processes community-extension control data into lazy-loaded phase-specific files, or creates new extensions from scratch for compliance frameworks, coding standards, business rules, and more"
 author: "AI-DLC Team"
