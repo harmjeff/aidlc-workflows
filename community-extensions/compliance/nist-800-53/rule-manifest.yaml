@@ -1,0 +1,25 @@
+name: "nist-800-53"
+version: "0.1.0"
+displayName: "NIST 800-53 Compliance Controls"
+description: "NIST 800-53 compliance controls mapped to AWS Control Tower preventive and detective controls — designed to work with the extension-generator for phase-specific guidance"
+author: "AI-DLC Community"
+category: "compliance"
+rule_type: "compliance"
+
+triggers:
+  suggest_when:
+    - has_requirements_keyword: ["nist", "800-53", "fedramp", "control tower", "compliance", "aws", "government", "federal", "regulated"]
+    - project_type: ["web", "api", "microservice", "infrastructure", "full-stack"]
+  always_available: true
+  auto_enable: false
+
+applies_to:
+  inception:
+    - stage: "workflow-planning"
+      file: "nist-800-53-controls.md"
+      action: "append"
+
+priority: 20
+conflicts_with: []
+depends_on: ["extension-generator"]
+tags: ["compliance", "nist", "800-53", "aws", "control-tower", "fedramp"]
