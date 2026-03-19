@@ -9,6 +9,8 @@
 ## Prerequisites
 - Workspace Detection must be complete
 - Reverse Engineering must be complete (if brownfield)
+- Initial Context Gathering must be complete
+- Extension Discovery must be complete — extensions are now loaded and will inject content into this stage
 
 ## Execution Steps
 
@@ -90,15 +92,13 @@ Analyze whatever the user has provided:
 
 **When in doubt, ask questions** - incomplete requirements lead to poor implementations.
 
-### Step 5.1: Extension-Relevant Context Gathering
+### Step 5.1: Extension Content Injection
 
-**Note**: Extension discovery and opt-in happens AFTER this stage (in Extension Discovery). However, during requirements gathering, pay attention to signals that will inform extension recommendations:
-- Compliance/regulatory mentions (NIST, HIPAA, PCI-DSS, FedRAMP, GDPR, etc.)
-- Data sensitivity (PII, PHI, financial data, classified data)
-- Cloud platform and services mentioned
-- Industry/domain context (government, healthcare, finance, etc.)
-
-These signals are used by Extension Discovery to make informed recommendations.
+**Extensions are already loaded** from the Extension Discovery stage. At this point:
+1. Check the in-memory manifest index for extensions with `applies_to` entries for `requirements-analysis`
+2. For each matching enabled extension, load its `requirements.md` phase file
+3. Inject extension-driven requirements and questions alongside core requirements questions
+4. This may add compliance-driven requirements the user didn't specify (e.g., NIST AC-3 access enforcement requirements for PII fields, role-based access definitions)
 
 ### Step 6: Generate Clarifying Questions (PROACTIVE APPROACH)
    - **ALWAYS** create `aidlc-docs/inception/requirements/requirement-verification-questions.md` unless requirements are exceptionally clear and complete

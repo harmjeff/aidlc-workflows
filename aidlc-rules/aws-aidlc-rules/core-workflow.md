@@ -117,8 +117,9 @@ If the same extension name exists in both locations, the generated version in `a
 **Stages in INCEPTION PHASE**:
 - Workspace Detection (ALWAYS)
 - Reverse Engineering (CONDITIONAL - Brownfield only)
-- Requirements Analysis (ALWAYS - Adaptive depth, initial context gathering)
-- Extension Discovery and Selection (ALWAYS - informed by requirements context)
+- Initial Context Gathering (ALWAYS - lightweight, informs Extension Discovery)
+- Extension Discovery and Selection (ALWAYS - informed by context)
+- Requirements Analysis (ALWAYS - Adaptive depth, with extensions loaded)
 - User Stories (CONDITIONAL)
 - Workflow Planning (ALWAYS)
 - Application Design (CONDITIONAL)
@@ -167,51 +168,55 @@ If the same extension name exists in both locations, the generated version in `a
 4. **Wait for Explicit Approval**: Present detailed completion message (see reverse-engineering.md for message format) - DO NOT PROCEED until user confirms
 5. **MANDATORY**: Log user's response in audit.md with complete raw input
 
-## Requirements Analysis (ALWAYS EXECUTE - Adaptive Depth)
+## Initial Context Gathering (ALWAYS EXECUTE)
 
-**Always executes** but depth varies based on request clarity and complexity:
-- **Minimal**: Simple, clear request - just document intent analysis
-- **Standard**: Normal complexity - gather functional and non-functional requirements
-- **Comprehensive**: Complex, high-risk - detailed requirements with traceability
+**Purpose**: Gather enough project context to make informed extension recommendations. This is a lightweight pass — NOT full requirements analysis.
 
 **Execution**:
 1. **MANDATORY**: Log any user input during this phase in audit.md
-2. Load all steps from `inception/requirements-analysis.md`
-3. Execute requirements analysis:
-   - Load reverse engineering artifacts (if brownfield)
-   - Analyze user request (intent analysis)
-   - Determine requirements depth needed
-   - Assess current requirements
-   - Ask clarifying questions (if needed)
-   - Generate requirements document
-4. Execute at appropriate depth (minimal/standard/comprehensive)
-5. **Wait for Explicit Approval**: Follow approval format from requirements-analysis.md detailed steps - DO NOT PROCEED until user confirms
-6. **MANDATORY**: Log user's response in audit.md with complete raw input
-7. Automatically proceed to Extension Discovery
+2. Analyze the user's request and ask focused context questions:
+
+```markdown
+**Project Context**
+
+To recommend the right extensions and tailor the workflow, I need some quick context:
+
+1. **What are you building?** (e.g., API, web app, data pipeline, infrastructure)
+2. **What domain/industry?** (e.g., government, healthcare, finance, general)
+3. **What cloud platform?** (e.g., AWS, Azure, GCP, multi-cloud, none)
+4. **What language/framework?** (e.g., TypeScript/React, Python/FastAPI, Java/Spring)
+5. **Any compliance or regulatory requirements?** (e.g., NIST, HIPAA, PCI-DSS, FedRAMP, none)
+6. **What data sensitivity?** (e.g., PII, PHI, financial, public, internal)
+
+[Answer]:
+```
+
+3. **Wait for user answers**
+4. Save context to `aidlc-docs/inception/project-context.md`
+5. **MANDATORY**: Log context in audit.md
+6. Automatically proceed to Extension Discovery
 
 ## Extension Discovery and Selection (ALWAYS EXECUTE)
 
-**Purpose**: Discover and enable extensions AFTER initial requirements are gathered, so recommendations are informed by what the user is actually building — not just keyword matching from the prompt.
-
-**Context available at this point**: workspace type (greenfield/brownfield), app type, data handled, cloud platform, compliance mentions, technical stack — all gathered during Requirements Analysis.
+**Purpose**: Discover and enable extensions informed by the project context gathered above. Recommendations are based on what the user is actually building — not just keyword matching.
 
 **Execution**:
 1. **MANDATORY**: Scan for extensions in both locations:
    - Built-in: `{rule-details-dir}/extensions/` (scan subdirectories for `rule-manifest.yaml`)
    - Generated: `aidlc-docs/extensions/` (scan subdirectories for `rule-manifest.yaml`)
 2. Check if `aidlc-docs/enabled-extensions.md` already exists with pre-enabled extensions
-3. For each extension, read its `rule-manifest.yaml` and check trigger conditions against the gathered requirements context (not just the raw prompt)
+3. For each extension, read its `rule-manifest.yaml` and check trigger conditions against the gathered project context
 4. Present available extensions with informed recommendations:
 
 ```markdown
 **Extensions Available**
 
-Based on your requirements, I suggest:
+Based on your project context, I suggest:
 
 | # | Extension | Description | Why Recommended |
 |---|-----------|-------------|-----------------|
-| 1 | [name] | [description] | [reason from requirements context] |
-| 2 | [name] | [description] | [reason from requirements context] |
+| 1 | [name] | [description] | [reason from project context] |
+| 2 | [name] | [description] | [reason from project context] |
 
 Options:
 - A) Enable all suggested extensions
@@ -223,12 +228,38 @@ Options:
 
 5. **Wait for user selection**
 6. **Extension opt-in/applicability questions**: For each selected extension, scan for `## Opt-In Prompt` or `## Applicability Question` sections and present them. Record enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`.
-7. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` runs — it reads control data from installed extensions with `depends_on: ["extension-generator"]`, classifies controls to phases, and generates lazy-loaded phase files to `aidlc-docs/extensions/`. The generator can skip redundant scoping questions by pulling app type, language, and cloud platform from the requirements already gathered.
-8. Save enabled extensions to `aidlc-docs/enabled-extensions.md`
-9. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
-10. Automatically proceed to next phase (User Stories or Workflow Planning)
+7. **Execute enabled extension logic**: For each enabled extension that has an `applies_to` entry for `workflow-planning`, load and execute its instructions now. This is where the `extension-generator` runs — it reads control data from installed extensions with `depends_on: ["extension-generator"]`, classifies controls to phases, and generates lazy-loaded phase files to `aidlc-docs/extensions/`. The generator pulls app type, language, and cloud platform from the project context — no redundant questions.
+8. Save all Extension Discovery questions and answers to `aidlc-docs/extensions/extension-discovery.md`
+9. Save enabled extensions to `aidlc-docs/extensions/enabled-extensions.md`
+10. **MANDATORY**: Log extension selections and any generated extensions in `audit.md`
+11. Automatically proceed to Requirements Analysis
 
-**After this stage, all enabled extensions are active and will inject content at every subsequent stage.**
+**After this stage, all enabled extensions are active and will inject content at every subsequent stage — starting with Requirements Analysis.**
+
+## Requirements Analysis (ALWAYS EXECUTE - Adaptive Depth)
+
+**Always executes** but depth varies based on request clarity and complexity:
+- **Minimal**: Simple, clear request - just document intent analysis
+- **Standard**: Normal complexity - gather functional and non-functional requirements
+- **Comprehensive**: Complex, high-risk - detailed requirements with traceability
+
+**Extensions are now loaded**: Enabled extensions inject compliance-driven requirements, additional questions, and constraints into this stage. For example, NIST 800-53 AC-3 may add access control requirements the user didn't think to specify.
+
+**Execution**:
+1. **MANDATORY**: Log any user input during this phase in audit.md
+2. Load all steps from `inception/requirements-analysis.md`
+3. Load project context from `aidlc-docs/inception/project-context.md`
+4. Execute requirements analysis:
+   - Load reverse engineering artifacts (if brownfield)
+   - Analyze user request (intent analysis)
+   - Determine requirements depth needed
+   - Assess current requirements
+   - **Inject extension content** for requirements-analysis stage (per lazy-loading)
+   - Ask clarifying questions (if needed) — including extension-driven questions
+   - Generate requirements document
+5. Execute at appropriate depth (minimal/standard/comprehensive)
+6. **Wait for Explicit Approval**: Follow approval format from requirements-analysis.md detailed steps - DO NOT PROCEED until user confirms
+7. **MANDATORY**: Log user's response in audit.md with complete raw input
 
 ## User Stories (CONDITIONAL)
 
