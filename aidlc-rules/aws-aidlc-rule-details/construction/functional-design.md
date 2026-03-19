@@ -17,6 +17,15 @@ Functional Design focuses on:
 - Application Design recommended (provides high-level component structure)
 - Execution plan must indicate Functional Design stage should execute
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+**CRITICAL**: This is a CONSTRUCTION phase stage. All output goes under `aidlc-docs/construction/`, NEVER under `aidlc-docs/inception/`.
+- `aidlc-docs/construction/plans/{unit-name}-functional-design-plan.md` — design plan with embedded [Answer]: tags
+- `aidlc-docs/construction/{unit-name}/functional-design/business-logic-model.md` — business logic and algorithms
+- `aidlc-docs/construction/{unit-name}/functional-design/business-rules.md` — business rules, validation, constraints
+- `aidlc-docs/construction/{unit-name}/functional-design/domain-entities.md` — domain models and relationships
+- `aidlc-docs/construction/{unit-name}/functional-design/frontend-components.md` — (if unit includes UI) component hierarchy, props, state, interactions
+
 ## Overview
 Design detailed business logic for the unit, technology-agnostic and focused purely on business functions.
 

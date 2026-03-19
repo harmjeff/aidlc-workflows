@@ -10,7 +10,12 @@
 - Workspace Detection must be complete
 - Reverse Engineering must be complete (if brownfield)
 
-**Note**: Extension Discovery runs WITHIN this stage — after questions are answered but before the requirements document is generated. See core-workflow.md for the full flow.
+**Note**: Extension opt-in prompts are included in the clarifying questions (Step 5.1). Enabled extensions inject content into the requirements document.
+
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+- `aidlc-docs/inception/requirements/requirement-verification-questions.md` — clarifying questions with [Answer]: tags
+- `aidlc-docs/inception/requirements/requirements.md` — final requirements document (generated AFTER questions are answered)
 
 ## Execution Steps
 
@@ -92,15 +97,22 @@ Analyze whatever the user has provided:
 
 **When in doubt, ask questions** - incomplete requirements lead to poor implementations.
 
-### Step 5.1: Extension Discovery and Content Injection
+### Step 5.1: Extension Opt-In Prompts
 
-**Extension Discovery runs here** — after questions are answered, before the requirements document is generated. See core-workflow.md for full Extension Discovery execution steps.
+**MANDATORY**: Scan all loaded `*.opt-in.md` files (loaded at workflow start from `extensions/` subdirectories) for an `## Opt-In Prompt` section. For each extension that declares one, include that question in the clarifying questions file created in Step 6.
 
-After Extension Discovery completes:
-1. Check the manifest index for extensions with `applies_to` entries for `requirements-analysis`
-2. For each enabled extension, load its `requirements.md` phase file
-3. Inject extension-driven requirements into the requirements document about to be generated
-4. This adds compliance-driven requirements the user didn't specify (e.g., NIST AC-3 access enforcement requirements for PII fields, role-based access definitions)
+After receiving answers:
+1. Record each extension's enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`:
+
+```markdown
+## Extension Configuration
+| Extension | Enabled | Decided At |
+|---|---|---|
+| [Extension Name] | [Yes/No] | Requirements Analysis |
+```
+
+2. **Deferred Rule Loading**: For each extension the user opted IN, load the full rules file now. The rules file is derived by naming convention: strip `.opt-in.md` from the opt-in filename and append `.md` (e.g., `security-baseline.opt-in.md` → `security-baseline.md`). For extensions the user opted OUT, do NOT load the full rules file.
+3. For enabled extensions with `applies_to` entries for `requirements-analysis`, load and inject their content into the requirements document about to be generated.
 
 ### Step 6: Generate Clarifying Questions (PROACTIVE APPROACH)
    - **ALWAYS** create `aidlc-docs/inception/requirements/requirement-verification-questions.md` unless requirements are exceptionally clear and complete

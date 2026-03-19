@@ -4,6 +4,10 @@
 
 **Always Execute**: This phase always runs after understanding requirements and scope
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+- `aidlc-docs/inception/plans/execution-plan.md` — comprehensive execution plan with workflow visualization
+
 ## Step 1: Load All Prior Context
 
 ### 1.1 Load Reverse Engineering Artifacts (if brownfield)
@@ -20,12 +24,9 @@
 - stories.md
 - personas.md
 
-### 1.4 Load Enabled Extensions
-- Check `aidlc-docs/enabled-extensions.md` for extensions enabled during Extension Discovery
-- Extension Discovery runs before Workflow Planning (see core-workflow.md) and generates phase files to `aidlc-docs/extensions/`
-- Load any generated extension content applicable to this stage
-
----
+### 1.4 Load Enabled Extensions (if any)
+- Check `aidlc-docs/aidlc-state.md` under `## Extension Configuration` for enabled extensions
+- For enabled extensions with `applies_to` entries for this stage, load and apply their content
 
 ## Step 2: Detailed Scope and Impact Analysis
 

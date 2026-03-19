@@ -16,6 +16,13 @@ This stage decomposes the system into manageable units of work through two integ
 - Application Design phase REQUIRED (determines components, methods, and services)
 - Execution plan must indicate Design phase should execute
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+- `aidlc-docs/inception/plans/unit-of-work-plan.md` — decomposition plan with embedded [Answer]: tags
+- `aidlc-docs/inception/application-design/unit-of-work.md` — unit definitions and responsibilities
+- `aidlc-docs/inception/application-design/unit-of-work-dependency.md` — dependency matrix between units
+- `aidlc-docs/inception/application-design/unit-of-work-story-map.md` — mapping of stories to units
+
 ---
 
 # PART 1: PLANNING

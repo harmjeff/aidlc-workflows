@@ -5,6 +5,13 @@
 - Unit functional design artifacts must be available
 - Execution plan must indicate NFR Requirements stage should execute
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+**CRITICAL**: This is a CONSTRUCTION phase stage. All output goes under `aidlc-docs/construction/`, NEVER under `aidlc-docs/inception/`.
+- `aidlc-docs/construction/plans/{unit-name}-nfr-requirements-plan.md` — NFR plan with embedded [Answer]: tags
+- `aidlc-docs/construction/{unit-name}/nfr-requirements/nfr-requirements.md` — non-functional requirements
+- `aidlc-docs/construction/{unit-name}/nfr-requirements/tech-stack-decisions.md` — technology choices and rationale
+
 ## Overview
 Determine non-functional requirements for the unit and make tech stack choices.
 

@@ -15,6 +15,13 @@ User Stories focus on:
 - Requirements Analysis recommended (can reference requirements if available)
 - Workflow Planning must indicate User Stories stage should execute
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+- `aidlc-docs/inception/plans/user-stories-assessment.md` — assessment of whether user stories are needed
+- `aidlc-docs/inception/plans/story-generation-plan.md` — story plan with embedded [Answer]: tags
+- `aidlc-docs/inception/user-stories/stories.md` — generated user stories (INVEST criteria, acceptance criteria)
+- `aidlc-docs/inception/user-stories/personas.md` — user personas and archetypes
+
 ## Intelligent Assessment Guidelines
 
 **WHEN TO EXECUTE USER STORIES**: Use this enhanced assessment before proceeding:

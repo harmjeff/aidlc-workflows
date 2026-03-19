@@ -1,0 +1,23 @@
+name: "extension-generator"
+version: "1.2.0"
+displayName: "Extension Generator Extension"
+description: "IDE-agnostic extension that generates AI-DLC extensions for any ruleset — processes community-extension control data into lazy-loaded phase-specific files, or creates new extensions from scratch for compliance frameworks, coding standards, business rules, and more"
+author: "AI-DLC Team"
+category: "process"
+
+triggers:
+  suggest_when:
+    - has_requirements_keyword: ["compliance", "hipaa", "gdpr", "fedramp", "pci", "sox", "nist", "iso", "regulation", "standard", "soc2", "ccpa", "lgpd", "ccm", "star", "csa", "owasp", "cis", "coding standard", "style guide", "business rule", "convention", "guidelines"]
+  always_available: true
+  auto_enable: false
+
+applies_to:
+  inception:
+    - stage: "workflow-planning"
+      file: "generator-extension.md"
+      action: "append"
+
+priority: 5
+conflicts_with: []
+depends_on: []
+tags: ["generator", "extension", "ide-agnostic"]

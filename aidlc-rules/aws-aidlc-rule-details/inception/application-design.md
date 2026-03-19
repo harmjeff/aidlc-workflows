@@ -17,6 +17,15 @@ Application Design focuses on:
 - Story Development recommended (user stories guide design decisions)
 - Execution plan must indicate Application Design stage should execute
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+- `aidlc-docs/inception/plans/application-design-plan.md` — design plan with embedded [Answer]: tags
+- `aidlc-docs/inception/application-design/components.md` — component definitions and responsibilities
+- `aidlc-docs/inception/application-design/component-methods.md` — method signatures and purpose
+- `aidlc-docs/inception/application-design/services.md` — service definitions and orchestration
+- `aidlc-docs/inception/application-design/component-dependency.md` — dependency relationships and data flow
+- `aidlc-docs/inception/application-design/application-design.md` — consolidated design document
+
 ## Step-by-Step Execution
 
 ### 1. Analyze Context

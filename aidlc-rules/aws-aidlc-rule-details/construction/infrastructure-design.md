@@ -5,6 +5,14 @@
 - NFR Design recommended (provides logical components to map)
 - Execution plan must indicate Infrastructure Design stage should execute
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+**CRITICAL**: This is a CONSTRUCTION phase stage. All output goes under `aidlc-docs/construction/`, NEVER under `aidlc-docs/inception/`.
+- `aidlc-docs/construction/plans/{unit-name}-infrastructure-design-plan.md` — infrastructure plan with embedded [Answer]: tags
+- `aidlc-docs/construction/{unit-name}/infrastructure-design/infrastructure-design.md` — infrastructure service mappings
+- `aidlc-docs/construction/{unit-name}/infrastructure-design/deployment-architecture.md` — deployment architecture
+- `aidlc-docs/construction/shared-infrastructure.md` — (if shared infrastructure exists) shared infrastructure definitions
+
 ## Overview
 Map logical software components to actual infrastructure choices for deployment environments.
 

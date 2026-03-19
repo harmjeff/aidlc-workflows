@@ -5,6 +5,13 @@
 - NFR requirements artifacts must be available
 - Execution plan must indicate NFR Design stage should execute
 
+## Required Output Artifacts
+**MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
+**CRITICAL**: This is a CONSTRUCTION phase stage. All output goes under `aidlc-docs/construction/`, NEVER under `aidlc-docs/inception/`.
+- `aidlc-docs/construction/plans/{unit-name}-nfr-design-plan.md` — NFR design plan with embedded [Answer]: tags
+- `aidlc-docs/construction/{unit-name}/nfr-design/nfr-design-patterns.md` — design patterns for NFRs
+- `aidlc-docs/construction/{unit-name}/nfr-design/logical-components.md` — logical infrastructure components
+
 ## Overview
 Incorporate NFR requirements into unit design using patterns and logical components.
 

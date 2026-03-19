@@ -6,9 +6,11 @@ This folder is read by the AI-DLC rules loader at workflow start. Place installe
 
 ---
 
-## This Folder Is Empty by Default
+## Built-In Extensions
 
-No extensions ship with the core AI-DLC rules. Install only what your project needs.
+These extensions ship with the core AI-DLC rules:
+- `security/baseline/` — OWASP-mapped security rules (opt-in during Requirements Analysis)
+- `extension-generator/` — generates phase-specific files from compliance frameworks and other rule data (opt-in during Requirements Analysis)
 
 ---
 
@@ -17,8 +19,9 @@ No extensions ship with the core AI-DLC rules. Install only what your project ne
 Browse the `community-extensions/` folder in the AI-DLC repository. Each extension has its own subfolder with a README describing what it does and when to use it.
 
 Available extension categories:
+- `community-extensions/compliance/` — compliance frameworks (NIST 800-53, etc.)
 - `community-extensions/project-type/` — project type extensions (brownfield, greyfield)
-- `community-extensions/security/` — security and compliance rules
+- `community-extensions/security/` — security rules
 
 ---
 
