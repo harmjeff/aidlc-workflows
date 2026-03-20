@@ -10,8 +10,6 @@
 - Workspace Detection must be complete
 - Reverse Engineering must be complete (if brownfield)
 
-**Note**: Extension opt-in prompts are included in the clarifying questions (Step 5.1). Enabled extensions inject content into the requirements document.
-
 ## Required Output Artifacts
 **MANDATORY**: Create these files at these EXACT paths. Do NOT flatten into single files or change directory structure.
 - `aidlc-docs/inception/requirements/requirement-verification-questions.md` — clarifying questions with [Answer]: tags
@@ -112,7 +110,6 @@ After receiving answers:
 ```
 
 2. **Deferred Rule Loading**: For each extension the user opted IN, load the full rules file now. The rules file is derived by naming convention: strip `.opt-in.md` from the opt-in filename and append `.md` (e.g., `security-baseline.opt-in.md` → `security-baseline.md`). For extensions the user opted OUT, do NOT load the full rules file.
-3. For enabled extensions with `applies_to` entries for `requirements-analysis`, load and inject their content into the requirements document about to be generated.
 
 ### Step 6: Generate Clarifying Questions (PROACTIVE APPROACH)
    - **ALWAYS** create `aidlc-docs/inception/requirements/requirement-verification-questions.md` unless requirements are exceptionally clear and complete

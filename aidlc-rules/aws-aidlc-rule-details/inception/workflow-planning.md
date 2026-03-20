@@ -24,9 +24,6 @@
 - stories.md
 - personas.md
 
-### 1.4 Load Enabled Extensions (if any)
-- Check `aidlc-docs/aidlc-state.md` under `## Extension Configuration` for enabled extensions
-- For enabled extensions with `applies_to` entries for this stage, load and apply their content
 
 ## Step 2: Detailed Scope and Impact Analysis
 
