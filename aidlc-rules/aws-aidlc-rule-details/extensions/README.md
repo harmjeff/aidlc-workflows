@@ -10,7 +10,6 @@ This folder is read by the AI-DLC rules loader at workflow start. Place installe
 
 These extensions ship with the core AI-DLC rules:
 - `security/baseline/` — OWASP-mapped security rules (opt-in during Requirements Analysis)
-- `extension-generator/` — generates phase-specific files from compliance frameworks and other rule data (opt-in during Requirements Analysis)
 
 ---
 
@@ -50,15 +49,3 @@ At workflow start, the AI scans subdirectories under `extensions/`:
 
 ---
 
-## Extension Generator Integration
-
-Extensions installed here that declare `depends_on: ["extension-generator"]` in their `rule-manifest.yaml` contain raw control data (e.g., compliance frameworks) that needs to be processed into phase-specific files before it can be used by the AI-DLC workflow.
-
-When the extension-generator runs, it:
-1. Scans this `extensions/` folder for any extension with `depends_on: ["extension-generator"]`
-2. Reads the extension's control data file
-3. Classifies each control to the relevant AI-DLC phases
-4. Generates phase-specific files (requirements.md, design.md, infrastructure.md, etc.) into `aidlc-docs/extensions/[category]/[standard-name]/`
-5. Creates a lazy-loading manifest so each phase loads only its specific file
-
-This currently focuses on compliance extensions. Future versions will support user-provided rules (coding standards, business rules, etc.) through the same mechanism.

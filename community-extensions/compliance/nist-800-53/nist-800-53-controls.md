@@ -2,7 +2,7 @@
 
 **Extension**: nist-800-53 v0.1.0 | **Type**: compliance | **Framework**: NIST 800-53
 
-> This extension provides the control mappings. The **extension-generator** determines which AI-DLC phases each control applies to based on your project context (app type, cloud platform, strictness level) and generates phase-specific guidance files accordingly.
+> This extension provides NIST 800-53 control mappings. When installed and enabled, the AI-DLC workflow embeds these controls directly into each relevant stage (requirements, design, infrastructure, code generation, testing).
 
 ---
 
@@ -68,18 +68,14 @@ Controls that log the execution of privileged functions.
 | AC-6(1) | Least Privilege - Authorize Access to Security Functions | 3 | Preventive (SCP) |
 | AC-6(9) | Least Privilege - Log Use of Privileged Functions | 1 | Detective (Security Hub) |
 
-## Extension-Generator Integration
+## Stage Applicability
 
-When the extension-generator processes this extension, it should:
-
-1. **Classify** these controls as compliance/security (NIST 800-53 framework detected)
-2. **Map to CCM domains**: IAM (Identity & Access Management), LOG (Logging & Monitoring), DSP (Data Security & Privacy)
-3. **Generate phase-specific files** based on user's selected phases and strictness level:
-   - **Requirements**: Access control requirements derived from AC-3, AC-6(1), AC-6(9)
-   - **Design**: Architecture constraints for SCP enforcement and CloudTrail integration
-   - **Infrastructure**: AWS Control Tower landing zone configuration, SCP policies, Security Hub enablement
-   - **Code Guidelines**: IAM policy patterns, least-privilege examples
-   - **Testing**: Compliance verification for SCP enforcement and CloudTrail multi-region coverage
+When this extension is enabled, the AI-DLC workflow applies these controls to:
+- **Requirements**: Access control requirements derived from AC-3, AC-6(1), AC-6(9)
+- **Design**: Architecture constraints for SCP enforcement and CloudTrail integration
+- **Infrastructure**: AWS Control Tower landing zone configuration, SCP policies, Security Hub enablement
+- **Code Generation**: IAM policy patterns, least-privilege examples
+- **Testing**: Compliance verification for SCP enforcement and CloudTrail multi-region coverage
 
 ---
 

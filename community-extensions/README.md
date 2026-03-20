@@ -54,7 +54,7 @@ community-extensions/
 
 The `README.md` stays in this repo for documentation. The `.md` rule files are what users copy into their projects.
 
-Use `security/baseline/` as a reference for cross-cutting extensions and `project-type/brownfield/` for project-type extensions.
+Use `compliance/nist-800-53/` as a reference for cross-cutting extensions and `project-type/brownfield/` for project-type extensions.
 
 ---
 
@@ -71,7 +71,7 @@ Every extension must include an `## Opt-In Prompt` section so users can see exac
 
 **Project-type extensions** include the `## Opt-In Prompt` section directly in their rules file, alongside a `## Project Type Registration` section. Workspace Detection reads both sections to build the project type question and load the correct extension. There is no separate `.opt-in.md` file.
 
-See `project-type/brownfield/brownfield.md` for a project-type example and `security/baseline/security-baseline.opt-in.md` for a cross-cutting example.
+See `project-type/brownfield/brownfield.md` for a project-type example and `compliance/nist-800-53/nist-800-53.opt-in.md` for a cross-cutting example.
 
 ---
 
@@ -100,7 +100,7 @@ X) Other (please describe after [Answer]: tag below)
 \`\`\`
 ```
 
-See `../security/baseline/security-baseline.opt-in.md` for a complete example.
+See `compliance/nist-800-53/nist-800-53.opt-in.md` for a complete example.
 
 ---
 

@@ -28,31 +28,25 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
 ## MANDATORY: Extensions Loading (Context-Optimized)
 **CRITICAL**: At workflow start, scan the `extensions/` directory recursively but load ONLY lightweight opt-in files — NOT full rule files. Full rule files are loaded on-demand after the user opts in.
 
-**Extension locations** (scan both, merge results):
-1. **Built-in extensions**: `{rule-details-dir}/extensions/` — ships with AI-DLC (e.g., security-baseline, extension-generator)
-2. **Generated extensions**: `aidlc-docs/extensions/` — created by the extension-generator. If the same extension name exists in both locations, the generated version takes precedence.
-
 **Loading process**:
-1. Scan both extension locations for subdirectories containing `rule-manifest.yaml`
-2. For each extension, read ONLY its `rule-manifest.yaml` (metadata: name, category, applies_to stages, priority)
-3. Also load any `*.opt-in.md` files — these contain the extension's opt-in prompt for Requirements Analysis
-4. Do NOT load full rule `.md` files at this stage — those are loaded on-demand per stage
+1. List all subdirectories under `extensions/` (e.g., `extensions/security/`, `extensions/compliance/`)
+2. In each subdirectory, load ONLY `*.opt-in.md` files — these contain the extension's opt-in prompt. The corresponding rules file is derived by convention: strip the `.opt-in.md` suffix and append `.md` (e.g., `security-baseline.opt-in.md` → `security-baseline.md`)
+3. Do NOT load full rule files (e.g., `security-baseline.md`) at this stage
 
 **Deferred Rule Loading**:
-- During Requirements Analysis, opt-in prompts from `*.opt-in.md` files are presented to the user (see `inception/requirements-analysis.md` Step 5.1)
-- When the user opts IN, load the corresponding rules file at that point
+- During Requirements Analysis, opt-in prompts from the loaded `*.opt-in.md` files are presented to the user
+- When the user opts IN for an extension, load the corresponding rules file (derived by naming convention) at that point
 - When the user opts OUT, the full rules file is never loaded — saving context
 - Extensions without a matching `*.opt-in.md` file are always enforced — load their rule files immediately at workflow start
 
-**Per-stage content injection**: At each stage, check the manifest index for extensions with `applies_to` entries for the current stage. Load ONLY the referenced `.md` file, apply it alongside core stage content, then release it after stage completion.
-
 **Enforcement** (applies only to loaded/enabled extensions):
 - Extension rules are hard constraints, not optional guidance
-- At each stage, the model evaluates which extension rules are applicable — enforce only those that are relevant
+- At each stage, the model intelligently evaluates which extension rules are applicable based on the stage's purpose, the artifacts being produced, and the context of the work — enforce only those rules that are relevant
+- Rules that are not applicable to the current stage should be marked as N/A in the compliance summary (this is not a blocking finding)
 - Non-compliance with any applicable enabled extension rule is a **blocking finding** — do NOT present stage completion until resolved
-- When presenting stage completion, include a compliance summary (compliant/non-compliant/N/A per rule)
+- When presenting stage completion, include a summary of extension rule compliance (compliant/non-compliant/N/A per rule, with brief rationale for N/A determinations)
 
-**Conditional Enforcement**: Before enforcing any extension at ANY stage, check its `Enabled` status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`. Skip disabled extensions and log the skip in audit.md. Default to enforced if no configuration exists.
+**Conditional Enforcement**: Extensions may be conditionally enabled/disabled. See `inception/requirements-analysis.md` for the opt-in mechanism. Before enforcing any extension at ANY stage, check its `Enabled` status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`. Skip disabled extensions and log the skip in audit.md. Default to enforced if no configuration exists.
 
 ## MANDATORY: Content Validation
 **CRITICAL**: Before creating ANY file, you MUST validate content according to `common/content-validation.md` rules:
@@ -156,7 +150,7 @@ All subsequent rule detail file references (e.g., `common/process-overview.md`, 
    - Analyze user request (intent analysis)
    - Determine requirements depth needed
    - Assess current requirements
-   - Ask clarifying questions (if needed) — including extension opt-in prompts (see Step 5.1 in requirements-analysis.md)
+   - Ask clarifying questions (if needed)
    - Generate requirements document
 4. Execute at appropriate depth (minimal/standard/comprehensive)
 5. **Wait for Explicit Approval**: Follow approval format from requirements-analysis.md detailed steps - DO NOT PROCEED until user confirms
@@ -518,11 +512,6 @@ The Operations stage will eventually include:
 ├── [project-specific structure]    # Varies by project (see code-generation.md)
 │
 ├── aidlc-docs/                     # 📄 DOCUMENTATION ONLY
-│   ├── extensions/                 # 🔌 GENERATED EXTENSIONS (IDE-agnostic, fixed path)
-│   │   ├── [category]-[name]/      # e.g., compliance-hipaa/, quality-coding-standards/
-│   │   │   ├── rule-manifest.yaml
-│   │   │   ├── overview.md
-│   │   │   └── [stage-files].md
 │   ├── inception/                  # 🔵 INCEPTION PHASE
 │   │   ├── plans/
 │   │   ├── reverse-engineering/    # Brownfield only

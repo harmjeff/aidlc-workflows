@@ -4,15 +4,16 @@
 
 ## Overview
 
-This extension provides NIST 800-53 compliance controls with mappings to AWS Control Tower preventive and detective controls. It serves as a compliance reference that the **extension-generator** can consume to determine which AI-DLC phases each control applies to and generate phase-specific guidance.
+This extension provides NIST 800-53 compliance controls with mappings to AWS Control Tower preventive and detective controls. When installed, the AI-DLC workflow embeds these controls directly into requirements, user stories, design, code generation, and other stages as applicable.
 
 > **Note**: This initial version targets AWS services (Control Tower, Backup, CloudTrail). Future versions may expand to other cloud providers.
 
 ## How It Works
 
-1. The extension-generator reads the controls defined in `nist-800-53-controls.md`
-2. Based on your project context (app type, cloud platform, strictness level), the generator determines which phases each control applies to
-3. Phase-specific files (requirements, design, code-guidelines, testing, etc.) are generated with the applicable controls injected
+1. Copy this extension into your project's `extensions/` directory
+2. At workflow start, the AI detects the extension and loads its `rule-manifest.yaml`
+3. During Requirements Analysis, the opt-in prompt asks whether to enable NIST 800-53 compliance
+4. When enabled, the controls are embedded into each relevant stage (requirements, design, infrastructure, code generation, testing)
 
 ## Current Coverage
 
@@ -56,4 +57,4 @@ mkdir -p .aidlc-rule-details/extensions/compliance/nist-800-53
 cp nist-800-53-controls.md nist-800-53.opt-in.md rule-manifest.yaml .aidlc-rule-details/extensions/compliance/nist-800-53/
 ```
 
-Then start a new AI-DLC session. The extension-generator will detect these controls and apply them to the appropriate workflow phases.
+Then start a new AI-DLC session. The controls will be detected and applied to the appropriate workflow stages.
