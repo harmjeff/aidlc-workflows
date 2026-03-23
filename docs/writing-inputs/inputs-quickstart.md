@@ -60,7 +60,7 @@ If you want to start fast and fill in details later, provide at least this:
 
 Open questions are optional but valuable. They feed directly into Requirements Analysis as pre-declared ambiguities, so AI-DLC addresses them early rather than surfacing them as surprises mid-design.
 
-See [minimal-vision-scientific-calculator-api.md](minimal-vision-scientific-calculator-api.md) for a worked example.
+See [example-minimal-vision-scientific-calculator-api.md](example-minimal-vision-scientific-calculator-api.md) for a worked example.
 
 ### Technical Environment (minimum)
 
@@ -79,7 +79,7 @@ See [minimal-vision-scientific-calculator-api.md](minimal-vision-scientific-calc
 
 **On item 8**: even one or two short examples give AI-DLC a concrete pattern to follow during code generation rather than inventing its own. This is the single highest-leverage addition beyond the basics.
 
-See [minimal-tech-env-scientific-calculator-api.md](minimal-tech-env-scientific-calculator-api.md) for a worked example of both.
+See [example-minimal-tech-env-scientific-calculator-api.md](example-minimal-tech-env-scientific-calculator-api.md) for a worked example of both.
 
 Everything else can be answered through AI-DLC's clarifying questions during the Inception phase. The more you provide up front, the fewer questions the AI will need to ask.
 
@@ -102,7 +102,7 @@ If you are adding to or modifying an existing codebase, your inputs need to answ
 
 The "what must not change" section is critical. AI-DLC will run a Reverse Engineering stage to analyze your existing codebase, but being explicit about boundaries prevents it from proposing changes that would destabilize working parts of the system.
 
-See [minimal-vision-brownfield.md](minimal-vision-brownfield.md) for a worked example.
+See [example-minimal-vision-brownfield.md](example-minimal-vision-brownfield.md) for a worked example.
 
 ### Technical Environment (brownfield minimum)
 
@@ -117,7 +117,7 @@ See [minimal-vision-brownfield.md](minimal-vision-brownfield.md) for a worked ex
 
 The example code patterns are especially important for brownfield. AI-DLC should generate code that looks like it belongs in the existing codebase, not code that introduces new conventions alongside old ones. Pull your examples from actual existing files.
 
-See [minimal-tech-env-brownfield.md](minimal-tech-env-brownfield.md) for a worked example.
+See [example-minimal-tech-env-brownfield.md](example-minimal-tech-env-brownfield.md) for a worked example.
 
 ---
 
@@ -146,7 +146,7 @@ Every stage requires your approval before proceeding. You can request changes, a
 ## File Overview
 
 ```
-writing-inputs/
+docs/writing-inputs/
   inputs-quickstart.md                               <-- You are here
   vision-document-guide.md                           <-- How to write a vision document
   technical-environment-guide.md                     <-- How to write a tech environment document
@@ -154,10 +154,10 @@ writing-inputs/
   -- Greenfield examples (new project from scratch) --
   example-vision-scientific-calculator-api.md        <-- Full example: CalcEngine vision
   example-tech-env-scientific-calculator-api.md      <-- Full example: CalcEngine tech env
-  minimal-vision-scientific-calculator-api.md        <-- Minimal example: CalcEngine vision
-  minimal-tech-env-scientific-calculator-api.md      <-- Minimal example: CalcEngine tech env
+  example-minimal-vision-scientific-calculator-api.md<-- Minimal example: CalcEngine vision
+  example-minimal-tech-env-scientific-calculator-api.md<-- Minimal example: CalcEngine tech env
 
   -- Brownfield examples (adding to an existing system) --
-  minimal-vision-brownfield.md                       <-- Minimal example: returns module on existing platform
-  minimal-tech-env-brownfield.md                     <-- Minimal example: returns module on existing platform
+  example-minimal-vision-brownfield.md               <-- Minimal example: returns module on existing platform
+  example-minimal-tech-env-brownfield.md             <-- Minimal example: returns module on existing platform
 ```

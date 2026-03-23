@@ -2,7 +2,7 @@
 
 When you run the AI-DLC workflow, all documentation artifacts are generated inside an `aidlc-docs/` directory at your workspace root. The exact files created depend on your project type (greenfield vs brownfield), complexity, and which stages the workflow executes or skips.
 
-Below is the fully populated structure showing every possible file across all phases and stages. Conditional files are annotated with when they appear.
+Below is the fully populated structure showing every possible file across all phases and stages. Conditional files are annotated with notes indicating when they appear.
 
 ```
 aidlc-docs/

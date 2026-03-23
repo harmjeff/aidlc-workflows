@@ -80,7 +80,7 @@ A few things that work well when answering:
 
 Return to the chat and say: "We have answered your clarification questions. Please re-read the file and proceed."
 
-Note: explicitly asking the AI to *re-read* the file ensures it loads your answers from disk rather than relying on an in-memory version that may not reflect your latest edits.
+Tip: explicitly asking the AI to *re-read* the file ensures it loads your answers from disk rather than relying on an in-memory version that may not reflect your latest edits.
 
 **Step 4 — AIDLC validates and proceeds**
 
