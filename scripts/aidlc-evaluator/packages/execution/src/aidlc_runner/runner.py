@@ -37,12 +37,10 @@ def _make_simulator_tool(
 ):
     """Create a Strands @tool that delegates to HumanSimulator.
 
-    Returns a tool-decorated function the executor can call directly,
-    using the same HumanSimulator implementation as kiro-cli and
-    claude-code-sdk.
+    Returns (tool, simulator) so the caller can harvest accumulated_usage
+    after the swarm completes and record it separately in MetricsCollector,
+    keeping executor and simulator token counts in distinct buckets.
     """
-    # Import here to avoid circular imports and to keep the dependency
-    # contained to the call site.
     import sys as _sys
     _CLI_HARNESS = Path(__file__).resolve().parents[4] / "cli-harness" / "src"
     if str(_CLI_HARNESS) not in _sys.path:
@@ -68,7 +66,7 @@ def _make_simulator_tool(
         """
         return simulator.respond(message)
 
-    return handoff_to_simulator
+    return handoff_to_simulator, simulator
 
 _SLUG_MAX_LEN = 80
 
@@ -276,7 +274,10 @@ def run(
 
     # Build the HumanSimulator tool — same implementation as kiro-cli and
     # claude-code-sdk, backed by build_simulator_system_prompt().
-    simulator_tool = _make_simulator_tool(
+    # The simulator instance is kept so we can harvest its token usage after
+    # the swarm completes and inject it into MetricsCollector as a separate
+    # "simulator" bucket — keeping executor and simulator tokens distinct.
+    simulator_tool, simulator_instance = _make_simulator_tool(
         run_folder=run_folder,
         vision_content=vision_content,
         model_id=config.models.simulator.model_id,
@@ -339,7 +340,11 @@ def run(
     print(f"Execution time: {result.execution_time}ms")
     print(f"Total handoffs: {len(result.node_history)}")
 
-    # 8. Write run metrics
+    # 8. Record simulator token usage separately so metrics keep executor
+    # and simulator buckets distinct (simulator runs outside the Strands swarm).
+    collector.record_simulator_usage(simulator_instance.accumulated_usage)
+
+    # 9. Write run metrics
     metrics_path = collector.write(result, run_folder)
     print(f"Metrics written to: {metrics_path}")
 

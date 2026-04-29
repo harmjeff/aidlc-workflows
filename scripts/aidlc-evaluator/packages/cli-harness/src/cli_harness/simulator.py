@@ -113,6 +113,9 @@ class HumanSimulator:
     Wraps a single stateless call: given a message from the executor (e.g.
     the output of a kiro turn, or a handoff_to_simulator tool call), runs
     a short simulator conversation and returns the simulator's text response.
+
+    Token usage is accumulated separately per respond() call so callers can
+    report simulator and executor tokens independently.
     """
 
     def __init__(
@@ -126,6 +129,24 @@ class HumanSimulator:
         self._model = model
         self._system_prompt = system_prompt
         self._run_folder = run_folder
+        # Accumulated token counts across all respond() calls
+        self._input_tokens: int = 0
+        self._output_tokens: int = 0
+        self._cache_read_tokens: int = 0
+        self._cache_write_tokens: int = 0
+
+    @property
+    def accumulated_usage(self) -> dict[str, int]:
+        """Token totals across all respond() calls, keyed by snake_case names
+        matching MetricsCollector's expected format."""
+        total = self._input_tokens + self._output_tokens
+        return {
+            "inputTokens": self._input_tokens,
+            "outputTokens": self._output_tokens,
+            "totalTokens": total,
+            "cacheReadInputTokens": self._cache_read_tokens,
+            "cacheWriteInputTokens": self._cache_write_tokens,
+        }
 
     @classmethod
     def from_adapter_config(
@@ -180,6 +201,13 @@ class HumanSimulator:
                 tools=_SIMULATOR_TOOLS,
                 messages=messages,
             )
+
+            # Accumulate token usage from this API call
+            u = response.usage
+            self._input_tokens += getattr(u, "input_tokens", 0)
+            self._output_tokens += getattr(u, "output_tokens", 0)
+            self._cache_read_tokens += getattr(u, "cache_read_input_tokens", 0)
+            self._cache_write_tokens += getattr(u, "cache_creation_input_tokens", 0)
 
             tool_uses = [b for b in response.content if b.type == "tool_use"]
             text_blocks = [b for b in response.content if b.type == "text"]

@@ -168,6 +168,7 @@ class MetricsCollector:
         self._handoffs: list[dict[str, Any]] = []
         self._errors: list[dict[str, str]] = []
         self._context_samples: list[dict[str, Any]] = []
+        self._simulator_usage: dict[str, int] | None = None
 
     # -- Live recording (called during execution) --
 
@@ -186,6 +187,15 @@ class MetricsCollector:
             "type": error_type,
             "message": message,
         })
+
+    def record_simulator_usage(self, usage: dict[str, int]) -> None:
+        """Record accumulated token usage from the HumanSimulator (Anthropic SDK).
+
+        Called after the swarm completes. The usage dict must use the same
+        camelCase key format as Strands accumulated_usage so _usage_to_dict
+        can normalise it uniformly.
+        """
+        self._simulator_usage = usage
 
     def record_context_sample(self, agent_name: str, input_tokens: int) -> None:
         """Record the input token count from a single model invocation.
@@ -227,10 +237,15 @@ class MetricsCollector:
         metrics: dict[str, Any] = {}
 
         # --- Tokens ---
-        # Extract per-agent token counts (unique tokens per agent)
+        # Extract per-agent token counts (unique tokens per agent).
+        # Strands nodes cover the executor. The simulator is tracked separately
+        # via record_simulator_usage() since it runs outside the Strands swarm.
         per_agent: dict[str, dict[str, int]] = {}
         for node_id, node_result in result.results.items():
             per_agent[node_id] = _usage_to_dict(node_result.accumulated_usage)
+
+        if self._simulator_usage is not None:
+            per_agent["simulator"] = _usage_to_dict(self._simulator_usage)
 
         # Calculate sum of per-agent tokens (unique tokens across all agents)
         unique_total = {
