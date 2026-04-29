@@ -22,6 +22,18 @@ from cli_harness.normalizer import normalize_output
 from cli_harness.prompt_template import render_prompt
 from cli_harness.simulator import HumanSimulator
 
+import sys as _sys
+_EXEC_SRC = Path(__file__).resolve().parents[6] / "execution" / "src"
+if str(_EXEC_SRC) not in _sys.path:
+    _sys.path.insert(0, str(_EXEC_SRC))
+from aidlc_runner.post_run import run_post_evaluation  # noqa: E402
+from aidlc_runner.config import ExecutionConfig, SandboxConfig, RunnerConfig  # noqa: E402
+
+_SHARED_SRC = Path(__file__).resolve().parents[6] / "shared" / "src"
+if str(_SHARED_SRC) not in _sys.path:
+    _sys.path.insert(0, str(_SHARED_SRC))
+from shared.sandbox import _get_container_cli  # noqa: E402
+
 logger = logging.getLogger(__name__)
 
 _KIRO_CLI = "kiro-cli"
@@ -268,6 +280,21 @@ class KiroCLIAdapter(CLIAdapter):
                     "model": config.model or "",
                 },
             )
+
+            # Stage 2: post-run tests — same logic as the Strands runner
+            _log("Running post-run test evaluation...")
+            sandbox_enabled = _get_container_cli() is not None
+            runner_cfg = RunnerConfig()
+            runner_cfg.execution = ExecutionConfig(
+                post_run_tests=True,
+                post_run_timeout=300,
+                sandbox=SandboxConfig(enabled=sandbox_enabled),
+            )
+            test_results_path = run_post_evaluation(config.output_dir, runner_cfg)
+            if test_results_path:
+                _log(f"Test results: {test_results_path}")
+            else:
+                _log("No testable project detected — post-run tests skipped.")
 
             has_docs = dst_docs.is_dir() and any(dst_docs.iterdir())
 
