@@ -150,108 +150,128 @@ class KiroCLIAdapter(CLIAdapter):
             )
             _log(f"Simulator model: {simulator_model}")
 
-            # Base command flags
-            base_flags = [
-                "--no-interactive",
-                "--trust-all-tools",
-            ]
+            # Run kiro interactively with stdin piping so the human simulator
+            # can respond at each gate instead of kiro self-approving.
+            # One persistent kiro process; we write prompts to stdin and read
+            # output until kiro goes idle (gate detected via output idle timeout).
+            cmd = [_KIRO_CLI, "chat", "--trust-all-tools"]
             if config.model:
-                base_flags += ["--model", config.model]
+                cmd += ["--model", config.model]
 
-            # Run kiro-cli in a loop to handle AIDLC review gates.
-            # The workflow pauses at gates (waiting for human input).
-            # With --no-interactive, kiro-cli exits at each gate.
-            # We feed each turn's output to the human simulator and resume
-            # with its response rather than a hardcoded approval.
             log_path = config.output_dir / "kiro-session.log"
             _log(f"Session log: {log_path}")
 
-            turn = 0
-            max_turns = 20  # safety limit
+            gate_count = 0
+            max_gates = 20
             total_rc = 0
-            last_turn_output: str = ""
+            # Idle timeout: if kiro produces no output for this many seconds,
+            # treat it as a gate (pausing for user input).
+            idle_timeout_s = 8.0
+
+            import select
 
             with open(log_path, "w", encoding="utf-8") as log_file:
-                while turn < max_turns:
-                    turn += 1
+                # nosec B603 - Executing user's Kiro CLI with validated configuration
+                # nosemgrep: dangerous-subprocess-use-audit
+                process = subprocess.Popen(
+                    cmd,
+                    cwd=str(workspace),
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                )
 
-                    if turn == 1:
-                        cmd = [_KIRO_CLI, "chat"] + base_flags + [prompt]
-                        _log(f"Turn {turn}: initial prompt ({len(prompt)} chars)")
-                    else:
-                        # Ask the human simulator to review the last turn's output
-                        _log(f"Turn {turn}: running simulator review...")
-                        sim_response = simulator.respond(
-                            f"The AIDLC executor has paused for your review. "
-                            f"Here is the output from its last turn:\n\n"
-                            f"---\n{last_turn_output[-8000:]}\n---\n\n"
-                            f"Review the work done, answer any questions, approve documents, "
-                            f"or provide feedback as needed. Then provide your response so "
-                            f"the executor can continue."
-                        )
-                        _log(f"Turn {turn}: simulator responded ({len(sim_response)} chars)")
-                        cmd = [_KIRO_CLI, "chat"] + base_flags + ["--resume", sim_response]
-                        _log(f"Turn {turn}: resuming with simulator response")
-
-                    log_file.write(f"\n{'='*60}\n")
-                    log_file.write(f"TURN {turn}\n")
-                    log_file.write(f"{'='*60}\n")
-                    log_file.flush()
-
-                    # nosec B603 - Executing user's Kiro CLI with validated configuration
-                    # nosemgrep: dangerous-subprocess-use-audit
-                    process = subprocess.Popen(
-                        cmd,
-                        cwd=str(workspace),
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        bufsize=1,
-                    )
-
-                    turn_output_lines: list[str] = []
-                    for line in process.stdout:
+                def _read_until_idle(idle_s: float) -> str:
+                    """Read lines from kiro until idle_s seconds of silence."""
+                    lines: list[str] = []
+                    while True:
+                        ready = select.select([process.stdout], [], [], idle_s)[0]
+                        if not ready:
+                            break  # idle — kiro is waiting for input
+                        line = process.stdout.readline()
+                        if not line:
+                            break  # EOF — process ended
                         clean = _strip_ansi(line)
                         log_file.write(clean)
                         log_file.flush()
-                        turn_output_lines.append(clean)
+                        lines.append(clean)
                         if self.verbose:
                             sys.stderr.write(line)
                             sys.stderr.flush()
-                    last_turn_output = "".join(turn_output_lines)
+                    return "".join(lines)
 
+                # Consume the startup banner
+                _read_until_idle(3.0)
+
+                # Send the initial prompt
+                _log(f"Sending initial prompt ({len(prompt)} chars)")
+                log_file.write(f"\n{'='*60}\nINITIAL PROMPT\n{'='*60}\n")
+                log_file.flush()
+                process.stdin.write(prompt + "\n")
+                process.stdin.flush()
+
+                while gate_count < max_gates:
                     remaining = config.timeout_seconds - (time.monotonic() - start_time)
                     if remaining <= 0:
+                        _log("Timeout reached")
                         process.kill()
-                        _log(f"Timeout reached at turn {turn}")
                         break
-                    process.wait(timeout=max(remaining, 10))
-                    total_rc = process.returncode
 
-                    _log(f"Turn {turn} exited with code {process.returncode}")
+                    turn_output = _read_until_idle(idle_timeout_s)
 
-                    # Check if aidlc-docs looks complete (has construction phase files)
+                    # Check if process ended
+                    if process.poll() is not None:
+                        total_rc = process.returncode
+                        _log(f"Kiro exited with code {total_rc}")
+                        break
+
+                    # Check if workflow is complete
                     aidlc_docs_dir = workspace / "aidlc-docs"
                     if aidlc_docs_dir.is_dir():
-                        has_construction = any(
-                            (aidlc_docs_dir / "construction").rglob("*.md")
-                        ) if (aidlc_docs_dir / "construction").is_dir() else False
+                        has_construction = (
+                            any((aidlc_docs_dir / "construction").rglob("*.md"))
+                            if (aidlc_docs_dir / "construction").is_dir() else False
+                        )
                         file_count = sum(1 for _ in aidlc_docs_dir.rglob("*") if _.is_file())
                         _log(f"  aidlc-docs: {file_count} files, construction={'yes' if has_construction else 'no'}")
-
                         if has_construction:
-                            _log("Construction phase detected — workflow complete")
+                            _log("Construction phase complete — closing session")
+                            process.stdin.write("/quit\n")
+                            process.stdin.flush()
+                            process.wait(timeout=5)
+                            total_rc = process.returncode or 0
                             break
-                    else:
-                        _log("  aidlc-docs/ not yet created")
 
-                    elapsed = time.monotonic() - start_time
-                    if elapsed >= config.timeout_seconds:
-                        _log("Timeout reached")
-                        break
+                    if not turn_output.strip():
+                        # No output and not complete — kiro may be at a gate
+                        gate_count += 1
+                        _log(f"Gate #{gate_count}: running simulator review...")
+                        log_file.write(f"\n{'='*60}\nGATE {gate_count}\n{'='*60}\n")
+                        log_file.flush()
+
+                        sim_response = simulator.respond(
+                            "The AIDLC executor has paused for your review. "
+                            "Read the relevant aidlc-docs files to understand what was just produced, "
+                            "then answer any questions, approve documents, or provide feedback. "
+                            "Keep your response concise so the executor can continue."
+                        )
+                        _log(f"Gate #{gate_count}: simulator responded ({len(sim_response)} chars)")
+                        log_file.write(f"[simulator]: {sim_response}\n")
+                        log_file.flush()
+                        process.stdin.write(sim_response + "\n")
+                        process.stdin.flush()
+                    else:
+                        # Got output — kiro is still working, keep reading
+                        _log(f"  kiro produced {len(turn_output)} chars, continuing...")
+
+                if process.poll() is None:
+                    process.stdin.close()
+                    process.wait(timeout=10)
 
             elapsed_seconds = time.monotonic() - start_time
-            _log(f"Completed {turn} turn(s) in {elapsed_seconds:.0f}s")
+            _log(f"Completed in {elapsed_seconds:.0f}s ({gate_count} simulator gate(s))")
 
             # List workspace contents for debugging
             _log("Workspace contents:")
@@ -276,7 +296,7 @@ class KiroCLIAdapter(CLIAdapter):
                 adapter_name=self.name,
                 elapsed_seconds=elapsed_seconds,
                 token_usage={
-                    "num_turns": turn,
+                    "num_turns": gate_count,
                     "model": config.model or "",
                 },
             )
