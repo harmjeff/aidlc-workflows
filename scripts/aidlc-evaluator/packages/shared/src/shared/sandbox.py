@@ -1,6 +1,7 @@
-"""Docker sandbox for running untrusted commands in an isolated container.
+"""Container sandbox for running untrusted commands in an isolated container.
 
-Provides a thin wrapper around ``docker run`` so that generated code
+Supports Docker, Podman, and Finch — whichever is available on PATH.
+Provides a thin wrapper around ``<cli> run`` so that generated code
 (post-run tests, contract-test servers) can be executed without granting
 access to the host filesystem, network credentials, or environment.
 
@@ -10,6 +11,7 @@ Security: All command output is scrubbed for credentials before being returned.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,16 +30,27 @@ class SandboxResult:
 
 
 _DOCKER_AVAILABLE: bool | None = None
+_CONTAINER_CLI: str | None = None
+
+
+def _get_container_cli() -> str | None:
+    """Return the first available container CLI: docker, podman, or finch."""
+    global _CONTAINER_CLI
+    if _CONTAINER_CLI is not None:
+        return _CONTAINER_CLI
+    for cli in ("docker", "podman", "finch"):
+        if shutil.which(cli):
+            _CONTAINER_CLI = cli
+            return _CONTAINER_CLI
+    return None
 
 
 def is_docker_available() -> bool:
-    """Check whether Docker can actually run containers.
+    """Check whether a container runtime can actually run containers.
 
-    Goes beyond ``docker info`` by spawning a trivial container, which
-    catches cgroup v2 / OCI runtime errors that ``docker info`` misses.
-
-    Goes beyond ``docker info`` by spawning a trivial container, which
-    catches cgroup v2 / OCI runtime errors that ``docker info`` misses.
+    Tries docker, podman, and finch in that order. Goes beyond ``<cli> info``
+    by spawning a trivial container, which catches cgroup v2 / OCI runtime
+    errors that plain info checks miss.
 
     The result is cached for the lifetime of the process.
     """
@@ -45,10 +58,15 @@ def is_docker_available() -> bool:
     if _DOCKER_AVAILABLE is not None:
         return _DOCKER_AVAILABLE
 
+    cli = _get_container_cli()
+    if cli is None:
+        _DOCKER_AVAILABLE = False
+        return _DOCKER_AVAILABLE
+
     try:
-        # nosec B603, B607 - Static docker command for availability check
+        # nosec B603 - Static container CLI info command for availability check
         result = subprocess.run(
-            ["docker", "info"],
+            [cli, "info"],
             capture_output=True,
             timeout=10,
         )
@@ -57,10 +75,10 @@ def is_docker_available() -> bool:
             return _DOCKER_AVAILABLE
 
         # Verify containers can actually start *with resource limits*
-        # (catches cgroup v2 / OCI runtime errors that plain `docker run` misses)
-        # nosec B603, B607 - Static docker command for runtime verification
+        # (catches cgroup v2 / OCI runtime errors that plain info misses)
+        # nosec B603 - Static container CLI run command for runtime verification
         result = subprocess.run(
-            ["docker", "run", "--rm", "--memory=6m", "--cpus=1", "alpine", "true"],
+            [cli, "run", "--rm", "--memory=6m", "--cpus=1", "alpine", "true"],
             capture_output=True,
             timeout=30,
         )
@@ -108,8 +126,9 @@ def sandbox_run(
     cpus:
         Container CPU limit.
     """
+    cli = _get_container_cli() or "docker"
     docker_cmd: list[str] = [
-        "docker", "run",
+        cli, "run",
         "--rm",
         f"--memory={memory}",
         f"--cpus={cpus}",
@@ -121,7 +140,7 @@ def sandbox_run(
         # no entry in the container's /etc/passwd.
         "-e", "HOME=/tmp",
         "-e", "UV_CACHE_DIR=/tmp/.cache/uv",
-        "-e", "NPM_CONFIG_CACHE=/tmp/.cache/npm",    
+        "-e", "NPM_CONFIG_CACHE=/tmp/.cache/npm",
     ]
 
     if not network:
@@ -185,8 +204,9 @@ def sandbox_run_detached(
 
     Raises ``RuntimeError`` if the container fails to start.
     """
+    cli = _get_container_cli() or "docker"
     docker_cmd: list[str] = [
-        "docker", "run",
+        cli, "run",
         "-d", "--rm",
         f"--memory={memory}",
         f"--cpus={cpus}",
@@ -198,7 +218,7 @@ def sandbox_run_detached(
         # no entry in the container's /etc/passwd.
         "-e", "HOME=/tmp",
         "-e", "UV_CACHE_DIR=/tmp/.cache/uv",
-        "-e", "NPM_CONFIG_CACHE=/tmp/.cache/npm",        
+        "-e", "NPM_CONFIG_CACHE=/tmp/.cache/npm",
     ]
 
     if not network:
@@ -231,18 +251,19 @@ def sandbox_run_detached(
 
 def sandbox_stop(container_id: str, timeout: int = 10) -> None:
     """Stop a running container by ID."""
+    cli = _get_container_cli() or "docker"
     try:
-        # nosec B603, B607 - Static docker stop command with container ID parameter
+        # nosec B603 - Static container stop command with container ID parameter
         subprocess.run(
-            ["docker", "stop", "-t", str(timeout), container_id],
+            [cli, "stop", "-t", str(timeout), container_id],
             capture_output=True,
             timeout=timeout + 5,
         )
     except (subprocess.TimeoutExpired, OSError):
         # Force kill if graceful stop fails
-        # nosec B603, B607 - Static docker kill command with container ID parameter
+        # nosec B603 - Static container kill command with container ID parameter
         subprocess.run(
-            ["docker", "kill", container_id],
+            [cli, "kill", container_id],
             capture_output=True,
             timeout=5,
         )
@@ -250,10 +271,11 @@ def sandbox_stop(container_id: str, timeout: int = 10) -> None:
 
 def sandbox_is_running(container_id: str) -> bool:
     """Check whether a container is still running."""
+    cli = _get_container_cli() or "docker"
     try:
-        # nosec B603, B607 - Static docker inspect command with container ID parameter
+        # nosec B603 - Static container inspect command with container ID parameter
         result = subprocess.run(
-            ["docker", "inspect", "-f", "{{.State.Running}}", container_id],
+            [cli, "inspect", "-f", "{{.State.Running}}", container_id],
             capture_output=True,
             text=True,
             timeout=5,
@@ -265,10 +287,11 @@ def sandbox_is_running(container_id: str) -> bool:
 
 def sandbox_logs(container_id: str) -> tuple[str, str]:
     """Return (stdout, stderr) from a running or stopped container."""
+    cli = _get_container_cli() or "docker"
     try:
-        # nosec B603, B607 - Static docker logs command with container ID parameter
+        # nosec B603 - Static container logs command with container ID parameter
         result = subprocess.run(
-            ["docker", "logs", container_id],
+            [cli, "logs", container_id],
             capture_output=True,
             text=True,
             timeout=10,

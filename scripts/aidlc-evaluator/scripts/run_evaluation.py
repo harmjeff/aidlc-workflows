@@ -38,10 +38,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 import yaml
 
@@ -226,59 +228,6 @@ def _save_evaluation_config(
     atomic_yaml_dump(meta, meta_path)
 
 
-_SENTINEL_NAME = ".last_run_folder"
-
-
-def _read_run_sentinel(output_dir: Path) -> Path | None:
-    """Read the sentinel file written by create_run_folder().
-
-    Returns the run folder path if the sentinel exists and the directory
-    is valid, otherwise None.  The sentinel is removed after reading so
-    it does not confuse subsequent runs.
-    """
-    sentinel = output_dir / _SENTINEL_NAME
-    if not sentinel.is_file():
-        return None
-    try:
-        run_folder = Path(sentinel.read_text(encoding="utf-8").strip())
-        sentinel.unlink(missing_ok=True)
-        if run_folder.is_dir():
-            return run_folder
-    except OSError:
-        pass
-    return None
-
-
-def _list_run_folders(output_dir: Path | None = None) -> set[Path]:
-    """Return the current set of run folders under runs/.
-
-    Args:
-        output_dir: Directory to search for run folders. Defaults to REPO_ROOT / "runs".
-    """
-    runs_dir = output_dir if output_dir else REPO_ROOT / "runs"
-    if not runs_dir.is_dir():
-        return set()
-    return {d for d in runs_dir.iterdir() if d.is_dir() and not d.name.startswith(".")}
-
-
-def _find_new_run(before: set[Path], output_dir: Path | None = None) -> Path | None:
-    """Find the single new run folder created since *before* was captured.
-
-    Falls back to the newest folder if multiple appeared (shouldn't happen
-    in normal single-run usage).
-
-    Args:
-        before: Set of run folders that existed before execution.
-        output_dir: Directory to search for new run folders. Defaults to REPO_ROOT / "runs".
-
-    .. deprecated::
-        Prefer :func:`_read_run_sentinel` which avoids the TOCTOU race
-        condition inherent in before/after directory listing.
-    """
-    after = _list_run_folders(output_dir)
-    new = sorted(after - before, reverse=True)
-    return new[0] if new else None
-
 
 def _find_latest_run(scenario_name: str | None = None) -> Path | None:
     """Find the most recent timestamped run folder under runs/.
@@ -305,17 +254,59 @@ def _find_latest_run(scenario_name: str | None = None) -> Path | None:
 
 # ── stages ───────────────────────────────────────────────────────────────────
 
-def stage_execute(args: argparse.Namespace) -> Path | None:
+_SLUG_MAX_LEN = 80
+
+
+def _rules_slug(cfg_data: dict, args: argparse.Namespace) -> str:
+    """Derive a filesystem-safe slug matching runner.py's _rules_slug()."""
+    aidlc = cfg_data.get("aidlc", {})
+    rules_source = aidlc.get("rules_source", "git")
+    rules_local_path = aidlc.get("rules_local_path")
+    rules_repo = args.rules_repo or aidlc.get("rules_repo", "")
+    rules_ref = args.rules_ref or aidlc.get("rules_ref", "main")
+
+    if rules_source == "local" and rules_local_path:
+        raw = f"local_{Path(rules_local_path).name}"
+    else:
+        path = urlparse(rules_repo).path.rstrip("/")
+        repo_name = Path(path).stem
+        raw = f"{repo_name}_{rules_ref}"
+
+    slug = raw.replace(" ", "-")
+    slug = re.sub(r"[^a-zA-Z0-9._-]", "", slug)
+    return slug[:_SLUG_MAX_LEN]
+
+
+def stage_execute(args: argparse.Namespace, cfg_data: dict) -> Path | None:
     """Stage 1: Run the AIDLC workflow via packages/execution.
+
+    The run folder is pre-allocated here with the same timestamp+slug format
+    used by runner.py, then passed as the exact --output-dir.  This makes the
+    folder deterministic and eliminates all post-hoc discovery, which is
+    required for safe parallel execution.
 
     Returns the run folder even if the runner exits non-zero, as long as
     aidlc-docs were produced (the swarm may fail on a late handoff after
     all documents are already written).
     """
+    # Pre-allocate the run folder with the same naming convention as runner.py.
+    # Passing a timestamped path as --output-dir triggers runner.py's Mode 1
+    # (use the path directly rather than creating a new timestamped subfolder).
+    parent_dir = args.output_dir
+    if not parent_dir and hasattr(args, "_scenario_name"):
+        parent_dir = REPO_ROOT / "runs" / args._scenario_name
+    parent_dir = parent_dir or (REPO_ROOT / "runs")
+    parent_dir.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+    slug = _rules_slug(cfg_data, args)
+    run_folder = parent_dir / f"{timestamp}-{slug}"
+
     cmd = [
         sys.executable, "-m", "aidlc_runner",
         "--vision", str(args.vision),
         "--config", str(args.config),
+        "--output-dir", str(run_folder),
     ]
     if args.tech_env:
         cmd += ["--tech-env", str(args.tech_env)]
@@ -329,12 +320,6 @@ def stage_execute(args: argparse.Namespace) -> Path | None:
         cmd += ["--rules-ref", args.rules_ref]
     if args.rules_repo:
         cmd += ["--rules-repo", args.rules_repo]
-    # Route output under runs/<scenario>/ by default
-    output_dir = args.output_dir
-    if not output_dir and hasattr(args, "_scenario_name"):
-        output_dir = REPO_ROOT / "runs" / args._scenario_name
-    if output_dir:
-        cmd += ["--output-dir", str(output_dir)]
 
     env_pythonpath = os.pathsep.join([
         str(PACKAGES / "execution" / "src"),
@@ -342,26 +327,9 @@ def stage_execute(args: argparse.Namespace) -> Path | None:
     ])
     env = {**os.environ, "PYTHONPATH": env_pythonpath}
 
-    # Determine the output directory so we can read the sentinel file after.
-    effective_output_dir = output_dir or (REPO_ROOT / "runs")
-
-    # Snapshot for the legacy fallback (in case the runner doesn't write
-    # the sentinel, e.g. older runner versions).
-    existing_runs = _list_run_folders(output_dir)
-
     result = _run_cmd(cmd, "Stage 1: AIDLC Workflow Execution", env=env)
 
-    # Direct-folder path: orchestrators (e.g. git-compare) specify exact timestamped folder.
-    if output_dir and output_dir.name and output_dir.name[0].isdigit() and "T" in output_dir.name:
-        run_folder = output_dir
-    else:
-        # Prefer the sentinel file written by create_run_folder() — it avoids
-        # the TOCTOU race inherent in before/after directory listing.
-        run_folder = _read_run_sentinel(effective_output_dir)
-        if run_folder is None:
-            # Fall back to directory-diff for backwards compatibility.
-            run_folder = _find_new_run(existing_runs, output_dir)
-    if run_folder is None or not run_folder.is_dir():
+    if not run_folder.is_dir():
         return None
 
     docs_dir = run_folder / "aidlc-docs"
@@ -800,7 +768,7 @@ def main() -> None:
     print(f"  Sandbox:   {'enabled' if args.sandbox else 'disabled'}")
 
     # Stage 1: Execute the AIDLC workflow
-    run_folder = stage_execute(args)
+    run_folder = stage_execute(args, cfg_data)
     if run_folder is None:
         print("\n[ABORT] Execution stage failed.", file=sys.stderr)
         sys.exit(1)
