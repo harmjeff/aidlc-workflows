@@ -72,16 +72,29 @@ SCRIPTS_DIR = REPO_ROOT / "scripts"
 DOCKER_DEPENDENT_MODES = {"full", "cli", "ide", "batch", "git-compare", "ext-test"}
 
 
+def _container_cli() -> str | None:
+    """Return the first available container CLI: docker or podman."""
+    import shutil
+    for cli in ("docker", "podman"):
+        if shutil.which(cli):
+            return cli
+    return None
+
+
 def check_docker_sandbox() -> bool:
-    """Check if Docker is available and the sandbox image exists.
+    """Check if a container runtime is available and the sandbox image exists.
+
+    Supports both Docker and Podman (checks in that order).
 
     Returns:
-        True if Docker and sandbox image are available, False otherwise
+        True if a container runtime and sandbox image are available, False otherwise
     """
+    cli = _container_cli()
+    if cli is None:
+        return False
     try:
-        # Check if Docker is running
         result = subprocess.run(
-            ["docker", "info"],
+            [cli, "info"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=5,
@@ -89,9 +102,8 @@ def check_docker_sandbox() -> bool:
         if result.returncode != 0:
             return False
 
-        # Check if sandbox image exists
         result = subprocess.run(
-            ["docker", "images", "-q", "aidlc-sandbox:latest"],
+            [cli, "images", "-q", "aidlc-sandbox:latest"],
             capture_output=True,
             text=True,
             timeout=5,
@@ -231,8 +243,10 @@ def main() -> None:
     # Forward all remaining arguments
     cmd.extend(remaining)
 
-    # Check Docker sandbox availability for modes that need it
-    if args.mode in DOCKER_DEPENDENT_MODES:
+    # Check container sandbox availability for modes that need it.
+    # Skip when --no-sandbox is explicitly passed (sandbox disabled by user).
+    sandbox_disabled = "--no-sandbox" in remaining
+    if args.mode in DOCKER_DEPENDENT_MODES and not sandbox_disabled:
         if not check_docker_sandbox():
             print("=" * 70, file=sys.stderr)
             print("ERROR: Docker sandbox image not found", file=sys.stderr)
