@@ -199,6 +199,8 @@ name = "aidlc-runner"
 version = "0.1.0"
 source = { editable = "packages/execution" }
 dependencies = [
+    { name = "anthropic", extra = ["bedrock"] },
+    { name = "boto3" },
     { name = "pyyaml" },
     { name = "strands-agents" },
     { name = "strands-agents-tools" },
@@ -206,6 +208,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anthropic", extras = ["bedrock"], specifier = ">=0.40" },
+    { name = "boto3", specifier = ">=1.42.47" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "strands-agents", specifier = ">=0.1.0" },
     { name = "strands-agents-tools", specifier = ">=0.1.0" },

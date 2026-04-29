@@ -177,6 +177,7 @@ def create_executor(
     aws_region: str | None = None,
     callback_handler: Callable[..., Any] | None = None,
     execution_config: ExecutionConfig | None = None,
+    simulator_tool: Any | None = None,
 ) -> Agent:
     """Create the AIDLC Executor agent.
 
@@ -188,6 +189,9 @@ def create_executor(
         aws_region: AWS region for Bedrock.
         callback_handler: Optional callback handler for progress reporting.
         execution_config: Optional execution config controlling run_command availability.
+        simulator_tool: Optional Strands @tool wrapping a HumanSimulator. When
+            provided it is added to the executor's tool list so handoff_to_simulator
+            calls are handled inline rather than via a separate Swarm agent.
 
     Returns:
         Configured Strands Agent instance.
@@ -205,6 +209,9 @@ def create_executor(
         system_prompt = EXECUTOR_SYSTEM_PROMPT
     else:
         system_prompt = _EXECUTOR_PROMPT_NO_EXEC
+
+    if simulator_tool is not None:
+        tools.append(simulator_tool)
 
     session_kwargs: dict = {}
     if aws_profile:

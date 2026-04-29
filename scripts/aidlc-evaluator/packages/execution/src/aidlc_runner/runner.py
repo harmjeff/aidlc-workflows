@@ -16,12 +16,59 @@ import yaml
 from shared.io import atomic_yaml_dump
 from strands.multiagent import Swarm
 
+from strands import tool as strands_tool
+
 from aidlc_runner.agents.executor import create_executor
-from aidlc_runner.agents.simulator import create_simulator
+from aidlc_runner.agents.simulator import build_simulator_system_prompt
 from aidlc_runner.config import AidlcConfig, RunnerConfig
 from aidlc_runner.metrics import MetricsCollector
 from aidlc_runner.post_run import run_post_evaluation
 from aidlc_runner.progress import AgentProgressHandler, SwarmProgressHook
+
+
+def _make_simulator_tool(
+    run_folder: Path,
+    vision_content: str,
+    model_id: str,
+    aws_profile: str | None,
+    aws_region: str | None,
+    tech_env_content: str | None = None,
+    openapi_content: str | None = None,
+):
+    """Create a Strands @tool that delegates to HumanSimulator.
+
+    Returns a tool-decorated function the executor can call directly,
+    using the same HumanSimulator implementation as kiro-cli and
+    claude-code-sdk.
+    """
+    # Import here to avoid circular imports and to keep the dependency
+    # contained to the call site.
+    import sys as _sys
+    _CLI_HARNESS = Path(__file__).resolve().parents[4] / "cli-harness" / "src"
+    if str(_CLI_HARNESS) not in _sys.path:
+        _sys.path.insert(0, str(_CLI_HARNESS))
+    from cli_harness.simulator import HumanSimulator  # noqa: E402
+
+    simulator = HumanSimulator.from_adapter_config(
+        run_folder=run_folder,
+        vision_content=vision_content,
+        tech_env_content=tech_env_content,
+        openapi_content=openapi_content,
+        aws_profile=aws_profile,
+        aws_region=aws_region,
+        model=model_id,
+    )
+
+    @strands_tool
+    def handoff_to_simulator(message: str) -> str:
+        """Hand off to the Human Simulator for answers, approvals, or reviews.
+
+        Args:
+            message: Message describing what input is needed and which file to read.
+        """
+        return simulator.respond(message)
+
+    return handoff_to_simulator
 
 _SLUG_MAX_LEN = 80
 
@@ -222,11 +269,22 @@ def run(
     # 4. Write run metadata
     write_run_meta(run_folder, config, vision_path, tech_env_path=tech_env_path)
 
-    # 5. Create metrics collector and agents with progress handlers
+    # 5. Create metrics collector and executor with progress handler
     print("Creating agents...")
     collector = MetricsCollector(config)
     executor_handler = AgentProgressHandler("executor", collector=collector)
-    simulator_handler = AgentProgressHandler("simulator", collector=collector)
+
+    # Build the HumanSimulator tool — same implementation as kiro-cli and
+    # claude-code-sdk, backed by build_simulator_system_prompt().
+    simulator_tool = _make_simulator_tool(
+        run_folder=run_folder,
+        vision_content=vision_content,
+        model_id=config.models.simulator.model_id,
+        aws_profile=config.aws.profile,
+        aws_region=config.aws.region,
+        tech_env_content=tech_env_content,
+        openapi_content=openapi_content,
+    )
 
     executor = create_executor(
         run_folder=run_folder,
@@ -236,20 +294,11 @@ def run(
         aws_region=config.aws.region,
         callback_handler=executor_handler,
         execution_config=config.execution,
-    )
-    simulator = create_simulator(
-        run_folder=run_folder,
-        vision_content=vision_content,
-        model_config=config.models.simulator,
-        aws_profile=config.aws.profile,
-        aws_region=config.aws.region,
-        callback_handler=simulator_handler,
-        tech_env_content=tech_env_content,
-        openapi_content=openapi_content,
+        simulator_tool=simulator_tool,
     )
 
-    # 6. Create and run the Swarm
-    print("Starting AIDLC workflow swarm...")
+    # 6. Run the executor (single-agent; simulator is a tool call)
+    print("Starting AIDLC workflow executor...")
     initial_prompt = (
         "Begin the AIDLC workflow and execute it TO COMPLETION through ALL phases. "
         "The project vision is available at vision.md in the run folder. "
@@ -271,14 +320,12 @@ def run(
     )
 
     swarm = Swarm(
-        [executor, simulator],
+        [executor],
         entry_point=executor,
         max_handoffs=config.swarm.max_handoffs,
         max_iterations=config.swarm.max_iterations,
         execution_timeout=config.swarm.execution_timeout,
         node_timeout=config.swarm.node_timeout,
-        repetitive_handoff_detection_window=5,
-        repetitive_handoff_min_unique_agents=2,
     )
 
     # Register progress hook for node-level events
