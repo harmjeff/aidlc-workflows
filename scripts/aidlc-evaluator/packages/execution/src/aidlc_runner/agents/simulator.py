@@ -80,33 +80,16 @@ and tell it to continue to the next stage.
 """
 
 
-def create_simulator(
-    run_folder: Path,
+def build_simulator_system_prompt(
     vision_content: str,
-    model_config: ModelConfig,
-    aws_profile: str | None = None,
-    aws_region: str | None = None,
-    callback_handler: Callable[..., Any] | None = None,
     tech_env_content: str | None = None,
     openapi_content: str | None = None,
-) -> Agent:
-    """Create the Human Simulator agent.
+) -> str:
+    """Build the simulator system prompt string from project inputs.
 
-    Args:
-        run_folder: Path to the run folder for this execution.
-        vision_content: The full text content of the vision/constraints file.
-        model_config: Model configuration for this agent.
-        aws_profile: AWS profile name for Bedrock.
-        aws_region: AWS region for Bedrock.
-        callback_handler: Optional callback handler for progress reporting.
-        tech_env_content: Optional full text of the technical environment file.
-        openapi_content: Optional full text of the OpenAPI spec (test contract).
-
-    Returns:
-        Configured Strands Agent instance.
+    Extracted so other adapters (SDK, kiro) can construct the same prompt
+    without calling the full Strands-specific create_simulator().
     """
-    file_tools = make_file_tools(run_folder)
-
     if tech_env_content:
         tech_env_section = (
             "\n## The technical environment\n\n"
@@ -136,10 +119,44 @@ def create_simulator(
     else:
         openapi_section = ""
 
-    system_prompt = SIMULATOR_SYSTEM_PROMPT_TEMPLATE.format(
+    return SIMULATOR_SYSTEM_PROMPT_TEMPLATE.format(
         vision_content=vision_content,
         tech_env_section=tech_env_section,
         openapi_section=openapi_section,
+    )
+
+
+def create_simulator(
+    run_folder: Path,
+    vision_content: str,
+    model_config: ModelConfig,
+    aws_profile: str | None = None,
+    aws_region: str | None = None,
+    callback_handler: Callable[..., Any] | None = None,
+    tech_env_content: str | None = None,
+    openapi_content: str | None = None,
+) -> Agent:
+    """Create the Human Simulator agent.
+
+    Args:
+        run_folder: Path to the run folder for this execution.
+        vision_content: The full text content of the vision/constraints file.
+        model_config: Model configuration for this agent.
+        aws_profile: AWS profile name for Bedrock.
+        aws_region: AWS region for Bedrock.
+        callback_handler: Optional callback handler for progress reporting.
+        tech_env_content: Optional full text of the technical environment file.
+        openapi_content: Optional full text of the OpenAPI spec (test contract).
+
+    Returns:
+        Configured Strands Agent instance.
+    """
+    file_tools = make_file_tools(run_folder)
+
+    system_prompt = build_simulator_system_prompt(
+        vision_content=vision_content,
+        tech_env_content=tech_env_content,
+        openapi_content=openapi_content,
     )
 
     session_kwargs: dict = {}

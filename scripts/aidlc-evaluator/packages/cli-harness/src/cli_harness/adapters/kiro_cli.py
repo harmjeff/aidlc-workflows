@@ -20,6 +20,7 @@ from pathlib import Path
 from cli_harness.adapter import AdapterConfig, AdapterResult, CLIAdapter
 from cli_harness.normalizer import normalize_output
 from cli_harness.prompt_template import render_prompt
+from cli_harness.simulator import HumanSimulator
 
 logger = logging.getLogger(__name__)
 
@@ -110,11 +111,32 @@ class KiroCLIAdapter(CLIAdapter):
             )
             _log(f"Injected AIDLC rules ({len(rules_content)} chars)")
 
-            # Build the prompt — inject OpenAPI spec so the self-approving executor
-            # has the full contract in view during design and code review.
+            # Build executor prompt — instructs kiro to pause at review gates
+            # so the human simulator can respond rather than self-approving.
             prompt = config.prompt_template or render_prompt(
                 openapi_content=config.openapi_content,
+                with_simulator=True,
             )
+
+            # Build the human simulator (Bedrock) for review gates
+            vision_content = config.vision_path.read_text(encoding="utf-8")
+            tech_env_content = (
+                config.tech_env_path.read_text(encoding="utf-8")
+                if config.tech_env_path and config.tech_env_path.is_file()
+                else None
+            )
+            simulator_model = getattr(config, "simulator_model", None) or config.model or "global.anthropic.claude-opus-4-6-v1"
+            aws_region = getattr(config, "aws_region", None) or "us-east-1"
+            simulator = HumanSimulator.from_adapter_config(
+                run_folder=config.output_dir,
+                vision_content=vision_content,
+                tech_env_content=tech_env_content,
+                openapi_content=config.openapi_content,
+                aws_profile=config.aws_profile,
+                aws_region=aws_region,
+                model=simulator_model,
+            )
+            _log(f"Simulator model: {simulator_model}")
 
             # Base command flags
             base_flags = [
@@ -125,15 +147,17 @@ class KiroCLIAdapter(CLIAdapter):
                 base_flags += ["--model", config.model]
 
             # Run kiro-cli in a loop to handle AIDLC review gates.
-            # The workflow pauses at gates (e.g. "Approve & Continue").
+            # The workflow pauses at gates (waiting for human input).
             # With --no-interactive, kiro-cli exits at each gate.
-            # We resume the session with an approval message each time.
+            # We feed each turn's output to the human simulator and resume
+            # with its response rather than a hardcoded approval.
             log_path = config.output_dir / "kiro-session.log"
             _log(f"Session log: {log_path}")
 
             turn = 0
             max_turns = 20  # safety limit
             total_rc = 0
+            last_turn_output: str = ""
 
             with open(log_path, "w", encoding="utf-8") as log_file:
                 while turn < max_turns:
@@ -143,9 +167,19 @@ class KiroCLIAdapter(CLIAdapter):
                         cmd = [_KIRO_CLI, "chat"] + base_flags + [prompt]
                         _log(f"Turn {turn}: initial prompt ({len(prompt)} chars)")
                     else:
-                        approval = "Approve & Continue. Proceed to the next phase."
-                        cmd = [_KIRO_CLI, "chat"] + base_flags + ["--resume", approval]
-                        _log(f"Turn {turn}: resuming with approval")
+                        # Ask the human simulator to review the last turn's output
+                        _log(f"Turn {turn}: running simulator review...")
+                        sim_response = simulator.respond(
+                            f"The AIDLC executor has paused for your review. "
+                            f"Here is the output from its last turn:\n\n"
+                            f"---\n{last_turn_output[-8000:]}\n---\n\n"
+                            f"Review the work done, answer any questions, approve documents, "
+                            f"or provide feedback as needed. Then provide your response so "
+                            f"the executor can continue."
+                        )
+                        _log(f"Turn {turn}: simulator responded ({len(sim_response)} chars)")
+                        cmd = [_KIRO_CLI, "chat"] + base_flags + ["--resume", sim_response]
+                        _log(f"Turn {turn}: resuming with simulator response")
 
                     log_file.write(f"\n{'='*60}\n")
                     log_file.write(f"TURN {turn}\n")
@@ -163,12 +197,16 @@ class KiroCLIAdapter(CLIAdapter):
                         bufsize=1,
                     )
 
+                    turn_output_lines: list[str] = []
                     for line in process.stdout:
-                        log_file.write(_strip_ansi(line))
+                        clean = _strip_ansi(line)
+                        log_file.write(clean)
                         log_file.flush()
+                        turn_output_lines.append(clean)
                         if self.verbose:
                             sys.stderr.write(line)
                             sys.stderr.flush()
+                    last_turn_output = "".join(turn_output_lines)
 
                     remaining = config.timeout_seconds - (time.monotonic() - start_time)
                     if remaining <= 0:

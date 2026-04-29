@@ -26,20 +26,16 @@ import boto3
 
 from cli_harness.adapter import AdapterConfig, AdapterResult, CLIAdapter
 from cli_harness.normalizer import normalize_output
+from cli_harness.simulator import HumanSimulator
 
-# Post-run test evaluation (reuse execution package — same logic as Strands runner)
-_EXEC_POST_RUN = Path(__file__).resolve().parents[6] / "execution" / "src"
-if str(_EXEC_POST_RUN) not in _sys.path:
-    _sys.path.insert(0, str(_EXEC_POST_RUN))
+# Execution package imports (system prompts + post-run tests)
+import sys as _sys
+_EXEC_SRC = Path(__file__).resolve().parents[6] / "execution" / "src"
+if str(_EXEC_SRC) not in _sys.path:
+    _sys.path.insert(0, str(_EXEC_SRC))
+from aidlc_runner.agents.executor import EXECUTOR_SYSTEM_PROMPT  # noqa: E402
 from aidlc_runner.post_run import run_post_evaluation  # noqa: E402
 from aidlc_runner.config import ExecutionConfig, SandboxConfig, RunnerConfig  # noqa: E402
-
-# Import system prompts directly from the execution package so they stay in sync.
-_EXEC_SRC = Path(__file__).resolve().parents[6] / "execution" / "src"
-import sys as _sys
-_sys.path.insert(0, str(_EXEC_SRC))
-from aidlc_runner.agents.executor import EXECUTOR_SYSTEM_PROMPT  # noqa: E402
-from aidlc_runner.agents.simulator import SIMULATOR_SYSTEM_PROMPT_TEMPLATE  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -178,13 +174,6 @@ _EXECUTOR_TOOLS = [
     _TOOL_RUN_COMMAND,
     _TOOL_HANDOFF_TO_SIMULATOR,
 ]
-
-_SIMULATOR_TOOLS = [
-    _TOOL_READ_FILE,
-    _TOOL_WRITE_FILE,
-    _TOOL_LIST_FILES,
-]
-
 
 # ── Token accumulator ─────────────────────────────────────────────────────────
 
@@ -337,56 +326,10 @@ def _exec_tool(name: str, tool_input: dict, run_folder: Path, rules_dir: Path) -
 
 # ── Agent loops ───────────────────────────────────────────────────────────────
 
-def _run_simulator_turn(
-    client: anthropic.AnthropicBedrock,
-    simulator_model: str,
-    simulator_system: str,
-    handoff_message: str,
-    run_folder: Path,
-    rules_dir: Path,
-    usage: _UsageTracker,
-) -> str:
-    """Run one simulator turn and return the final text response."""
-    messages: list[dict] = [{"role": "user", "content": handoff_message}]
-    _log(f"  → simulator turn (handoff #{usage.handoff_count + 1})")
-
-    for _ in range(50):
-        response = client.messages.create(
-            model=simulator_model,
-            max_tokens=8192,
-            system=simulator_system,
-            tools=_SIMULATOR_TOOLS,
-            messages=messages,
-        )
-        usage.simulator.add(response.usage)
-
-        tool_uses = [b for b in response.content if b.type == "tool_use"]
-        text_blocks = [b for b in response.content if b.type == "text"]
-
-        if not tool_uses:
-            # Simulator finished — collect its text response
-            return "\n".join(b.text for b in text_blocks).strip() or "(no response)"
-
-        # Execute simulator tool calls (file ops only)
-        messages.append({"role": "assistant", "content": response.content})
-        tool_results = []
-        for tu in tool_uses:
-            result_text = _exec_tool(tu.name, tu.input, run_folder, rules_dir)
-            tool_results.append({
-                "type": "tool_result",
-                "tool_use_id": tu.id,
-                "content": result_text,
-            })
-        messages.append({"role": "user", "content": tool_results})
-
-    return "[error: simulator exceeded max iterations]"
-
-
 def _run_executor_loop(
     client: anthropic.AnthropicBedrock,
     executor_model: str,
-    simulator_model: str,
-    simulator_system: str,
+    simulator: HumanSimulator,
     initial_prompt: str,
     run_folder: Path,
     rules_dir: Path,
@@ -417,15 +360,8 @@ def _run_executor_loop(
         for tu in tool_uses:
             if tu.name == "handoff_to_simulator":
                 usage.handoff_count += 1
-                sim_response = _run_simulator_turn(
-                    client=client,
-                    simulator_model=simulator_model,
-                    simulator_system=simulator_system,
-                    handoff_message=tu.input.get("message", ""),
-                    run_folder=run_folder,
-                    rules_dir=rules_dir,
-                    usage=usage,
-                )
+                _log(f"  → simulator turn (handoff #{usage.handoff_count})")
+                sim_response = simulator.respond(tu.input.get("message", ""))
                 _log(f"  ← simulator responded ({len(sim_response)} chars)")
                 tool_results.append({
                     "type": "tool_result",
@@ -506,44 +442,6 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
             # use it directly rather than copying again.
             rules_dir = config.rules_path
 
-            # Build simulator system prompt
-            if tech_env_content:
-                tech_env_section = (
-                    "\n## The technical environment\n\n"
-                    "The following is the technical environment document that defines HOW "
-                    "the project must be built — languages, frameworks, cloud services, "
-                    "security controls, testing standards, and prohibited technologies. "
-                    "Use this as a binding reference when answering technical questions "
-                    "and reviewing designs and code:\n\n"
-                    "---\n"
-                    f"{tech_env_content}\n"
-                    "---\n"
-                )
-            else:
-                tech_env_section = ""
-
-            openapi_content = config.openapi_content
-            if openapi_content:
-                openapi_section = (
-                    "\n## The API contract (OpenAPI specification)\n\n"
-                    "The following is the OpenAPI specification that defines the exact API "
-                    "contract this project must implement — all required endpoints, "
-                    "request/response schemas, status codes, and error shapes. Use this as a "
-                    "binding reference when reviewing API design documents and generated code. "
-                    "Reject any design or code that violates this contract.\n\n"
-                    "---\n"
-                    f"{openapi_content}\n"
-                    "---\n\n"
-                )
-            else:
-                openapi_section = ""
-
-            simulator_system = SIMULATOR_SYSTEM_PROMPT_TEMPLATE.format(
-                vision_content=vision_content,
-                tech_env_section=tech_env_section,
-                openapi_section=openapi_section,
-            )
-
             # Build initial prompt (mirrors runner.py)
             initial_prompt = (
                 "Begin the AIDLC workflow and execute it TO COMPLETION through ALL phases. "
@@ -565,15 +463,15 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
                 "continue through application design, code generation, and build-and-test."
             )
 
-            # Resolve models
+            # Resolve models and region
             executor_model = config.model or "global.anthropic.claude-opus-4-6-v1"
             simulator_model = getattr(config, "simulator_model", None) or executor_model
+            aws_region = getattr(config, "aws_region", None) or os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 
-            # Build Bedrock client
+            # Build Bedrock client for executor loop
             session_kwargs: dict = {}
             if config.aws_profile:
                 session_kwargs["profile_name"] = config.aws_profile
-            aws_region = getattr(config, "aws_region", None) or os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
             boto_session = boto3.Session(**session_kwargs)
             frozen = boto_session.get_credentials().get_frozen_credentials()
             client = anthropic.AnthropicBedrock(
@@ -581,6 +479,17 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
                 aws_secret_key=frozen.secret_key,
                 aws_session_token=frozen.token,
                 aws_region=aws_region,
+            )
+
+            # Build the shared HumanSimulator (same prompt as Strands swarm)
+            simulator = HumanSimulator.from_adapter_config(
+                run_folder=config.output_dir,
+                vision_content=vision_content,
+                tech_env_content=tech_env_content,
+                openapi_content=config.openapi_content,
+                aws_profile=config.aws_profile,
+                aws_region=aws_region,
+                model=simulator_model,
             )
 
             _log(f"Executor model: {executor_model}")
@@ -591,8 +500,7 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
             _run_executor_loop(
                 client=client,
                 executor_model=executor_model,
-                simulator_model=simulator_model,
-                simulator_system=simulator_system,
+                simulator=simulator,
                 initial_prompt=initial_prompt,
                 run_folder=config.output_dir,
                 rules_dir=rules_dir,

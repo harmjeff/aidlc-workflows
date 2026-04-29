@@ -98,9 +98,7 @@ For each unit of work (or the whole project if no units were defined):
 
 ## Important rules
 
-- Since you are running autonomously without a human reviewer, self-approve all stages \
-and continue immediately to the next one. Do NOT pause or wait for approval.
-- Read the relevant rule file BEFORE starting each stage.
+{approval_rule}- Read the relevant rule file BEFORE starting each stage.
 - Read common rules as needed (e.g. `aidlc-rules/common/content-validation.md` before \
 writing files, `aidlc-rules/common/question-format-guide.md` before creating questions).
 - For CONDITIONAL stages, evaluate based on project scope and skip with justification if \
@@ -109,33 +107,50 @@ not needed, but always continue to the next stage.
 - Generate complete, working code with full test coverage.
 {openapi_section}"""
 
+_SELF_APPROVE_RULE = (
+    "- Since you are running autonomously without a human reviewer, self-approve all stages "
+    "and continue immediately to the next one. Do NOT pause or wait for approval.\n"
+)
+
+_SIMULATOR_HANDOFF_RULE = (
+    "- At each stage gate (questions, approval requests, document reviews, code reviews), "
+    "PAUSE and end your turn. A human reviewer will read your output and respond. "
+    "Resume work only after receiving their response — do not self-approve.\n"
+)
+
 
 def render_prompt(
     vision_path: str = "vision.md",
     tech_env_path: str = "tech-env.md",
     openapi_content: str | None = None,
+    with_simulator: bool = False,
 ) -> str:
-    r"""Render the AIDLC prompt with customized file paths and optional API contract.
+    r"""Render the AIDLC executor prompt.
 
-    Only replaces backtick-delimited references (``\`vision.md\```) so that
-    prose mentions like "alongside vision.md" are left intact.
+    Args:
+        vision_path: Path to vision doc (replaces backtick references only).
+        tech_env_path: Path to tech-env doc.
+        openapi_content: Full OpenAPI spec text — injected as a binding contract section.
+        with_simulator: When True, instructs the executor to pause at review gates
+            for a human reviewer instead of self-approving. Use for kiro-cli when
+            a HumanSimulator will be providing responses between turns.
     """
-    if openapi_content:
-        openapi_section = (
-            "\n## The API contract (OpenAPI specification)\n\n"
-            "The following is the OpenAPI specification that defines the exact API contract "
-            "this project must implement. Ensure all generated endpoints, request/response "
-            "schemas, status codes, and error shapes match this specification exactly.\n\n"
-            "---\n"
-            f"{openapi_content}\n"
-            "---\n"
-        )
-    else:
-        openapi_section = ""
+    openapi_section = (
+        "\n## The API contract (OpenAPI specification)\n\n"
+        "The following is the OpenAPI specification that defines the exact API contract "
+        "this project must implement. Ensure all generated endpoints, request/response "
+        "schemas, status codes, and error shapes match this specification exactly.\n\n"
+        "---\n"
+        f"{openapi_content}\n"
+        "---\n"
+    ) if openapi_content else ""
+
+    approval_rule = _SIMULATOR_HANDOFF_RULE if with_simulator else _SELF_APPROVE_RULE
 
     return (
         EXECUTOR_SYSTEM_PROMPT
         .replace("`vision.md`", f"`{vision_path}`")
         .replace("`tech-env.md`", f"`{tech_env_path}`")
         .replace("{openapi_section}", openapi_section)
+        .replace("{approval_rule}", approval_rule)
     )
