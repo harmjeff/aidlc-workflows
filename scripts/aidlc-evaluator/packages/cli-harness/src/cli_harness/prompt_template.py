@@ -107,17 +107,35 @@ writing files, `aidlc-rules/common/question-format-guide.md` before creating que
 not needed, but always continue to the next stage.
 - When generating code, write COMPLETE, WORKING files — not stubs or placeholders.
 - Generate complete, working code with full test coverage.
-"""
+{openapi_section}"""
 
 
-def render_prompt(vision_path: str = "vision.md", tech_env_path: str = "tech-env.md") -> str:
-    r"""Render the AIDLC prompt with customized file paths.
+def render_prompt(
+    vision_path: str = "vision.md",
+    tech_env_path: str = "tech-env.md",
+    openapi_content: str | None = None,
+) -> str:
+    r"""Render the AIDLC prompt with customized file paths and optional API contract.
 
     Only replaces backtick-delimited references (``\`vision.md\```) so that
     prose mentions like "alongside vision.md" are left intact.
     """
+    if openapi_content:
+        openapi_section = (
+            "\n## The API contract (OpenAPI specification)\n\n"
+            "The following is the OpenAPI specification that defines the exact API contract "
+            "this project must implement. Ensure all generated endpoints, request/response "
+            "schemas, status codes, and error shapes match this specification exactly.\n\n"
+            "---\n"
+            f"{openapi_content}\n"
+            "---\n"
+        )
+    else:
+        openapi_section = ""
+
     return (
         EXECUTOR_SYSTEM_PROMPT
         .replace("`vision.md`", f"`{vision_path}`")
         .replace("`tech-env.md`", f"`{tech_env_path}`")
+        .replace("{openapi_section}", openapi_section)
     )

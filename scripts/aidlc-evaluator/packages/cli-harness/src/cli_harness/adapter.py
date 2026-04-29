@@ -20,6 +20,7 @@ class AdapterConfig:
     simulator_model: str | None = None  # SDK adapter only; defaults to model if None
     aws_profile: str | None = None
     aws_region: str | None = None       # SDK adapter only; falls back to env/default
+    openapi_content: str | None = None  # injected into prompt/simulator for contract validation
     timeout_seconds: int = 7200  # 2 hours max
 
 

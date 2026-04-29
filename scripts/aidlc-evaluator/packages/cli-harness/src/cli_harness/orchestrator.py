@@ -146,6 +146,10 @@ def run_cli_evaluation(
     print(f"[OK] {adapter.name} prerequisites met: {msg}")
 
     # 2. Run the adapter
+    openapi_content: str | None = None
+    if openapi_path and openapi_path.is_file():
+        openapi_content = openapi_path.read_text(encoding="utf-8")
+
     config = AdapterConfig(
         vision_path=vision_path,
         tech_env_path=tech_env_path,
@@ -155,6 +159,7 @@ def run_cli_evaluation(
         model=model,
         aws_profile=profile,
         aws_region=region,
+        openapi_content=openapi_content,
         timeout_seconds=timeout_seconds,
     )
 

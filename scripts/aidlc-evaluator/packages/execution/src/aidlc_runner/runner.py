@@ -179,13 +179,21 @@ def write_run_meta(
     atomic_yaml_dump(meta, run_folder / "run-meta.yaml")
 
 
-def run(config: RunnerConfig, vision_path: Path, tech_env_path: Path | None = None) -> None:
+def run(
+    config: RunnerConfig,
+    vision_path: Path,
+    tech_env_path: Path | None = None,
+    openapi_path: Path | None = None,
+) -> None:
     """Execute a full AIDLC workflow run.
 
     Args:
         config: Fully resolved runner configuration.
         vision_path: Path to the vision/constraints markdown file.
         tech_env_path: Optional path to the technical environment markdown file.
+        openapi_path: Optional path to the OpenAPI spec — injected into the
+            simulator's system prompt so it can validate the API contract
+            during design reviews and code review handoffs.
     """
     # 1. Create run folder
     run_folder = create_run_folder(config.runs.output_dir, config)
@@ -200,6 +208,11 @@ def run(config: RunnerConfig, vision_path: Path, tech_env_path: Path | None = No
     if tech_env_path is not None:
         tech_env_content = tech_env_path.read_text(encoding="utf-8")
         (run_folder / "tech-env.md").write_text(tech_env_content, encoding="utf-8")
+
+    # 2c. Read OpenAPI spec if provided (not copied to run folder — used for simulator prompt only)
+    openapi_content: str | None = None
+    if openapi_path is not None and openapi_path.is_file():
+        openapi_content = openapi_path.read_text(encoding="utf-8")
 
     # 3. Set up AIDLC rules
     print("Setting up AIDLC rules...")
@@ -232,6 +245,7 @@ def run(config: RunnerConfig, vision_path: Path, tech_env_path: Path | None = No
         aws_region=config.aws.region,
         callback_handler=simulator_handler,
         tech_env_content=tech_env_content,
+        openapi_content=openapi_content,
     )
 
     # 6. Create and run the Swarm

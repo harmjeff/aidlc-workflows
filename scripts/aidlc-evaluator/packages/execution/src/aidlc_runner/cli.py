@@ -28,6 +28,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to the technical environment markdown file (optional).",
     )
     parser.add_argument(
+        "--openapi",
+        type=Path,
+        default=None,
+        help="Path to OpenAPI spec — injected into the simulator's system prompt for contract validation (optional).",
+    )
+    parser.add_argument(
         "--config",
         type=Path,
         default=None,
@@ -143,4 +149,4 @@ def main(argv: list[str] | None = None) -> None:
     config = load_config(config_path=config_path, cli_overrides=cli_overrides)
 
     # Run the workflow
-    run(config=config, vision_path=args.vision, tech_env_path=args.tech_env)
+    run(config=config, vision_path=args.vision, tech_env_path=args.tech_env, openapi_path=args.openapi)

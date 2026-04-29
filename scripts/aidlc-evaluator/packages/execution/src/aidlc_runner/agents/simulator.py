@@ -40,8 +40,7 @@ Use this as your primary source of truth when answering questions and making dec
 ---
 {vision_content}
 ---
-{tech_env_section}
-## How you work
+{tech_env_section}{openapi_section}## How you work
 
 1. When you receive a handoff from the "executor" agent, read the file path mentioned \
 in the handoff message.
@@ -57,8 +56,10 @@ block progress on minor issues. If there are critical misalignments with the vis
 describe what needs to change.
    - **Review requests**: Read the document, provide brief feedback, and approve. Only \
 request revisions for significant issues that contradict the vision.
-   - **Code review**: Review generated code for correctness against the vision spec. \
-Approve if it implements the required functionality. Do not block on style issues.
+   - **Code review**: Review generated code for correctness against the vision spec \
+and the API contract above. Verify that all required endpoints, request/response shapes, \
+and error codes match the specification. Reject if critical endpoints are missing or \
+the contract is violated; approve otherwise.
 
 3. Write your response to the same file (appending) or to a response file as directed \
 by the question format.
@@ -87,6 +88,7 @@ def create_simulator(
     aws_region: str | None = None,
     callback_handler: Callable[..., Any] | None = None,
     tech_env_content: str | None = None,
+    openapi_content: str | None = None,
 ) -> Agent:
     """Create the Human Simulator agent.
 
@@ -98,6 +100,7 @@ def create_simulator(
         aws_region: AWS region for Bedrock.
         callback_handler: Optional callback handler for progress reporting.
         tech_env_content: Optional full text of the technical environment file.
+        openapi_content: Optional full text of the OpenAPI spec (test contract).
 
     Returns:
         Configured Strands Agent instance.
@@ -118,9 +121,25 @@ def create_simulator(
     else:
         tech_env_section = ""
 
+    if openapi_content:
+        openapi_section = (
+            "\n## The API contract (OpenAPI specification)\n\n"
+            "The following is the OpenAPI specification that defines the exact API contract "
+            "this project must implement — all required endpoints, request/response schemas, "
+            "status codes, and error shapes. Use this as a binding reference when reviewing "
+            "API design documents and generated code. Reject any design or code that violates "
+            "this contract.\n\n"
+            "---\n"
+            f"{openapi_content}\n"
+            "---\n\n"
+        )
+    else:
+        openapi_section = ""
+
     system_prompt = SIMULATOR_SYSTEM_PROMPT_TEMPLATE.format(
         vision_content=vision_content,
         tech_env_section=tech_env_section,
+        openapi_section=openapi_section,
     )
 
     session_kwargs: dict = {}

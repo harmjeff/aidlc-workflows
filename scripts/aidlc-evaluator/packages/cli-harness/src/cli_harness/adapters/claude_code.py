@@ -128,8 +128,11 @@ class ClaudeCodeAdapter(CLIAdapter):
                 shutil.copy2(rules_path, rules_dir / rules_path.name)
                 _log(f"Copied AIDLC rules file: {rules_path.name}")
 
-            # Build the prompt
-            prompt = config.prompt_template or render_prompt()
+            # Build the prompt — inject OpenAPI spec so the self-approving executor
+            # has the full contract in view during design and code review.
+            prompt = config.prompt_template or render_prompt(
+                openapi_content=config.openapi_content,
+            )
 
             # Build command — claude -p for non-interactive print mode
             cmd = [

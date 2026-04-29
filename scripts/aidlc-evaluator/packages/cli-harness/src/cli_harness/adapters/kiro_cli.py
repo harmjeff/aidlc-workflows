@@ -110,8 +110,11 @@ class KiroCLIAdapter(CLIAdapter):
             )
             _log(f"Injected AIDLC rules ({len(rules_content)} chars)")
 
-            # Build the prompt
-            prompt = config.prompt_template or render_prompt()
+            # Build the prompt — inject OpenAPI spec so the self-approving executor
+            # has the full contract in view during design and code review.
+            prompt = config.prompt_template or render_prompt(
+                openapi_content=config.openapi_content,
+            )
 
             # Base command flags
             base_flags = [

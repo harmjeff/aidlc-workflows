@@ -521,9 +521,27 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
                 )
             else:
                 tech_env_section = ""
+
+            openapi_content = config.openapi_content
+            if openapi_content:
+                openapi_section = (
+                    "\n## The API contract (OpenAPI specification)\n\n"
+                    "The following is the OpenAPI specification that defines the exact API "
+                    "contract this project must implement — all required endpoints, "
+                    "request/response schemas, status codes, and error shapes. Use this as a "
+                    "binding reference when reviewing API design documents and generated code. "
+                    "Reject any design or code that violates this contract.\n\n"
+                    "---\n"
+                    f"{openapi_content}\n"
+                    "---\n\n"
+                )
+            else:
+                openapi_section = ""
+
             simulator_system = SIMULATOR_SYSTEM_PROMPT_TEMPLATE.format(
                 vision_content=vision_content,
                 tech_env_section=tech_env_section,
+                openapi_section=openapi_section,
             )
 
             # Build initial prompt (mirrors runner.py)

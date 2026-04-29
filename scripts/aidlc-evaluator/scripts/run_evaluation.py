@@ -320,6 +320,8 @@ def stage_execute(args: argparse.Namespace, cfg_data: dict) -> Path | None:
         cmd += ["--rules-ref", args.rules_ref]
     if args.rules_repo:
         cmd += ["--rules-repo", args.rules_repo]
+    if args.openapi and args.openapi.is_file():
+        cmd += ["--openapi", str(args.openapi)]
 
     env_pythonpath = os.pathsep.join([
         str(PACKAGES / "execution" / "src"),
