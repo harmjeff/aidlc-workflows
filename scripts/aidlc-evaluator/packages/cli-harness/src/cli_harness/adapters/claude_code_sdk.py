@@ -27,6 +27,13 @@ import boto3
 from cli_harness.adapter import AdapterConfig, AdapterResult, CLIAdapter
 from cli_harness.normalizer import normalize_output
 
+# Post-run test evaluation (reuse execution package — same logic as Strands runner)
+_EXEC_POST_RUN = Path(__file__).resolve().parents[6] / "execution" / "src"
+if str(_EXEC_POST_RUN) not in _sys.path:
+    _sys.path.insert(0, str(_EXEC_POST_RUN))
+from aidlc_runner.post_run import run_post_evaluation  # noqa: E402
+from aidlc_runner.config import ExecutionConfig, SandboxConfig, RunnerConfig  # noqa: E402
+
 # Import system prompts directly from the execution package so they stay in sync.
 _EXEC_SRC = Path(__file__).resolve().parents[6] / "execution" / "src"
 import sys as _sys
@@ -600,6 +607,21 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
                 elapsed_seconds=elapsed_seconds,
                 token_usage=usage_extra,
             )
+
+            # Stage 2: post-run tests — same logic as the Strands runner
+            _log("Running post-run test evaluation...")
+            sandbox_enabled = _get_container_cli() is not None
+            runner_cfg = RunnerConfig()
+            runner_cfg.execution = ExecutionConfig(
+                post_run_tests=True,
+                post_run_timeout=300,
+                sandbox=SandboxConfig(enabled=sandbox_enabled),
+            )
+            test_results_path = run_post_evaluation(config.output_dir, runner_cfg)
+            if test_results_path:
+                _log(f"Test results: {test_results_path}")
+            else:
+                _log("No testable project detected — post-run tests skipped.")
 
             has_docs = dst_docs.is_dir() and any(dst_docs.iterdir())
             return AdapterResult(
