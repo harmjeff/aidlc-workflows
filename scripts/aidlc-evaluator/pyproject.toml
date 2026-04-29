@@ -14,6 +14,7 @@ dependencies = [
     "aidlc-reporting",
     "aidlc-shared",
     "aidlc-trend-reports",
+    "aidlc-cli-harness",
 ]
 
 [tool.uv.workspace]
@@ -39,6 +40,7 @@ aidlc-nonfunctional = { workspace = true }
 aidlc-reporting = { workspace = true }
 aidlc-shared = { workspace = true }
 aidlc-trend-reports = { workspace = true }
+aidlc-cli-harness = { workspace = true }
 
 [dependency-groups]
 dev = [
