@@ -37,6 +37,11 @@ from aidlc_runner.agents.executor import EXECUTOR_SYSTEM_PROMPT  # noqa: E402
 from aidlc_runner.post_run import run_post_evaluation  # noqa: E402
 from aidlc_runner.config import ExecutionConfig, SandboxConfig, RunnerConfig  # noqa: E402
 
+_SHARED_SRC = Path(__file__).resolve().parents[6] / "shared" / "src"
+if str(_SHARED_SRC) not in _sys.path:
+    _sys.path.insert(0, str(_SHARED_SRC))
+from shared.sandbox import _get_container_cli  # noqa: E402
+
 logger = logging.getLogger(__name__)
 
 _MAX_ITERATIONS = 300
