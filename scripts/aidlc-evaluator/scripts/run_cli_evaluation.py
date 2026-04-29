@@ -176,6 +176,7 @@ def main() -> None:
     parser.add_argument("--profile", default=None, help="AWS profile (default: from config YAML)")
     parser.add_argument("--region", default=None, help="AWS region (default: from config YAML)")
     parser.add_argument("--scorer-model", default=None, help="Bedrock model for scoring (default: from config YAML)")
+    parser.add_argument("--simulator-model", default=None, help="Bedrock model for human simulator (default: from config YAML models.simulator.model_id)")
     parser.add_argument("--model", default=None, help="Model to use with the CLI adapter (e.g., claude-sonnet-4)")
     parser.add_argument(
         "--verbose", "-v", action="store_true",
@@ -232,6 +233,10 @@ def main() -> None:
             parser.error(
                 "--scorer-model is required (or set models.scorer.model_id in config YAML)"
             )
+    if args.simulator_model is None:
+        args.simulator_model = (
+            cfg_data.get("models", {}).get("simulator", {}).get("model_id")
+        )
 
     # ── Resolve AIDLC rules config ────────────────────────────────────────
     aidlc_cfg = cfg_data.get("aidlc", {})
@@ -281,6 +286,7 @@ def main() -> None:
         profile=args.profile,
         region=args.region,
         scorer_model=args.scorer_model,
+        simulator_model=args.simulator_model,
         model=args.model,
         rules_source=rules_source,
         rules_ref=rules_ref,
