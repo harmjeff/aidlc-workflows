@@ -246,7 +246,7 @@ def _exec_tool(name: str, tool_input: dict, run_folder: Path, rules_dir: Path) -
             return target.read_text(encoding="utf-8")
 
         elif name == "write_file":
-            path, content = tool_input["path"], tool_input["content"]
+            path, content = tool_input["path"], tool_input.get("content", "")
             target = _resolve_safe(run_folder, path)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(content, encoding="utf-8")
@@ -495,9 +495,9 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
             if tech_env_content:
                 shutil.copy2(config.tech_env_path, workspace / "tech-env.md")
 
-            # Set up AIDLC rules inside run folder
-            rules_dir = config.output_dir / "aidlc-rules"
-            _setup_rules(rules_dir, config.rules_path)
+            # rules_path is already set up by the orchestrator (output_dir/aidlc-rules);
+            # use it directly rather than copying again.
+            rules_dir = config.rules_path
 
             # Build simulator system prompt
             if tech_env_content:
@@ -541,7 +541,7 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
             )
 
             # Resolve models
-            executor_model = config.model or "us.anthropic.claude-opus-4-7-20251101-v1:0"
+            executor_model = config.model or "global.anthropic.claude-opus-4-6-v1"
             simulator_model = getattr(config, "simulator_model", None) or executor_model
 
             # Build Bedrock client
@@ -550,11 +550,11 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
                 session_kwargs["profile_name"] = config.aws_profile
             aws_region = getattr(config, "aws_region", None) or os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
             boto_session = boto3.Session(**session_kwargs)
-            credentials = boto_session.get_credentials().resolve()
+            frozen = boto_session.get_credentials().get_frozen_credentials()
             client = anthropic.AnthropicBedrock(
-                aws_access_key=credentials.access_key,
-                aws_secret_key=credentials.secret_key,
-                aws_session_token=credentials.token,
+                aws_access_key=frozen.access_key,
+                aws_secret_key=frozen.secret_key,
+                aws_session_token=frozen.token,
                 aws_region=aws_region,
             )
 

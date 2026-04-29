@@ -195,7 +195,7 @@ def run_cli_evaluation(
 
     # 5. Run evaluation pipeline (stages 2-6)
     eval_cmd = [
-        sys.executable, str(REPO_ROOT / "run_evaluation.py"),
+        sys.executable, str(REPO_ROOT / "scripts" / "run_evaluation.py"),
         "--evaluate-only", str(aidlc_docs),
         "--golden", str(golden_docs),
         "--results", str(output_dir / "qualitative-comparison.yaml"),

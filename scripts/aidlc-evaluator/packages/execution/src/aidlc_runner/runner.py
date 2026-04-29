@@ -45,34 +45,41 @@ _SENTINEL_NAME = ".last_run_folder"
 
 
 def create_run_folder(output_dir: str | Path, config: RunnerConfig) -> Path:
-    """Create a timestamped run folder named after the rules source.
+    """Create or use the specified run folder.
 
-    Format: {ISO8601_compact}-{rules_slug}
-    Example: 20260224T214917-aidlc-workflows_v0.1.0
+    Two modes:
+    1. If output_dir itself looks like a timestamped folder (name starts with
+       a digit and contains "T"), use it directly — the orchestrator pre-allocated
+       the exact path for deterministic, parallel-safe execution.
+    2. Otherwise treat output_dir as a parent and create a timestamped subfolder.
+       Format: {ISO8601_compact}-{rules_slug}
+       Example: 20260224T214917-aidlc-workflows_v0.1.0
 
-    Also writes a sentinel file (``{output_dir}/.last_run_folder``) containing
-    the absolute path of the new run folder so that parent orchestrators can
-    discover the folder without racy before/after directory listing.
+    Also writes a sentinel file (``{output_dir.parent}/.last_run_folder``) in
+    Mode 2 so legacy orchestrators can discover the folder.
 
     Returns:
         Path to the created run folder.
     """
     output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
-    slug = _rules_slug(config.aidlc)
-    folder_name = f"{timestamp}-{slug}"
-    run_folder = output_dir / folder_name
+    folder_name = output_dir.name
+    if folder_name and folder_name[0].isdigit() and "T" in folder_name:
+        # Mode 1: orchestrator specified exact folder name
+        run_folder = output_dir
+    else:
+        # Mode 2: generate a timestamped subfolder
+        output_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        slug = _rules_slug(config.aidlc)
+        run_folder = output_dir / f"{timestamp}-{slug}"
+        # Write sentinel for legacy orchestrator discovery
+        sentinel = output_dir / _SENTINEL_NAME
+        sentinel.write_text(str(run_folder.resolve()), encoding="utf-8")
 
-    run_folder.mkdir()
-    (run_folder / "aidlc-docs" / "inception").mkdir(parents=True)
-    (run_folder / "aidlc-docs" / "construction").mkdir(parents=True)
-    (run_folder / "workspace").mkdir()
-
-    # Write sentinel for orchestrator discovery (atomic via os.replace)
-    sentinel = output_dir / _SENTINEL_NAME
-    sentinel.write_text(str(run_folder.resolve()), encoding="utf-8")
+    (run_folder / "aidlc-docs" / "inception").mkdir(parents=True, exist_ok=True)
+    (run_folder / "aidlc-docs" / "construction").mkdir(parents=True, exist_ok=True)
+    (run_folder / "workspace").mkdir(exist_ok=True)
 
     return run_folder
 
