@@ -198,6 +198,7 @@ def _save_evaluation_config(
             "scorer_model": args.scorer_model,
             "executor_model": args.executor_model,
             "rules_ref": args.rules_ref,
+            "rules_repo": args.rules_repo,
             "output_dir": _rel(args.output_dir),
             "sandbox": args.sandbox,
             "report_format": args.report_format,
@@ -326,6 +327,8 @@ def stage_execute(args: argparse.Namespace) -> Path | None:
         cmd += ["--executor-model", args.executor_model]
     if args.rules_ref:
         cmd += ["--rules-ref", args.rules_ref]
+    if args.rules_repo:
+        cmd += ["--rules-repo", args.rules_repo]
     # Route output under runs/<scenario>/ by default
     output_dir = args.output_dir
     if not output_dir and hasattr(args, "_scenario_name"):
@@ -348,13 +351,17 @@ def stage_execute(args: argparse.Namespace) -> Path | None:
 
     result = _run_cmd(cmd, "Stage 1: AIDLC Workflow Execution", env=env)
 
-    # Prefer the sentinel file written by create_run_folder() — it avoids
-    # the TOCTOU race inherent in before/after directory listing.
-    run_folder = _read_run_sentinel(effective_output_dir)
-    if run_folder is None:
-        # Fall back to directory-diff for backwards compatibility.
-        run_folder = _find_new_run(existing_runs, output_dir)
-    if run_folder is None:
+    # Direct-folder path: orchestrators (e.g. git-compare) specify exact timestamped folder.
+    if output_dir and output_dir.name and output_dir.name[0].isdigit() and "T" in output_dir.name:
+        run_folder = output_dir
+    else:
+        # Prefer the sentinel file written by create_run_folder() — it avoids
+        # the TOCTOU race inherent in before/after directory listing.
+        run_folder = _read_run_sentinel(effective_output_dir)
+        if run_folder is None:
+            # Fall back to directory-diff for backwards compatibility.
+            run_folder = _find_new_run(existing_runs, output_dir)
+    if run_folder is None or not run_folder.is_dir():
         return None
 
     docs_dir = run_folder / "aidlc-docs"
@@ -651,6 +658,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--rules-ref", default=None,
         help="Git ref (branch/tag/commit) for AIDLC rules (overrides config value)",
+    )
+    parser.add_argument(
+        "--rules-repo", default=None,
+        help="Git repository URL for AIDLC rules (overrides config aidlc.rules_repo)",
     )
     parser.add_argument(
         "--executor-model", default=None,

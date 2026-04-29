@@ -9,6 +9,7 @@ from cli_harness.adapter import CLIAdapter
 _ADAPTER_MAP: dict[str, str] = {
     "kiro-cli": "cli_harness.adapters.kiro_cli.KiroCLIAdapter",
     "claude-code": "cli_harness.adapters.claude_code.ClaudeCodeAdapter",
+    "claude-code-sdk": "cli_harness.adapters.claude_code_sdk.ClaudeCodeSDKAdapter",
 }
 
 

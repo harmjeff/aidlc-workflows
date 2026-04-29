@@ -17,7 +17,9 @@ class AdapterConfig:
     tech_env_path: Path | None = None
     prompt_template: str | None = None
     model: str | None = None
+    simulator_model: str | None = None  # SDK adapter only; defaults to model if None
     aws_profile: str | None = None
+    aws_region: str | None = None       # SDK adapter only; falls back to env/default
     timeout_seconds: int = 7200  # 2 hours max
 
 
