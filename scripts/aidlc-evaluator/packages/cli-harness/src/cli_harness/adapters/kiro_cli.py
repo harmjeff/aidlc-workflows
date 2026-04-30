@@ -150,197 +150,132 @@ class KiroCLIAdapter(CLIAdapter):
             )
             _log(f"Simulator model: {simulator_model}")
 
-            # Run kiro interactively with stdin piping so the human simulator
-            # can respond at each gate instead of kiro self-approving.
-            # One persistent kiro process; we write prompts to stdin and read
-            # output until kiro goes idle (gate detected via output idle timeout).
-            cmd = [_KIRO_CLI, "chat", "--trust-all-tools"]
+            # Two-phase approach using kiro's --no-interactive + --resume:
+            #
+            # Phase 1: run kiro with initial prompt until inception is complete
+            #          (execution-plan.md exists). Kiro runs with --no-interactive
+            #          so it exits cleanly after inception.
+            # Simulator: review inception artifacts and produce feedback.
+            # Phase 2: resume kiro with --resume [feedback] to drive construction.
+            #
+            # This uses kiro's native conversation continuation rather than
+            # fighting its internal steering rules.
+            base_flags = ["--no-interactive", "--trust-all-tools"]
             if config.model:
-                cmd += ["--model", config.model]
+                base_flags += ["--model", config.model]
 
             log_path = config.output_dir / "kiro-session.log"
             _log(f"Session log: {log_path}")
 
             gate_count = 0
-            max_gates = 20
             total_rc = 0
-            # Idle timeout: if kiro produces no output for this many seconds,
-            # treat it as a gate (pausing for user input).
-            idle_timeout_s = 12.0
 
-            import queue
-            import threading
+            def _run_kiro_phase(phase_prompt: str, phase_name: str) -> tuple[str, int]:
+                """Run one kiro phase and return (output, exit_code)."""
+                if phase_name == "phase-1":
+                    cmd = [_KIRO_CLI, "chat"] + base_flags + [phase_prompt]
+                else:
+                    cmd = [_KIRO_CLI, "chat"] + base_flags + ["--resume", phase_prompt]
 
-            with open(log_path, "w", encoding="utf-8") as log_file:
+                _log(f"{phase_name}: launching kiro ({len(phase_prompt)} chars)")
+
                 # nosec B603 - Executing user's Kiro CLI with validated configuration
                 # nosemgrep: dangerous-subprocess-use-audit
-                process = subprocess.Popen(
+                proc = subprocess.Popen(
                     cmd,
                     cwd=str(workspace),
-                    stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    bufsize=0,  # unbuffered bytes — avoids macOS pipe buffering deadlock
                 )
 
-                line_queue: queue.Queue = queue.Queue()
+                output_lines: list[str] = []
+                last_printed = [""]
+                line_buf = [""]
 
-                def _reader_thread() -> None:
-                    """Push decoded lines onto line_queue; sentinel None on EOF."""
-                    while True:
-                        chunk = process.stdout.read(4096)
-                        if not chunk:
-                            line_queue.put(None)
-                            break
-                        text = chunk.decode("utf-8", errors="replace")
-                        line_queue.put(text)
-
-                reader = threading.Thread(target=_reader_thread, daemon=True)
-                reader.start()
-
-                def _is_complete() -> bool:
-                    """Return True if construction docs exist in workspace."""
-                    construction = workspace / "aidlc-docs" / "construction"
-                    return construction.is_dir() and any(construction.rglob("*.md"))
-
-                # Accumulate partial output into lines for clean printing
-                _line_buf: list[str] = [""]
-                _last_printed: list[str] = [""]
-
-                _SKIP_PREFIXES = (
-                    "⠀", "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏",  # spinners
-                    "⣴", "⣿", "⠿", "╭", "╰", "│",  # box-drawing / braille logo
-                    "▸ Credits:", "Credits:",
-                    "Model:", "Plan:", "All tools are", "Agents can",
-                    "Learn more", "https://", "Did you know", "Jump into",
-                    "Use /", "1.", "2.", "3.",  # help text
-                )
-
-                def _print_kiro_line(line: str) -> None:
-                    """Print meaningful kiro output lines to stderr."""
+                def _print_line(line: str) -> None:
                     s = line.strip()
                     if not s or len(s) < 8:
                         return
-                    for pfx in _SKIP_PREFIXES:
-                        if s.startswith(pfx):
-                            return
-                    # Skip lines that are pure ANSI remnants
-                    if s.startswith(("38;", "5;", "[0m", "[1m", "[32m", "[33m")):
+                    skip = ("⠀","⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏",
+                            "⣴","⣿","⠿","╭","╰","│","▸ Credits:","Credits:",
+                            "Model:","Plan:","All tools are","Agents can",
+                            "Learn more","https://","Did you know","Jump into",
+                            "Use /","38;","5;","[0m","[1m")
+                    if any(s.startswith(p) for p in skip):
                         return
-                    if s == _last_printed[0]:
+                    if s == last_printed[0]:
                         return
-                    _last_printed[0] = s
+                    last_printed[0] = s
                     print(f"  [kiro] {s}", file=sys.stderr, flush=True)
 
-                def _flush_line_buf() -> None:
-                    """Flush accumulated partial line buffer."""
-                    line = _line_buf[0]
-                    _line_buf[0] = ""
-                    if line:
-                        _print_kiro_line(line)
-
-                def _read_until_idle(idle_s: float) -> str:
-                    """Drain line_queue until idle_s seconds with no new data,
-                    or until construction docs appear in the workspace."""
-                    chunks: list[str] = []
+                with open(log_path, "a", encoding="utf-8") as lf:
+                    lf.write(f"\n{'='*60}\n{phase_name.upper()}\n{'='*60}\n")
+                    lf.flush()
                     while True:
-                        try:
-                            item = line_queue.get(timeout=idle_s)
-                        except queue.Empty:
-                            break  # idle — kiro is waiting for input
-                        if item is None:
-                            break  # EOF
-                        clean = _strip_ansi(item)
-                        log_file.write(clean)
-                        log_file.flush()
-                        chunks.append(clean)
-                        # Accumulate into lines and print when complete
-                        for char in clean:
-                            if char == "\n":
-                                _flush_line_buf()
+                        chunk = proc.stdout.read(4096)
+                        if not chunk:
+                            break
+                        text = chunk.decode("utf-8", errors="replace")
+                        clean = _strip_ansi(text)
+                        lf.write(clean)
+                        lf.flush()
+                        output_lines.append(clean)
+                        for ch in clean:
+                            if ch == "\n":
+                                _print_line(line_buf[0])
+                                line_buf[0] = ""
                             else:
-                                _line_buf[0] += char
+                                line_buf[0] += ch
                         if self.verbose:
-                            sys.stderr.write(item)
+                            sys.stderr.write(text)
                             sys.stderr.flush()
-                        # Check completion after every chunk so we don't wait
-                        # for an idle timeout when kiro keeps streaming output.
-                        if _is_complete():
-                            break
-                    return "".join(chunks)
 
-                # Consume the startup banner
-                _read_until_idle(3.0)
+                proc.wait()
+                return "".join(output_lines), proc.returncode
 
-                # Send the initial prompt
-                _log(f"Sending initial prompt ({len(prompt)} chars)")
-                log_file.write(f"\n{'='*60}\nINITIAL PROMPT\n{'='*60}\n")
-                log_file.flush()
-                process.stdin.write((prompt + "\n").encode())
-                process.stdin.flush()
+            # Phase 1: inception
+            _log("Phase 1: running inception...")
+            inception_prompt = (
+                prompt
+                + "\n\nIMPORTANT: Execute ONLY the INCEPTION PHASE stages "
+                + "(Workspace Detection, Requirements Analysis, Workflow Planning, "
+                + "Application Design, Units Generation). "
+                + "Stop after completing the Workflow Planning stage and producing "
+                + "aidlc-docs/inception/plans/execution-plan.md. "
+                + "Do NOT proceed to Construction. End your response when inception is done."
+            )
+            phase1_output, rc1 = _run_kiro_phase(inception_prompt, "phase-1")
+            _log(f"Phase 1 complete (exit {rc1})")
 
-                while gate_count < max_gates:
-                    remaining = config.timeout_seconds - (time.monotonic() - start_time)
-                    if remaining <= 0:
-                        _log("Timeout reached")
-                        process.kill()
-                        break
+            # Check inception produced docs
+            inception_dir = workspace / "aidlc-docs" / "inception"
+            has_inception = inception_dir.is_dir() and any(inception_dir.rglob("*.md"))
+            _log(f"Inception docs: {'found' if has_inception else 'NOT FOUND'}")
 
-                    turn_output = _read_until_idle(idle_timeout_s)
+            # Simulator reviews inception
+            gate_count += 1
+            _log(f"Gate #{gate_count}: simulator reviewing inception...")
+            sim_feedback = simulator.respond(
+                "The AIDLC executor has completed the Inception phase. "
+                "Please review the inception artifacts in aidlc-docs/inception/ — "
+                "requirements, execution plan, application design, and any other documents produced. "
+                "Answer any open questions, approve or request changes to the design, "
+                "and provide clear direction for the Construction phase. "
+                "Be specific and concise so the executor can proceed."
+            )
+            _log(f"Gate #{gate_count}: simulator responded ({len(sim_feedback)} chars)")
 
-                    # Check if process ended
-                    if process.poll() is not None:
-                        total_rc = process.returncode
-                        _log(f"Kiro exited with code {total_rc}")
-                        break
-
-                    # Check if workflow is complete
-                    aidlc_docs_dir = workspace / "aidlc-docs"
-                    if aidlc_docs_dir.is_dir():
-                        has_construction = (
-                            any((aidlc_docs_dir / "construction").rglob("*.md"))
-                            if (aidlc_docs_dir / "construction").is_dir() else False
-                        )
-                        file_count = sum(1 for _ in aidlc_docs_dir.rglob("*") if _.is_file())
-                        _log(f"  aidlc-docs: {file_count} files, construction={'yes' if has_construction else 'no'}")
-                        if has_construction:
-                            _log("Construction phase complete — terminating kiro")
-                            process.kill()
-                            try:
-                                process.wait(timeout=10)
-                            except subprocess.TimeoutExpired:
-                                pass
-                            total_rc = 0
-                            break
-
-                    if not turn_output.strip():
-                        # No output and not complete — kiro may be at a gate
-                        gate_count += 1
-                        _log(f"Gate #{gate_count}: running simulator review...")
-                        log_file.write(f"\n{'='*60}\nGATE {gate_count}\n{'='*60}\n")
-                        log_file.flush()
-
-                        sim_response = simulator.respond(
-                            "The AIDLC executor has paused for your review. "
-                            "Read the relevant aidlc-docs files to understand what was just produced, "
-                            "then answer any questions, approve documents, or provide feedback. "
-                            "Keep your response concise so the executor can continue."
-                        )
-                        _log(f"Gate #{gate_count}: simulator responded ({len(sim_response)} chars)")
-                        log_file.write(f"[simulator]: {sim_response}\n")
-                        log_file.flush()
-                        process.stdin.write((sim_response + "\n").encode())
-                        process.stdin.flush()
-                    else:
-                        # Got output — kiro is still working, keep reading
-                        _log(f"  kiro produced {len(turn_output)} chars, continuing...")
-
-                if process.poll() is None:
-                    process.kill()
-                    try:
-                        process.wait(timeout=10)
-                    except subprocess.TimeoutExpired:
-                        pass
+            # Phase 2: construction
+            _log("Phase 2: running construction with simulator feedback...")
+            construction_prompt = (
+                "The human reviewer has reviewed the inception artifacts and provides this feedback:\n\n"
+                f"{sim_feedback}\n\n"
+                "Now proceed with the CONSTRUCTION PHASE as planned in the execution plan. "
+                "Execute Code Generation and Build and Test stages to completion."
+            )
+            phase2_output, rc2 = _run_kiro_phase(construction_prompt, "phase-2")
+            _log(f"Phase 2 complete (exit {rc2})")
+            total_rc = rc2
 
             elapsed_seconds = time.monotonic() - start_time
             _log(f"Completed in {elapsed_seconds:.0f}s ({gate_count} simulator gate(s))")
