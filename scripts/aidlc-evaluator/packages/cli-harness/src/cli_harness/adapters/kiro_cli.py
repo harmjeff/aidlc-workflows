@@ -198,8 +198,14 @@ class KiroCLIAdapter(CLIAdapter):
                 reader = threading.Thread(target=_reader_thread, daemon=True)
                 reader.start()
 
+                def _is_complete() -> bool:
+                    """Return True if construction docs exist in workspace."""
+                    construction = workspace / "aidlc-docs" / "construction"
+                    return construction.is_dir() and any(construction.rglob("*.md"))
+
                 def _read_until_idle(idle_s: float) -> str:
-                    """Drain line_queue until idle_s seconds with no new data."""
+                    """Drain line_queue until idle_s seconds with no new data,
+                    or until construction docs appear in the workspace."""
                     chunks: list[str] = []
                     while True:
                         try:
@@ -215,6 +221,10 @@ class KiroCLIAdapter(CLIAdapter):
                         if self.verbose:
                             sys.stderr.write(item)
                             sys.stderr.flush()
+                        # Check completion after every chunk so we don't wait
+                        # for an idle timeout when kiro keeps streaming output.
+                        if _is_complete():
+                            break
                     return "".join(chunks)
 
                 # Consume the startup banner
