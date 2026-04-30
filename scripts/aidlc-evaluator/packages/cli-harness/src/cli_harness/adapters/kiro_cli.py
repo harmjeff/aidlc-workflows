@@ -203,6 +203,30 @@ class KiroCLIAdapter(CLIAdapter):
                     construction = workspace / "aidlc-docs" / "construction"
                     return construction.is_dir() and any(construction.rglob("*.md"))
 
+                # Track last printed line to avoid spamming identical spinner frames
+                _last_printed: list[str] = [""]
+
+                def _print_kiro_line(clean: str) -> None:
+                    """Print meaningful kiro output lines to stderr.
+
+                    Skips blank lines, spinner frames (single non-alpha chars),
+                    and the credit/time footers. Deduplicates consecutive identical lines.
+                    """
+                    line = clean.strip()
+                    if not line:
+                        return
+                    # Skip spinner frames like "⠙", "⠧ Thinking...", bare ">"
+                    if len(line) <= 2:
+                        return
+                    # Skip the credits footer
+                    if line.startswith("▸ Credits:") or line.startswith("Credits:"):
+                        return
+                    # Deduplicate
+                    if line == _last_printed[0]:
+                        return
+                    _last_printed[0] = line
+                    print(f"  [kiro] {line}", file=sys.stderr, flush=True)
+
                 def _read_until_idle(idle_s: float) -> str:
                     """Drain line_queue until idle_s seconds with no new data,
                     or until construction docs appear in the workspace."""
@@ -218,6 +242,9 @@ class KiroCLIAdapter(CLIAdapter):
                         log_file.write(clean)
                         log_file.flush()
                         chunks.append(clean)
+                        # Always show kiro's output (filtered); verbose shows raw
+                        for line in clean.splitlines():
+                            _print_kiro_line(line)
                         if self.verbose:
                             sys.stderr.write(item)
                             sys.stderr.flush()
