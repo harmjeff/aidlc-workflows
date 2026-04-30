@@ -166,9 +166,10 @@ class KiroCLIAdapter(CLIAdapter):
             total_rc = 0
             # Idle timeout: if kiro produces no output for this many seconds,
             # treat it as a gate (pausing for user input).
-            idle_timeout_s = 8.0
+            idle_timeout_s = 12.0
 
-            import select
+            import queue
+            import threading
 
             with open(log_path, "w", encoding="utf-8") as log_file:
                 # nosec B603 - Executing user's Kiro CLI with validated configuration
@@ -179,28 +180,42 @@ class KiroCLIAdapter(CLIAdapter):
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
+                    bufsize=0,  # unbuffered bytes — avoids macOS pipe buffering deadlock
                 )
 
-                def _read_until_idle(idle_s: float) -> str:
-                    """Read lines from kiro until idle_s seconds of silence."""
-                    lines: list[str] = []
+                line_queue: queue.Queue = queue.Queue()
+
+                def _reader_thread() -> None:
+                    """Push decoded lines onto line_queue; sentinel None on EOF."""
                     while True:
-                        ready = select.select([process.stdout], [], [], idle_s)[0]
-                        if not ready:
+                        chunk = process.stdout.read(4096)
+                        if not chunk:
+                            line_queue.put(None)
+                            break
+                        text = chunk.decode("utf-8", errors="replace")
+                        line_queue.put(text)
+
+                reader = threading.Thread(target=_reader_thread, daemon=True)
+                reader.start()
+
+                def _read_until_idle(idle_s: float) -> str:
+                    """Drain line_queue until idle_s seconds with no new data."""
+                    chunks: list[str] = []
+                    while True:
+                        try:
+                            item = line_queue.get(timeout=idle_s)
+                        except queue.Empty:
                             break  # idle — kiro is waiting for input
-                        line = process.stdout.readline()
-                        if not line:
-                            break  # EOF — process ended
-                        clean = _strip_ansi(line)
+                        if item is None:
+                            break  # EOF
+                        clean = _strip_ansi(item)
                         log_file.write(clean)
                         log_file.flush()
-                        lines.append(clean)
+                        chunks.append(clean)
                         if self.verbose:
-                            sys.stderr.write(line)
+                            sys.stderr.write(item)
                             sys.stderr.flush()
-                    return "".join(lines)
+                    return "".join(chunks)
 
                 # Consume the startup banner
                 _read_until_idle(3.0)
@@ -209,7 +224,7 @@ class KiroCLIAdapter(CLIAdapter):
                 _log(f"Sending initial prompt ({len(prompt)} chars)")
                 log_file.write(f"\n{'='*60}\nINITIAL PROMPT\n{'='*60}\n")
                 log_file.flush()
-                process.stdin.write(prompt + "\n")
+                process.stdin.write((prompt + "\n").encode())
                 process.stdin.flush()
 
                 while gate_count < max_gates:
@@ -238,7 +253,7 @@ class KiroCLIAdapter(CLIAdapter):
                         _log(f"  aidlc-docs: {file_count} files, construction={'yes' if has_construction else 'no'}")
                         if has_construction:
                             _log("Construction phase complete — closing session")
-                            process.stdin.write("/quit\n")
+                            process.stdin.write(b"/quit\n")
                             process.stdin.flush()
                             process.wait(timeout=5)
                             total_rc = process.returncode or 0
@@ -260,7 +275,7 @@ class KiroCLIAdapter(CLIAdapter):
                         _log(f"Gate #{gate_count}: simulator responded ({len(sim_response)} chars)")
                         log_file.write(f"[simulator]: {sim_response}\n")
                         log_file.flush()
-                        process.stdin.write(sim_response + "\n")
+                        process.stdin.write((sim_response + "\n").encode())
                         process.stdin.flush()
                     else:
                         # Got output — kiro is still working, keep reading
