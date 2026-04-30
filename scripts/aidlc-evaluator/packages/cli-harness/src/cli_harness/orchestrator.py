@@ -11,6 +11,7 @@ import yaml
 
 from cli_harness.adapter import AdapterConfig, AdapterResult, CLIAdapter
 from cli_harness.normalizer import normalize_output, _count_workspace_files, _count_doc_files
+from cli_harness.simulator import HumanSimulator
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]  # packages/cli-harness/src/cli_harness -> repo root
@@ -146,10 +147,31 @@ def run_cli_evaluation(
 
     print(f"[OK] {adapter.name} prerequisites met: {msg}")
 
-    # 2. Run the adapter
+    # 2. Build the shared HumanSimulator and run the adapter.
+    # The simulator is constructed once here with the full document context
+    # (vision, tech_env, openapi) and injected into AdapterConfig so every
+    # adapter uses the same instance — no per-adapter construction needed.
     openapi_content: str | None = None
     if openapi_path and openapi_path.is_file():
         openapi_content = openapi_path.read_text(encoding="utf-8")
+
+    simulator: HumanSimulator | None = None
+    if simulator_model:
+        vision_content = vision_path.read_text(encoding="utf-8")
+        tech_env_content = (
+            tech_env_path.read_text(encoding="utf-8")
+            if tech_env_path and tech_env_path.is_file()
+            else None
+        )
+        simulator = HumanSimulator.from_adapter_config(
+            run_folder=output_dir,
+            vision_content=vision_content,
+            tech_env_content=tech_env_content,
+            openapi_content=openapi_content,
+            aws_profile=profile,
+            aws_region=region or "us-east-1",
+            model=simulator_model,
+        )
 
     config = AdapterConfig(
         vision_path=vision_path,
@@ -162,6 +184,7 @@ def run_cli_evaluation(
         aws_profile=profile,
         aws_region=region,
         openapi_content=openapi_content,
+        simulator=simulator,
         timeout_seconds=timeout_seconds,
     )
 

@@ -41,3 +41,6 @@ execution:
 
 tools:
   pmd_path: null  # Path to PMD executable; if null, looks for 'pmd' on PATH
+
+cli:
+  adapters: {}  # Register custom CLI adapters: name: "mypackage.MyAdapter"

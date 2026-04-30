@@ -130,25 +130,15 @@ class KiroCLIAdapter(CLIAdapter):
                 with_simulator=True,
             )
 
-            # Build the human simulator (Bedrock) for review gates
-            vision_content = config.vision_path.read_text(encoding="utf-8")
-            tech_env_content = (
-                config.tech_env_path.read_text(encoding="utf-8")
-                if config.tech_env_path and config.tech_env_path.is_file()
-                else None
-            )
-            simulator_model = getattr(config, "simulator_model", None) or config.model or "global.anthropic.claude-opus-4-6-v1"
-            aws_region = getattr(config, "aws_region", None) or "us-east-1"
-            simulator = HumanSimulator.from_adapter_config(
-                run_folder=config.output_dir,
-                vision_content=vision_content,
-                tech_env_content=tech_env_content,
-                openapi_content=config.openapi_content,
-                aws_profile=config.aws_profile,
-                aws_region=aws_region,
-                model=simulator_model,
-            )
-            _log(f"Simulator model: {simulator_model}")
+            # Retrieve the pre-built HumanSimulator injected by the orchestrator.
+            # All document context (vision, tech_env, openapi) is already embedded.
+            simulator = config.simulator
+            if simulator is None:
+                raise RuntimeError(
+                    "kiro-cli adapter requires a HumanSimulator — "
+                    "ensure --simulator-model is set or models.simulator.model_id is in config.yaml"
+                )
+            _log(f"Simulator model: {simulator._model}")
 
             # Per-stage gate approach using kiro's --no-interactive + --resume.
             #

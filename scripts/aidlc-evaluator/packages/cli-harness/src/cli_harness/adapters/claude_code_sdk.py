@@ -468,12 +468,19 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
                 "continue through application design, code generation, and build-and-test."
             )
 
-            # Resolve models and region
+            # Retrieve the pre-built HumanSimulator injected by the orchestrator.
+            simulator = config.simulator
+            if simulator is None:
+                raise RuntimeError(
+                    "claude-code-sdk adapter requires a HumanSimulator — "
+                    "ensure --simulator-model is set or models.simulator.model_id is in config.yaml"
+                )
+
+            # Resolve executor model and region
             executor_model = config.model or "global.anthropic.claude-opus-4-6-v1"
-            simulator_model = getattr(config, "simulator_model", None) or executor_model
             aws_region = getattr(config, "aws_region", None) or os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 
-            # Build Bedrock client for executor loop
+            # Build Bedrock client for executor loop only
             session_kwargs: dict = {}
             if config.aws_profile:
                 session_kwargs["profile_name"] = config.aws_profile
@@ -486,19 +493,8 @@ class ClaudeCodeSDKAdapter(CLIAdapter):
                 aws_region=aws_region,
             )
 
-            # Build the shared HumanSimulator (same prompt as Strands swarm)
-            simulator = HumanSimulator.from_adapter_config(
-                run_folder=config.output_dir,
-                vision_content=vision_content,
-                tech_env_content=tech_env_content,
-                openapi_content=config.openapi_content,
-                aws_profile=config.aws_profile,
-                aws_region=aws_region,
-                model=simulator_model,
-            )
-
             _log(f"Executor model: {executor_model}")
-            _log(f"Simulator model: {simulator_model}")
+            _log(f"Simulator model: {simulator._model}")
 
             # Run the executor↔simulator loop
             usage = _UsageTracker()

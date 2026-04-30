@@ -41,7 +41,7 @@ PACKAGES = REPO_ROOT / "packages"
 # Add cli-harness to path
 sys.path.insert(0, str(PACKAGES / "cli-harness" / "src"))
 
-from cli_harness.registry import get_adapter, list_adapters  # noqa: E402
+from cli_harness.registry import get_adapter, list_adapters, load_adapters_from_config  # noqa: E402
 from cli_harness.orchestrator import run_cli_evaluation  # noqa: E402
 
 _SLUG_MAX_LEN = 80
@@ -220,6 +220,9 @@ def main() -> None:
     if args.config and args.config.exists():
         with open(args.config, encoding="utf-8") as f:
             cfg_data = yaml.safe_load(f) or {}
+
+    # Register any custom adapters declared in config before resolving --cli
+    load_adapters_from_config(cfg_data)
 
     if args.profile is None:
         args.profile = cfg_data.get("aws", {}).get("profile")

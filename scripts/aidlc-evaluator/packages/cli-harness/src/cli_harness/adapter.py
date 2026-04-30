@@ -5,6 +5,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cli_harness.simulator import HumanSimulator
 
 
 @dataclass
@@ -17,10 +21,11 @@ class AdapterConfig:
     tech_env_path: Path | None = None
     prompt_template: str | None = None
     model: str | None = None
-    simulator_model: str | None = None  # SDK adapter only; defaults to model if None
+    simulator_model: str | None = None  # kept for backwards compat; prefer simulator field
     aws_profile: str | None = None
-    aws_region: str | None = None       # SDK adapter only; falls back to env/default
+    aws_region: str | None = None
     openapi_content: str | None = None  # injected into prompt/simulator for contract validation
+    simulator: "HumanSimulator | None" = None  # pre-built by orchestrator; shared across adapters
     timeout_seconds: int = 7200  # 2 hours max
 
 

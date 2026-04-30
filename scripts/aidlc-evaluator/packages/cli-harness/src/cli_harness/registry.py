@@ -5,12 +5,41 @@ from __future__ import annotations
 from cli_harness.adapter import CLIAdapter
 
 
-# Lazy imports to avoid pulling in adapter-specific deps at import time
+# Built-in adapters — always available
 _ADAPTER_MAP: dict[str, str] = {
     "kiro-cli": "cli_harness.adapters.kiro_cli.KiroCLIAdapter",
     "claude-code": "cli_harness.adapters.claude_code.ClaudeCodeAdapter",
     "claude-code-sdk": "cli_harness.adapters.claude_code_sdk.ClaudeCodeSDKAdapter",
 }
+
+
+def register_adapter(name: str, fqn: str) -> None:
+    """Register an adapter by name and fully-qualified class path.
+
+    Allows external code (config loaders, plugins) to add adapters without
+    modifying framework code.  Built-in adapters can be overridden by name.
+
+    Args:
+        name: Adapter name as used on the CLI (e.g. 'my-tool').
+        fqn:  Fully-qualified class path (e.g. 'mypackage.adapters.MyAdapter').
+    """
+    _ADAPTER_MAP[name.lower().strip()] = fqn
+
+
+def load_adapters_from_config(cfg_data: dict) -> None:
+    """Register adapters declared under ``cli.adapters`` in a config dict.
+
+    Config shape::
+
+        cli:
+          adapters:
+            my-tool: "mypackage.adapters.MyToolAdapter"
+
+    Each entry calls :func:`register_adapter` so the adapter is available
+    for the current process without any framework code changes.
+    """
+    for adapter_name, fqn in cfg_data.get("cli", {}).get("adapters", {}).items():
+        register_adapter(adapter_name, fqn)
 
 
 def list_adapters() -> list[str]:
