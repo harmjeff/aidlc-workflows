@@ -203,29 +203,41 @@ class KiroCLIAdapter(CLIAdapter):
                     construction = workspace / "aidlc-docs" / "construction"
                     return construction.is_dir() and any(construction.rglob("*.md"))
 
-                # Track last printed line to avoid spamming identical spinner frames
+                # Accumulate partial output into lines for clean printing
+                _line_buf: list[str] = [""]
                 _last_printed: list[str] = [""]
 
-                def _print_kiro_line(clean: str) -> None:
-                    """Print meaningful kiro output lines to stderr.
+                _SKIP_PREFIXES = (
+                    "⠀", "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏",  # spinners
+                    "⣴", "⣿", "⠿", "╭", "╰", "│",  # box-drawing / braille logo
+                    "▸ Credits:", "Credits:",
+                    "Model:", "Plan:", "All tools are", "Agents can",
+                    "Learn more", "https://", "Did you know", "Jump into",
+                    "Use /", "1.", "2.", "3.",  # help text
+                )
 
-                    Skips blank lines, spinner frames (single non-alpha chars),
-                    and the credit/time footers. Deduplicates consecutive identical lines.
-                    """
-                    line = clean.strip()
-                    if not line:
+                def _print_kiro_line(line: str) -> None:
+                    """Print meaningful kiro output lines to stderr."""
+                    s = line.strip()
+                    if not s or len(s) < 8:
                         return
-                    # Skip spinner frames like "⠙", "⠧ Thinking...", bare ">"
-                    if len(line) <= 2:
+                    for pfx in _SKIP_PREFIXES:
+                        if s.startswith(pfx):
+                            return
+                    # Skip lines that are pure ANSI remnants
+                    if s.startswith(("38;", "5;", "[0m", "[1m", "[32m", "[33m")):
                         return
-                    # Skip the credits footer
-                    if line.startswith("▸ Credits:") or line.startswith("Credits:"):
+                    if s == _last_printed[0]:
                         return
-                    # Deduplicate
-                    if line == _last_printed[0]:
-                        return
-                    _last_printed[0] = line
-                    print(f"  [kiro] {line}", file=sys.stderr, flush=True)
+                    _last_printed[0] = s
+                    print(f"  [kiro] {s}", file=sys.stderr, flush=True)
+
+                def _flush_line_buf() -> None:
+                    """Flush accumulated partial line buffer."""
+                    line = _line_buf[0]
+                    _line_buf[0] = ""
+                    if line:
+                        _print_kiro_line(line)
 
                 def _read_until_idle(idle_s: float) -> str:
                     """Drain line_queue until idle_s seconds with no new data,
@@ -242,9 +254,12 @@ class KiroCLIAdapter(CLIAdapter):
                         log_file.write(clean)
                         log_file.flush()
                         chunks.append(clean)
-                        # Always show kiro's output (filtered); verbose shows raw
-                        for line in clean.splitlines():
-                            _print_kiro_line(line)
+                        # Accumulate into lines and print when complete
+                        for char in clean:
+                            if char == "\n":
+                                _flush_line_buf()
+                            else:
+                                _line_buf[0] += char
                         if self.verbose:
                             sys.stderr.write(item)
                             sys.stderr.flush()
