@@ -743,13 +743,13 @@ uv run python run.py cli --cli my-tool --scenario sci-calc
 
 **Key contracts for adapter implementors:**
 
-| What | Where | Notes |
-|---|---|---|
-| Abstract base | `cli_harness/adapter.py` — `CLIAdapter` | Implement `name`, `check_prerequisites`, `run` |
-| Simulator | `config.simulator` (`HumanSimulator`) | Call `.respond(message)` at review gates; never construct it yourself |
-| Output layout | `cli_harness/normalizer.py` — `normalize_output()` | Call at end of `run()` to produce standard `run-meta.yaml` / `run-metrics.yaml` |
-| Post-run tests | `aidlc_runner.post_run.run_post_evaluation()` | Optional; call after `normalize_output()` to run generated project tests |
-| Document context | `config.vision_path`, `config.tech_env_path`, `config.openapi_content` | Available if you need them; simulator already has this context |
+| What             | Where                                                                   | Notes                                                                     |
+| ---------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Abstract base    | `cli_harness/adapter.py` - `CLIAdapter`                                 | Implement `name`, `check_prerequisites`, `run`                            |
+| Simulator        | `config.simulator` (`HumanSimulator`)                                   | Call `.respond(message)` at review gates; never construct it yourself     |
+| Output layout    | `cli_harness/normalizer.py` (`normalize_output()`)                      | Call at end of `run()` to write `run-meta.yaml` / `run-metrics.yaml`      |
+| Post-run tests   | `aidlc_runner.post_run.run_post_evaluation()`                           | Optional; call after `normalize_output()` to run generated project tests  |
+| Document context | `config.vision_path`, `config.tech_env_path`, `config.openapi_content`  | Available if needed; simulator already has this context                   |
 
 ### Adding a New IDE Adapter
 
