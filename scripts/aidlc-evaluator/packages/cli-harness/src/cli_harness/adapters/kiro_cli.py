@@ -262,11 +262,13 @@ class KiroCLIAdapter(CLIAdapter):
                         file_count = sum(1 for _ in aidlc_docs_dir.rglob("*") if _.is_file())
                         _log(f"  aidlc-docs: {file_count} files, construction={'yes' if has_construction else 'no'}")
                         if has_construction:
-                            _log("Construction phase complete — closing session")
-                            process.stdin.write(b"/quit\n")
-                            process.stdin.flush()
-                            process.wait(timeout=5)
-                            total_rc = process.returncode or 0
+                            _log("Construction phase complete — terminating kiro")
+                            process.kill()
+                            try:
+                                process.wait(timeout=10)
+                            except subprocess.TimeoutExpired:
+                                pass
+                            total_rc = 0
                             break
 
                     if not turn_output.strip():
@@ -292,8 +294,11 @@ class KiroCLIAdapter(CLIAdapter):
                         _log(f"  kiro produced {len(turn_output)} chars, continuing...")
 
                 if process.poll() is None:
-                    process.stdin.close()
-                    process.wait(timeout=10)
+                    process.kill()
+                    try:
+                        process.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        pass
 
             elapsed_seconds = time.monotonic() - start_time
             _log(f"Completed in {elapsed_seconds:.0f}s ({gate_count} simulator gate(s))")
