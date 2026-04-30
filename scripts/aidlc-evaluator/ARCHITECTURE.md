@@ -460,6 +460,36 @@ get_adapter(name)     ← lazy import from registry
 
 Supported adapters: Cursor, Cline, Copilot, Kiro, Windsurf, Antigravity.
 
+### 6.5 CLI Evaluation (`run_cli_evaluation.py`)
+
+Runs the AIDLC workflow through CLI-based AI assistants (Claude Code, Kiro CLI, etc.):
+
+```text
+load_adapters_from_config(cfg_data)  ← register any custom adapters from config.yaml
+  │
+get_adapter(name)     ← lazy import from registry
+  │
+  ├── check_prerequisites()
+  ├── HumanSimulator built once by orchestrator (vision + tech_env + openapi injected)
+  ├── adapter.run(config) ──► CLI-specific automation + simulator gate reviews
+  ├── normalize_output()  ──► standard run folder layout
+  └── run_evaluation.py --evaluate-only  ──► stages 2-6
+```
+
+**Adapter pattern**: Each CLI tool is implemented as a subclass of `CLIAdapter` (`packages/cli-harness/src/cli_harness/adapter.py`) with three methods:
+
+- `name` — human-readable identifier (e.g. `"kiro-cli"`)
+- `check_prerequisites()` — verify the CLI tool is installed and credentials are valid
+- `run(config: AdapterConfig) -> AdapterResult` — execute the AIDLC workflow and return results
+
+**HumanSimulator injection**: The orchestrator constructs a single `HumanSimulator` with the full document context (vision, tech-env, OpenAPI spec) before calling the adapter. It is passed in as `config.simulator`. Adapters access it via `config.simulator.respond(message)` — they do not construct it themselves.
+
+**Simulator gates**: Adapters use `config.simulator` to inject human-reviewer feedback at key workflow stages. The kiro-cli adapter uses 4 stage gates (requirements → design → code-gen plan → construction); the claude-code-sdk adapter intercepts `handoff_to_simulator` tool calls inline.
+
+**Plugin registration**: Custom adapters can be added without modifying framework code — see [Adding a New CLI Adapter](#adding-a-new-cli-adapter) below.
+
+Supported built-in adapters: `claude-code`, `claude-code-sdk`, `kiro-cli`.
+
 ---
 
 ## 7. Data Flow: YAML Artifact Graph
@@ -632,6 +662,94 @@ The default test case is `sci-calc` (a scientific calculator API). All CLI defau
 
 1. Create `config/<model-name>.yaml` with `models.executor.model_id` set to the Bedrock model ID
 2. The batch runner will automatically discover it
+
+### Adding a New CLI Adapter
+
+CLI adapters live in `packages/cli-harness` and follow a plugin pattern — no framework code changes are needed.
+
+**Step 1 — Implement the adapter**
+
+Create a module anywhere importable (e.g. `packages/cli-harness/src/cli_harness/adapters/my_tool.py`):
+
+```python
+from cli_harness.adapter import AdapterConfig, AdapterResult, CLIAdapter
+
+class MyToolAdapter(CLIAdapter):
+    @property
+    def name(self) -> str:
+        return "my-tool"
+
+    def check_prerequisites(self) -> tuple[bool, str]:
+        import shutil
+        if not shutil.which("my-tool"):
+            return False, "'my-tool' not found in PATH"
+        return True, "my-tool found"
+
+    def run(self, config: AdapterConfig) -> AdapterResult:
+        import time, shutil
+        from cli_harness.normalizer import normalize_output
+
+        start = time.monotonic()
+        workspace = config.output_dir / "workspace"
+        workspace.mkdir(parents=True, exist_ok=True)
+
+        # Copy inputs, inject rules, run the CLI tool...
+        # Use config.simulator.respond(message) at review gates.
+        simulator = config.simulator  # pre-built with vision/tech_env/openapi context
+        if simulator is None:
+            raise RuntimeError("my-tool requires a simulator (set --simulator-model)")
+
+        # ... run CLI tool stages, call simulator.respond() between stages ...
+
+        elapsed = time.monotonic() - start
+        normalize_output(
+            source_dir=workspace,
+            output_dir=config.output_dir,
+            adapter_name=self.name,
+            elapsed_seconds=elapsed,
+        )
+        dst_docs = config.output_dir / "aidlc-docs"
+        return AdapterResult(
+            success=dst_docs.is_dir(),
+            output_dir=config.output_dir,
+            aidlc_docs_dir=dst_docs if dst_docs.is_dir() else None,
+            workspace_dir=workspace,
+            elapsed_seconds=elapsed,
+        )
+```
+
+**Step 2 — Register in config** (no framework edits needed)
+
+Add one line to `config/default.yaml` (or your own config file):
+
+```yaml
+cli:
+  adapters:
+    my-tool: "cli_harness.adapters.my_tool.MyToolAdapter"
+```
+
+**Step 3 — Verify**
+
+```bash
+# Confirm it appears
+uv run python run.py cli --list
+
+# Check prerequisites
+uv run python run.py cli --cli my-tool --check-only
+
+# Run evaluation
+uv run python run.py cli --cli my-tool --scenario sci-calc
+```
+
+**Key contracts for adapter implementors:**
+
+| What | Where | Notes |
+|---|---|---|
+| Abstract base | `cli_harness/adapter.py` — `CLIAdapter` | Implement `name`, `check_prerequisites`, `run` |
+| Simulator | `config.simulator` (`HumanSimulator`) | Call `.respond(message)` at review gates; never construct it yourself |
+| Output layout | `cli_harness/normalizer.py` — `normalize_output()` | Call at end of `run()` to produce standard `run-meta.yaml` / `run-metrics.yaml` |
+| Post-run tests | `aidlc_runner.post_run.run_post_evaluation()` | Optional; call after `normalize_output()` to run generated project tests |
+| Document context | `config.vision_path`, `config.tech_env_path`, `config.openapi_content` | Available if you need them; simulator already has this context |
 
 ### Adding a New IDE Adapter
 

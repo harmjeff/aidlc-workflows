@@ -36,11 +36,14 @@ git checkout -b feature/your-feature-name
 
 Work in the appropriate package:
 
-- `aidlc-runner/` - Execution Framework (two-agent AIDLC workflow runner)
+- `packages/execution/` - Execution Framework (two-agent AIDLC workflow runner)
+- `packages/cli-harness/` - CLI Adapter Framework (Claude Code, Kiro CLI, custom tools)
+- `packages/ide-harness/` - IDE Adapter Framework (Cursor, Cline, Kiro, etc.)
 - `packages/qualitative/` - Semantic Evaluation (intent & design similarity scoring)
 - `packages/quantitative/` - Code Evaluation (linting, security, organization)
 - `packages/nonfunctional/` - NFR Evaluation (tokens, timing, consistency)
 - `packages/reporting/` - Report generation
+- `packages/trend-reports/` - Cross-release trend reporting
 - `packages/shared/` - Common utilities
 
 Or contribute to other work streams:
@@ -96,14 +99,17 @@ git commit -m "Add token tracking to nonfunctional package"
 
 The project is organized around six big rocks. Your changes will typically fall into one or more of these:
 
-| Work Stream             | Description                                   | Package / Area            |
-| ----------------------- | --------------------------------------------- | ------------------------- |
-| **Golden Test Case**    | Curated baseline test inputs                  | `test_cases/`             |
-| **Execution Framework** | Two-agent AIDLC workflow runner (Owner: Jeff) | `aidlc-runner/`           |
-| **Semantic Evaluation** | Intent & design similarity scoring            | `packages/qualitative/`   |
-| **Code Evaluation**     | Linting, security, organization               | `packages/quantitative/`  |
-| **NFR Evaluation**      | Tokens, timing, consistency                   | `packages/nonfunctional/` |
-| **GitHub CI/CD**        | Pipeline integration & management             | `.github/workflows/`      |
+| Work Stream             | Description                                   | Package / Area               |
+| ----------------------- | --------------------------------------------- | ---------------------------- |
+| **Golden Test Case**    | Curated baseline test inputs                  | `test_cases/`                |
+| **Execution Framework** | Two-agent AIDLC workflow runner               | `packages/execution/`        |
+| **CLI Adapters**        | CLI tool integrations (Claude Code, Kiro CLI) | `packages/cli-harness/`      |
+| **IDE Adapters**        | IDE tool integrations (Cursor, Cline, etc.)   | `packages/ide-harness/`      |
+| **Semantic Evaluation** | Intent & design similarity scoring            | `packages/qualitative/`      |
+| **Code Evaluation**     | Linting, security, organization               | `packages/quantitative/`     |
+| **NFR Evaluation**      | Tokens, timing, consistency                   | `packages/nonfunctional/`    |
+| **Trend Reporting**     | Cross-release metric tracking                 | `packages/trend-reports/`    |
+| **GitHub CI/CD**        | Pipeline integration & management             | `.github/workflows/`         |
 
 ## Code Standards
 
