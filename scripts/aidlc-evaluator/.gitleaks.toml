@@ -1,0 +1,8 @@
+# Gitleaks configuration for aidlc-evaluator
+# Suppress false positives from test fixtures that intentionally contain fake credentials.
+
+[allowlist]
+description = "Fake credentials used in test_credential_scrubber.py test fixtures"
+paths = [
+    "packages/shared/tests/test_credential_scrubber.py",
+]
