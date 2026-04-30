@@ -150,16 +150,17 @@ class KiroCLIAdapter(CLIAdapter):
             )
             _log(f"Simulator model: {simulator_model}")
 
-            # Two-phase approach using kiro's --no-interactive + --resume:
+            # Per-stage gate approach using kiro's --no-interactive + --resume.
             #
-            # Phase 1: run kiro with initial prompt until inception is complete
-            #          (execution-plan.md exists). Kiro runs with --no-interactive
-            #          so it exits cleanly after inception.
-            # Simulator: review inception artifacts and produce feedback.
-            # Phase 2: resume kiro with --resume [feedback] to drive construction.
+            # Each stage produces a sentinel file. We run kiro to that sentinel,
+            # have the simulator review the output, then resume with feedback.
+            # Stages map to the AIDLC workflow as tracked in aidlc-state.md.
             #
-            # This uses kiro's native conversation continuation rather than
-            # fighting its internal steering rules.
+            # Gate schedule (sentinel → simulator focus):
+            #   1. requirements.md    → answer verification questions, approve requirements
+            #   2. execution-plan.md  → approve workflow plan and application design
+            #   3. code-gen-plan      → approve code generation plan before code is written
+            #   4. build-and-test-summary → review final output
             base_flags = ["--no-interactive", "--trust-all-tools"]
             if config.model:
                 base_flags += ["--model", config.model]
@@ -170,14 +171,15 @@ class KiroCLIAdapter(CLIAdapter):
             gate_count = 0
             total_rc = 0
 
-            def _run_kiro_phase(phase_prompt: str, phase_name: str) -> tuple[str, int]:
-                """Run one kiro phase and return (output, exit_code)."""
-                if phase_name == "phase-1":
-                    cmd = [_KIRO_CLI, "chat"] + base_flags + [phase_prompt]
+            def _run_kiro_stage(stage_prompt: str, stage_name: str, is_first: bool) -> tuple[str, int]:
+                """Run one kiro stage segment and return (output, exit_code)."""
+                cmd = [_KIRO_CLI, "chat"] + base_flags
+                if is_first:
+                    cmd.append(stage_prompt)
                 else:
-                    cmd = [_KIRO_CLI, "chat"] + base_flags + ["--resume", phase_prompt]
+                    cmd += ["--resume", stage_prompt]
 
-                _log(f"{phase_name}: launching kiro ({len(phase_prompt)} chars)")
+                _log(f"{stage_name}: launching kiro ({len(stage_prompt)} chars)")
 
                 # nosec B603 - Executing user's Kiro CLI with validated configuration
                 # nosemgrep: dangerous-subprocess-use-audit
@@ -192,16 +194,17 @@ class KiroCLIAdapter(CLIAdapter):
                 last_printed = [""]
                 line_buf = [""]
 
+                _SKIP = ("⠀","⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏",
+                         "⣴","⣿","⠿","╭","╰","│","▸ Credits:","Credits:",
+                         "Model:","Plan:","All tools are","Agents can",
+                         "Learn more","https://","Did you know","Jump into",
+                         "Use /","38;","5;","[0m","[1m")
+
                 def _print_line(line: str) -> None:
                     s = line.strip()
                     if not s or len(s) < 8:
                         return
-                    skip = ("⠀","⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏",
-                            "⣴","⣿","⠿","╭","╰","│","▸ Credits:","Credits:",
-                            "Model:","Plan:","All tools are","Agents can",
-                            "Learn more","https://","Did you know","Jump into",
-                            "Use /","38;","5;","[0m","[1m")
-                    if any(s.startswith(p) for p in skip):
+                    if any(s.startswith(p) for p in _SKIP):
                         return
                     if s == last_printed[0]:
                         return
@@ -209,7 +212,7 @@ class KiroCLIAdapter(CLIAdapter):
                     print(f"  [kiro] {s}", file=sys.stderr, flush=True)
 
                 with open(log_path, "a", encoding="utf-8") as lf:
-                    lf.write(f"\n{'='*60}\n{phase_name.upper()}\n{'='*60}\n")
+                    lf.write(f"\n{'='*60}\n{stage_name.upper()}\n{'='*60}\n")
                     lf.flush()
                     while True:
                         chunk = proc.stdout.read(4096)
@@ -233,49 +236,83 @@ class KiroCLIAdapter(CLIAdapter):
                 proc.wait()
                 return "".join(output_lines), proc.returncode
 
-            # Phase 1: inception
-            _log("Phase 1: running inception...")
-            inception_prompt = (
-                prompt
-                + "\n\nIMPORTANT: Execute ONLY the INCEPTION PHASE stages "
-                + "(Workspace Detection, Requirements Analysis, Workflow Planning, "
-                + "Application Design, Units Generation). "
-                + "Stop after completing the Workflow Planning stage and producing "
-                + "aidlc-docs/inception/plans/execution-plan.md. "
-                + "Do NOT proceed to Construction. End your response when inception is done."
-            )
-            phase1_output, rc1 = _run_kiro_phase(inception_prompt, "phase-1")
-            _log(f"Phase 1 complete (exit {rc1})")
+            def _sim_review(sentinel_glob: str, focus: str) -> str:
+                """Run simulator review after a stage completes."""
+                nonlocal gate_count
+                gate_count += 1
+                _log(f"Gate #{gate_count}: simulator reviewing ({focus})...")
+                response = simulator.respond(
+                    f"The AIDLC executor has just completed: {focus}.\n\n"
+                    f"Please read the relevant files in aidlc-docs/ ({sentinel_glob}) "
+                    f"and any supporting documents. "
+                    f"Answer any open questions, approve or request changes, "
+                    f"and give clear direction for the next stage. Be concise."
+                )
+                _log(f"Gate #{gate_count}: simulator responded ({len(response)} chars)")
+                return response
 
-            # Check inception produced docs
-            inception_dir = workspace / "aidlc-docs" / "inception"
-            has_inception = inception_dir.is_dir() and any(inception_dir.rglob("*.md"))
-            _log(f"Inception docs: {'found' if has_inception else 'NOT FOUND'}")
-
-            # Simulator reviews inception
-            gate_count += 1
-            _log(f"Gate #{gate_count}: simulator reviewing inception...")
-            sim_feedback = simulator.respond(
-                "The AIDLC executor has completed the Inception phase. "
-                "Please review the inception artifacts in aidlc-docs/inception/ — "
-                "requirements, execution plan, application design, and any other documents produced. "
-                "Answer any open questions, approve or request changes to the design, "
-                "and provide clear direction for the Construction phase. "
-                "Be specific and concise so the executor can proceed."
+            # ── Stage 1: Requirements Analysis ───────────────────────────────
+            _log("Stage 1: Requirements Analysis...")
+            _, rc = _run_kiro_stage(
+                prompt + (
+                    "\n\nIMPORTANT: Execute ONLY these stages in order: "
+                    "Workspace Detection, Requirements Analysis. "
+                    "Stop after writing aidlc-docs/inception/requirements/requirements.md "
+                    "and aidlc-docs/inception/requirements/requirement-verification-questions.md. "
+                    "Do NOT proceed further. End your response when these files are written."
+                ),
+                "stage-1-requirements",
+                is_first=True,
             )
-            _log(f"Gate #{gate_count}: simulator responded ({len(sim_feedback)} chars)")
-
-            # Phase 2: construction
-            _log("Phase 2: running construction with simulator feedback...")
-            construction_prompt = (
-                "The human reviewer has reviewed the inception artifacts and provides this feedback:\n\n"
-                f"{sim_feedback}\n\n"
-                "Now proceed with the CONSTRUCTION PHASE as planned in the execution plan. "
-                "Execute Code Generation and Build and Test stages to completion."
+            feedback = _sim_review(
+                "inception/requirements/*.md",
+                "Requirements Analysis — requirements.md and requirement-verification-questions.md",
             )
-            phase2_output, rc2 = _run_kiro_phase(construction_prompt, "phase-2")
-            _log(f"Phase 2 complete (exit {rc2})")
-            total_rc = rc2
+
+            # ── Stage 2: Workflow Planning + Application Design ───────────────
+            _log("Stage 2: Workflow Planning + Application Design...")
+            _, rc = _run_kiro_stage(
+                f"Human reviewer feedback on requirements:\n\n{feedback}\n\n"
+                "Now execute: Workflow Planning, then Application Design. "
+                "Stop after writing aidlc-docs/inception/plans/execution-plan.md "
+                "and all application-design artifacts (components.md, component-methods.md, "
+                "component-dependency.md, services.md). "
+                "Do NOT proceed to Construction.",
+                "stage-2-design",
+                is_first=False,
+            )
+            feedback = _sim_review(
+                "inception/plans/*.md, inception/application-design/*.md",
+                "Workflow Planning and Application Design",
+            )
+
+            # ── Stage 3: Code Generation Plan ────────────────────────────────
+            _log("Stage 3: Code Generation Plan...")
+            _, rc = _run_kiro_stage(
+                f"Human reviewer feedback on design:\n\n{feedback}\n\n"
+                "Now execute the Code Generation PLAN only — write the detailed code generation plan "
+                "in aidlc-docs/construction/plans/ with exact file paths and implementation steps. "
+                "Do NOT write any application code yet. Stop after the plan document is complete.",
+                "stage-3-codegen-plan",
+                is_first=False,
+            )
+            feedback = _sim_review(
+                "construction/plans/*.md",
+                "Code Generation Plan",
+            )
+
+            # ── Stage 4: Code Generation + Build and Test ─────────────────────
+            _log("Stage 4: Code Generation + Build and Test...")
+            _, rc = _run_kiro_stage(
+                f"Human reviewer has approved the code generation plan:\n\n{feedback}\n\n"
+                "Now execute: generate ALL application code per the plan, then run Build and Test. "
+                "Install dependencies, run tests, fix failures, and write the build-and-test-summary.md. "
+                "Complete the full Construction phase.",
+                "stage-4-construction",
+                is_first=False,
+            )
+            total_rc = rc
+            _log(f"Stage 4 complete (exit {rc})")
 
             elapsed_seconds = time.monotonic() - start_time
             _log(f"Completed in {elapsed_seconds:.0f}s ({gate_count} simulator gate(s))")
