@@ -367,9 +367,7 @@ def run_single_evaluation(
         log_file.write(f"{'=' * 70}\n\n")
         log_file.flush()
 
-        # nosec B603 - Executing trusted run_evaluation.py with git-compare config
-        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
-        result = subprocess.run(cmd, stdout=log_file, stderr=subprocess.STDOUT)
+        result = subprocess.run(cmd, stdout=log_file, stderr=subprocess.STDOUT)  # nosec B603 nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
 
     elapsed_s = time.monotonic() - start_monotonic
     status = "success" if result.returncode == 0 else "failed"

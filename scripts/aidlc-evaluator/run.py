@@ -93,9 +93,7 @@ def check_docker_sandbox() -> bool:
     if cli is None:
         return False
     try:
-        # nosec B603 - Static container CLI info command for sandbox availability check
-        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603 nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
             [cli, "info"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -104,9 +102,7 @@ def check_docker_sandbox() -> bool:
         if result.returncode != 0:
             return False
 
-        # nosec B603 - Static container CLI images command with fixed arguments
-        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603 nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
             [cli, "images", "-q", "aidlc-sandbox:latest"],
             capture_output=True,
             text=True,
