@@ -90,11 +90,34 @@ Analyze whatever the user has provided:
 
 **When in doubt, ask questions** - incomplete requirements lead to poor implementations.
 
-### Step 5.1: Extension Opt-In Prompts
+### Step 5.1: Extension Selection
 
-**MANDATORY**: Scan all loaded `*.opt-in.md` files (loaded at workflow start from `extensions/` subdirectories) for an `## Opt-In Prompt` section. For each extension that declares one, include that question in the clarifying questions file created in Step 6. Present each opt-in question in the same language as the user's conversation.
+**MANDATORY**: Scan all loaded `*.opt-in.md` files (loaded at workflow start from `extensions/` subdirectories). Present the user with a single consolidated extension selection menu listing ALL available extensions. Present the menu in the same language as the user's conversation.
 
-After receiving answers:
+**Selection Menu Format** (include as a question in the clarifying questions file from Step 6):
+
+```markdown
+## Question: Extensions
+
+The following extensions are available for this project. Select which ones to enable:
+
+| # | Extension | Category | Description |
+|---|---|---|---|
+| 1 | [Extension Name] | [category] | [one-line description from opt-in file] |
+| 2 | [Extension Name] | [category] | [one-line description from opt-in file] |
+| ... | ... | ... | ... |
+
+Enter the numbers of extensions to enable (comma-separated), "all" to enable all, or "none" to skip.
+
+[Answer]:
+```
+
+**Rules**:
+- List ALL extensions with `*.opt-in.md` files in a single table — do NOT present them as individual questions
+- Populate the description from each extension's `*.opt-in.md` content
+- If only one extension is available, still use this format for consistency
+
+After receiving the answer:
 1. Record each extension's enablement status in `aidlc-docs/aidlc-state.md` under `## Extension Configuration`:
 
 ```markdown

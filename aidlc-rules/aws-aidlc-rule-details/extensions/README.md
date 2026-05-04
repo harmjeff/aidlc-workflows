@@ -6,36 +6,32 @@ This folder is read by the AI-DLC rules loader at workflow start. Place installe
 
 ---
 
-## Built-In Extensions
+## Available Extensions
 
-These extensions ship with the core AI-DLC rules:
-- `security/baseline/` — OWASP-mapped security rules (opt-in during Requirements Analysis)
-
----
-
-## Finding Extensions
-
-Browse the `community-extensions/` folder in the AI-DLC repository. Each extension has its own subfolder with a README describing what it does and when to use it.
-
-Available extension categories:
-- `community-extensions/compliance/` — compliance frameworks (NIST 800-53, etc.)
-- `community-extensions/project-type/` — project type extensions (brownfield, greyfield)
-- `community-extensions/security/` — security rules
+| Extension | Category | Description |
+|---|---|---|
+| `security/baseline/` | security | OWASP-mapped security rules |
+| `testing/property-based/` | testing | Property-based testing rules |
+| `compliance/nist-800-53/` | compliance | NIST 800-53 controls mapped to AWS Control Tower, Config Rules, Security Hub, and GuardDuty |
 
 ---
 
-## Installing an Extension
+## NIST 800-53 Compliance Controls
 
-Each extension's README includes copy-paste install commands. The general pattern is to copy the extension's rule files (`.md` files, not the README) into the matching subfolder here, preserving the category structure.
+**Version**: 0.2.0
 
-Example — installing the security baseline:
-```bash
-mkdir -p extensions/security/baseline
-cp community-extensions/security/baseline/security-baseline.md extensions/security/baseline/
-cp community-extensions/security/baseline/security-baseline.opt-in.md extensions/security/baseline/
-```
+Maps ~90 NIST 800-53 controls to specific AWS mechanisms. When enabled, the workflow enforces applicable controls at each stage.
 
-Then start a new AI-DLC session to load the extension.
+**Coverage:**
+- **AC** (Access Control): AC-3, AC-4, AC-6, AC-12, AC-17, AC-22 + enhancements
+- **AU** (Audit & Accountability): AU-2, AU-3, AU-5(2), AU-6, AU-12
+- **CA** (Assessment & Monitoring): CA-3, CA-7
+
+**Control Types**: Preventive (SCP, Declarative Policy), Proactive (CF Hook), Detective (Config Rule, Security Hub)
+
+**Files:**
+- `compliance/nist-800-53/nist-800-53-controls.md` — Full control mappings
+- `compliance/nist-800-53/nist-800-53.opt-in.md` — Opt-in metadata
 
 ---
 
@@ -43,9 +39,21 @@ Then start a new AI-DLC session to load the extension.
 
 At workflow start, the AI scans subdirectories under `extensions/`:
 
-- A subfolder containing a `*.opt-in.md` file is an **opt-in extension** — the user is asked during Requirements Analysis whether to enable it for this project
-- A subfolder with rule `.md` files but no `*.opt-in.md` is **always enforced** — its rules are loaded immediately at workflow start
-- The `project-type/` subfolder is **excluded from this scan** — project-type extensions are loaded by Workspace Detection based on the user's project type selection, not by the standard opt-in mechanism
+1. A subfolder containing a `*.opt-in.md` file is an **opt-in extension** — during Requirements Analysis, a consolidated selection menu is presented listing all available extensions for the user to choose from
+2. A subfolder with rule `.md` files but no `*.opt-in.md` is **always enforced** — its rules are loaded immediately at workflow start
+3. The `project-type/` subfolder is **excluded from this scan** — project-type extensions are loaded by Workspace Detection
 
 ---
 
+## Installing Community Extensions
+
+Community extensions are hosted in external repositories and listed in `community-extensions-index.yaml` at the repo root. To install one, copy its rule files into the matching category subdirectory here:
+
+```bash
+mkdir -p extensions/<category>/<extension-name>
+cp <source>/*.opt-in.md <source>/*-rules.md extensions/<category>/<extension-name>/
+```
+
+Then start a new AI-DLC session to load the extension.
+
+---
