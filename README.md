@@ -625,16 +625,16 @@ Deployment and monitoring (future)
 
 ## Extensions
 
-AI-DLC supports an extension system that lets you layer additional rules on top of the core workflow. Extensions are markdown files organized under `aws-aidlc-rule-details/extensions/` and grouped by category (e.g., `security/`, `testing/`).
+AI-DLC supports an extension system that lets you layer additional rules on top of the core workflow. Extensions are markdown files organized under `aws-aidlc-rule-details/extensions/` and grouped by category (e.g., `security/`, `compliance/`, `testing/`).
 
 ### How Extensions Work
 
 Each extension consists of two files placed in the same directory:
 
 - A **rules file** (e.g., `security-baseline.md`) containing the extension's rules.
-- An **opt-in file** (e.g., `security-baseline.opt-in.md`) containing a structured multiple-choice question presented to the user during Requirements Analysis.
+- An **opt-in file** (e.g., `security-baseline.opt-in.md`) containing metadata for the extension selection menu.
 
-At workflow start, AI-DLC scans the `extensions/` directory and loads only `*.opt-in.md` files. During Requirements Analysis, it presents each opt-in prompt to the user. When the user opts in, the corresponding rules file is loaded (derived by naming convention: strip `.opt-in.md`, append `.md`). When the user opts out, the rules file is never loaded. Extensions without a matching `*.opt-in.md` file are always enforced.
+At workflow start, AI-DLC scans the `extensions/` directory and loads only `*.opt-in.md` files. During Requirements Analysis, it presents a **consolidated selection menu** listing all available extensions — the user selects which ones to enable in a single answer. When the user opts in, the corresponding rules file is loaded (derived by naming convention: strip `.opt-in.md`, append `.md`). When the user opts out, the rules file is never loaded. Extensions without a matching `*.opt-in.md` file are always enforced.
 
 Once enabled, extension rules are blocking constraints — at each stage, the model verifies compliance before allowing the stage to proceed.
 
@@ -645,30 +645,38 @@ The `extensions/` directory ships with the following (new extensions may be adde
 ```text
 aws-aidlc-rule-details/
 └── extensions/
-    ├── security/                      # Extension category
+    ├── security/                      # Security rules
     │   └── baseline/
-    │       ├── security-baseline.md          # Baseline security rules
-    │       └── security-baseline.opt-in.md   # Opt-in prompt
-    └── testing/                       # Extension category
-        └── property-based/
-            ├── property-based-testing.md          # Property-based testing rules
-            └── property-based-testing.opt-in.md   # Opt-in prompt
+    │       ├── security-baseline.md
+    │       └── security-baseline.opt-in.md
+    ├── testing/                       # Testing rules
+    │   └── property-based/
+    │       ├── property-based-testing.md
+    │       └── property-based-testing.opt-in.md
+    └── compliance/                    # Compliance frameworks
+        └── nist-800-53/
+            ├── nist-800-53-controls.md
+            └── nist-800-53.opt-in.md
 ```
 
 > [!IMPORTANT]
-> The security extension rules are provided as a directional reference for building effective security rules within AI-DLC workflows. Each organization should build, customize, and thoroughly test their own security rules before deploying in production workflows.
+> The security and compliance extension rules are provided as a directional reference for building effective rules within AI-DLC workflows. Each organization should build, customize, and thoroughly test their own rules before deploying in production workflows.
 
 ### Adding Your Own Extensions
 
 You can extend an existing category or create an entirely new one.
 
-1. Create a directory under `extensions/` (e.g., `security/compliance/` or `performance/baseline/`).
-2. Add a **rules file** (e.g., `compliance.md`). Follow the same structure as `security-baseline.md`:
+1. Create a directory under `extensions/` (e.g., `compliance/pci-dss/` or `performance/baseline/`).
+2. Add a **rules file** (e.g., `pci-dss-controls.md`). Follow the same structure as `security-baseline.md`:
    - Define each rule as a heading in the format `## Rule <PREFIX-NN>: <Title>` where the prefix is a short category identifier and NN is a sequential number (e.g., `COMPLIANCE-01`, `COMPLIANCE-02`). These IDs are referenced in audit logs and compliance summaries, so they must be unique across all loaded extensions.
    - Include a **Rule** section describing the requirement.
    - Include a **Verification** section with concrete checks the model should evaluate.
-3. Add a matching **opt-in file** using the naming convention `<name>.opt-in.md` (e.g., `compliance.opt-in.md`). See `security-baseline.opt-in.md` for the expected format. Omitting this file means the extension is always enforced with no user opt-out.
+3. Add a matching **opt-in file** using the naming convention `<name>.opt-in.md` (e.g., `pci-dss.opt-in.md`). See `security-baseline.opt-in.md` for the expected format. Omitting this file means the extension is always enforced with no user opt-out.
 4. Rules are blocking by default — if verification criteria are not met, the stage cannot proceed until the finding is resolved.
+
+### Community Extensions
+
+Community extensions are authored in external repositories and registered in the `community-extensions-index.yaml` at the repository root. To install one, copy its files into the matching `extensions/` subdirectory. See the index file for available community extensions and install instructions.
 
 ---
 

@@ -257,7 +257,7 @@ See the answering tips in [Section 1](#the-question--doc--approval-flow) for the
 - **State deliberate "no" decisions clearly.** `D — no caching required at this time` signals intent. An empty answer invites the AI to make a speculative choice.
 - **Describe phased approaches inline.** `X — simple role-based workflow now; replace with external workflow engine when available` lets AIDLC design the current solution with the right extension points.
 
-> **Advanced tip — Security Extensions**: During Requirements Analysis, AIDLC will ask whether you want to enforce security extension rules. For production-grade applications, choose Yes. For prototypes, No is fine. This decision is recorded and enforced throughout Construction, so choose deliberately.
+> **Advanced tip — Extensions**: During Requirements Analysis, AIDLC presents a selection menu listing all available extensions (security, compliance, testing, etc.). Select the ones relevant to your project — for production-grade applications, enable security and compliance extensions. For prototypes, skip them. This decision is recorded and enforced throughout Construction, so choose deliberately.
 
 ---
 
