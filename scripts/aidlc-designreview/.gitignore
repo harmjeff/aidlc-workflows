@@ -12,6 +12,10 @@ env/
 dist/
 build/
 
+# PyInstaller
+*.spec.bak
+__pycache__/design_reviewer/
+
 # Testing
 .pytest_cache/
 .coverage

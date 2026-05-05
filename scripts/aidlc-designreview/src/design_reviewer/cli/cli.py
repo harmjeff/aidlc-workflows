@@ -57,7 +57,7 @@ __version__ = "0.1.0"
 @click.version_option(version=__version__, prog_name="design-reviewer")
 def main(aidlc_docs: str, output: str | None, config: str | None) -> None:
     """AI-powered design review tool for AIDLC projects."""
-    from .application import Application
+    from design_reviewer.cli.application import Application
 
     app = Application(config_path=config)
     exit_code = app.run(
