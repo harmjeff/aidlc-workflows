@@ -299,7 +299,8 @@ def _exec_tool(name: str, tool_input: dict, run_folder: Path, rules_dir: Path) -
                 if (val := os.environ.get(var)):
                     env[var] = val
             try:
-                result = subprocess.run(  # nosec B603 nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+                # nosemgrep: dangerous-subprocess-use-audit
+                result = subprocess.run(  # nosec B603
                     shlex.split(command),
                     shell=False,
                     cwd=str(cwd),

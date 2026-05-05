@@ -171,7 +171,8 @@ class KiroCLIAdapter(CLIAdapter):
 
                 _log(f"{stage_name}: launching kiro ({len(stage_prompt)} chars)")
 
-                proc = subprocess.Popen(  # nosec B603 nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+                # nosemgrep: dangerous-subprocess-use-audit
+                proc = subprocess.Popen(  # nosec B603
                     cmd,
                     cwd=str(workspace),
                     stdout=subprocess.PIPE,

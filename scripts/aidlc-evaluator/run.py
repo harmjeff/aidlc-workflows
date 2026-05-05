@@ -93,7 +93,8 @@ def check_docker_sandbox() -> bool:
     if cli is None:
         return False
     try:
-        result = subprocess.run(  # nosec B603 nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+        # nosemgrep: dangerous-subprocess-use-audit
+        result = subprocess.run(  # nosec B603
             [cli, "info"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -102,7 +103,8 @@ def check_docker_sandbox() -> bool:
         if result.returncode != 0:
             return False
 
-        result = subprocess.run(  # nosec B603 nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+        # nosemgrep: dangerous-subprocess-use-audit
+        result = subprocess.run(  # nosec B603
             [cli, "images", "-q", "aidlc-sandbox:latest"],
             capture_output=True,
             text=True,
