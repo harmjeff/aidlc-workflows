@@ -15,6 +15,7 @@ Cross-platform installation tool for the AIDLC Design Review Hook.
   - [Windows PowerShell](#windows-powershell)
   - [Windows Git Bash/WSL](#windows-git-bashwsl)
 - [Kiro Agent Installation](#kiro-agent-installation)
+- [Claude Code Agent Installation](#claude-code-agent-installation)
 - [Configuration](#configuration)
 - [Validation](#validation)
 - [Updating](#updating)
@@ -389,6 +390,39 @@ Kiro reads the artifacts from `aidlc-docs/`, runs the three-phase analysis
 
 Re-run the installer. The steering file and patterns are always overwritten
 with the latest versions; `review-config.yaml` is preserved.
+
+---
+
+## Claude Code Agent Installation
+
+The Claude Code agent performs the full review inside Claude Code's own session
+using its built-in file tools — no AWS credentials or external CLI required.
+
+### Install
+
+```bash
+./scripts/aidlc-designreview/tool-install/claude/install-claude.sh
+```
+
+| Installed path | Purpose |
+|----------------|---------|
+| `.claude/agents/aidlc-design-reviewer.md` | Subagent definition |
+| `.claude/patterns/*.md` | 15 architectural pattern definitions |
+
+### Usage
+
+```
+review my design
+```
+
+Or explicitly: `@"aidlc-design-reviewer (agent)" review my design`
+
+Reports are written to `aidlc-docs/review/`.
+
+### Updating
+
+Re-run the installer. The subagent definition and patterns are always
+overwritten with the latest versions.
 
 ---
 

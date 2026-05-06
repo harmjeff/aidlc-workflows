@@ -28,6 +28,7 @@ AI-powered design review tool for AIDLC (AI-Driven Life Cycle) projects. Analyze
   - [Kiro Installation](#kiro-installation)
   - [Kiro Usage](#kiro-usage)
   - [Kiro Configuration](#kiro-configuration)
+- [Claude Code Agent Integration](#claude-code-agent-integration)
 - [Developer's Guide](#developers-guide)
   - [Running Tests](#running-tests)
   - [Adding Features](#adding-a-new-output-format)
@@ -138,6 +139,8 @@ The AIDLC Design Reviewer provides **three deployment modes** for different use 
 | **Configuration**  | `config.yaml` (YAML with validation)                | `.claude/review-config.yaml` (3-tier fallback)           | `.kiro/review-config.yaml`                        |
 | **Output**         | Rich terminal + report files                        | Interactive prompts + report files                       | Kiro chat summary + report file                   |
 | **Typical User**   | DevOps, CI/CD, architects                           | Developers using Claude Code                             | Developers using Kiro IDE                         |
+
+> A fourth deployment mode — **Claude Code Agent** — is also available. See [Claude Code Agent Integration](#claude-code-agent-integration).
 
 ### Key Components
 
@@ -758,6 +761,84 @@ runs a comprehensive review.
 tool-install/kiro/
 ├── design-reviewer.md   ← steering file source
 └── install-kiro.sh      ← installer
+```
+
+---
+
+## Claude Code Agent Integration
+
+The AIDLC Design Reviewer can be installed as a **Claude Code subagent** that
+performs the full review inside Claude Code's own session — no AWS credentials,
+no external CLI, no Bedrock access required. Claude uses its built-in `Read`,
+`Glob`, and `Write` tools to discover artifacts and write the report.
+
+This is the simplest integration: install once, invoke by asking Claude to
+"review my design".
+
+### How It Differs from the Hook
+
+The existing Claude Code hook (`pre-tool-use`) intercepts tool calls and shells
+out to the external Python CLI, which makes its own Bedrock API calls. The
+Claude Code agent instead embeds the full review methodology in a subagent
+definition file. Claude reads it, performs the three-phase analysis in its own
+context, and writes the report using its file tools — no subprocess, no AWS
+profile needed.
+
+### Installation
+
+```bash
+./scripts/aidlc-designreview/tool-install/claude/install-claude.sh
+```
+
+This installs to the workspace `.claude/` directory:
+
+```text
+.claude/
+├── agents/
+│   └── aidlc-design-reviewer.md   ← subagent definition
+└── design-reviewer/
+    ├── patterns/
+    │   └── *.md                    ← 15 architectural pattern definitions
+    └── prompts/
+        ├── critique-v1.md
+        ├── alternatives-v1.md
+        └── gap-v1.md
+```
+
+### Usage
+
+Claude will delegate to the subagent automatically when you say:
+
+```
+review my design
+run the design review
+check my design artifacts
+```
+
+Or invoke it explicitly:
+
+```
+@"aidlc-design-reviewer (agent)" review my design
+```
+
+### What Gets Installed
+
+| File | Purpose |
+|------|---------|
+| `.claude/agents/aidlc-design-reviewer.md` | Subagent definition — orchestration, scoring, report format |
+| `.claude/design-reviewer/prompts/critique-v1.md` | Critique agent methodology (security-hardened, same prompts as CLI) |
+| `.claude/design-reviewer/prompts/alternatives-v1.md` | Alternatives agent methodology |
+| `.claude/design-reviewer/prompts/gap-v1.md` | Gap analysis agent methodology |
+| `.claude/design-reviewer/patterns/*.md` | 15 architectural pattern definitions read at review time |
+
+The subagent reads the prompt files at runtime to get the analysis methodology — the same prompts used by the Python CLI — and applies them directly, bypassing the JSON output step in favour of writing the markdown report inline. HTML output requires the Python CLI tool (`pip install -e scripts/aidlc-designreview`).
+
+### Source Files
+
+```text
+tool-install/claude/
+├── design-reviewer.md   ← subagent definition source
+└── install-claude.sh    ← installer
 ```
 
 ---
