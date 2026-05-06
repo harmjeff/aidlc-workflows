@@ -14,6 +14,7 @@ Cross-platform installation tool for the AIDLC Design Review Hook.
   - [Linux](#linux)
   - [Windows PowerShell](#windows-powershell)
   - [Windows Git Bash/WSL](#windows-git-bashwsl)
+- [Kiro Agent Installation](#kiro-agent-installation)
 - [Configuration](#configuration)
 - [Validation](#validation)
 - [Updating](#updating)
@@ -345,6 +346,49 @@ ls -la reports/design_review/
    ```bash
    TEST_MODE=1 .claude/hooks/pre-tool-use
    ```
+
+---
+
+## Kiro Agent Installation
+
+The Kiro agent embeds the full review methodology in a Kiro steering file so
+that Kiro's AI performs the review in-context using its own Bedrock session.
+No AWS profile or external CLI invocation is required.
+
+### Prerequisites
+
+- [Kiro IDE](https://kiro.dev) or `kiro-cli` installed
+
+### Install
+
+```bash
+./scripts/aidlc-designreview/tool-install/kiro/install-kiro.sh
+```
+
+The installer copies three things into the workspace `.kiro/` directory:
+
+| Installed path | Purpose |
+|----------------|---------|
+| `.kiro/steering/design-reviewer.md` | Complete review methodology steering file |
+| `.kiro/patterns/*.md` | 15 architectural pattern definitions |
+| `.kiro/review-config.yaml` | Review configuration (preserved on re-install) |
+
+### Usage
+
+In Kiro, simply ask:
+
+```
+review my design
+```
+
+Kiro reads the artifacts from `aidlc-docs/`, runs the three-phase analysis
+(Critique → Alternatives → Gap Analysis), and writes the report to
+`aidlc-docs/review/`.
+
+### Updating
+
+Re-run the installer. The steering file and patterns are always overwritten
+with the latest versions; `review-config.yaml` is preserved.
 
 ---
 
