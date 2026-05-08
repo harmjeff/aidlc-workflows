@@ -1,0 +1,32 @@
+# Community Extensions Index
+# This file provides discovery and integrity verification for community-authored extensions.
+# Community extensions are hosted in external repositories (Proposal C model).
+# Official extensions ship in aidlc-rules/aws-aidlc-rule-details/extensions/ (Proposal B model).
+#
+# To add a community extension: submit a PR adding your entry below.
+# See CONTRIBUTING.md for the full submission process.
+
+schema_version: "1.0"
+
+extensions: []
+
+# Example entry (uncomment and fill in to register a community extension):
+#
+# extensions:
+#   - name: "my-extension"
+#     display_name: "My Extension"
+#     description: "What this extension does"
+#     category: "compliance"
+#     version: "1.0.0"
+#     maturity: "new"  # new | incubating | reviewed | adopted
+#     author: "Your Name"
+#     repo: "https://github.com/your-org/your-repo"
+#     path: "path/to/extension"
+#     ref: "main"
+#     files:
+#       - name: "my-extension.opt-in.md"
+#         sha256: ""  # Required for reviewed+ maturity
+#       - name: "my-extension-rules.md"
+#         sha256: ""
+#     tags: ["compliance", "example"]
+#     install_path: "extensions/compliance/my-extension"
