@@ -61,10 +61,6 @@ Without prioritization, the installer would incorrectly identify this as the wor
    - PowerShell version of `Find-WorkspaceRoot` function
    - Same priority-based logic
 
-5. **scripts/aidlc-designreview/tool-install/kiro/install-kiro.sh**
-   - Uses the same `find_workspace_root()` algorithm
-   - Installs steering file and patterns to `.kiro/` instead of `.claude/`
-
 ## Testing Results
 
 ### Test Environment
@@ -155,10 +151,9 @@ When running the installer, users will now see:
 ## Next Steps
 
 1. ✅ **Complete**: Installers updated and tested
-2. ✅ **Complete**: INSTALLATION.md updated with monorepo and Kiro instructions
-3. ✅ **Complete**: Kiro installer uses same workspace detection algorithm
-4. ⏳ **Pending**: Test actual installation end-to-end
-5. ⏳ **Pending**: Update main aidlc-workflows README to reference design-reviewer
+2. ⏳ **Pending**: Test actual installation end-to-end
+3. ⏳ **Pending**: Update INSTALLATION.md with monorepo instructions
+4. ⏳ **Pending**: Update main aidlc-workflows README to reference design-reviewer
 
 ## Support
 

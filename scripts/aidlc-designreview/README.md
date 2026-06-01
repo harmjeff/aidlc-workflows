@@ -13,7 +13,6 @@ AI-powered design review tool for AIDLC (AI-Driven Life Cycle) projects. Analyze
 - [Installation](#installation)
   - [Python CLI Tool](#installation)
   - [Claude Code Hook](#claude-code-hook-integration)
-  - [Kiro Agent](#kiro-agent-integration)
 - [Configuration](#configuration)
 - [Security](#security)
 - [Usage](#usage)
@@ -24,11 +23,6 @@ AI-powered design review tool for AIDLC (AI-Driven Life Cycle) projects. Analyze
   - [Hook Architecture](#hook-architecture)
   - [Hook Configuration](#hook-configuration)
   - [Testing the Hook](#testing-the-hook)
-- [Kiro Agent Integration](#kiro-agent-integration)
-  - [Kiro Installation](#kiro-installation)
-  - [Kiro Usage](#kiro-usage)
-  - [Kiro Configuration](#kiro-configuration)
-- [Claude Code Agent Integration](#claude-code-agent-integration)
 - [Developer's Guide](#developers-guide)
   - [Running Tests](#running-tests)
   - [Adding Features](#adding-a-new-output-format)
@@ -44,26 +38,26 @@ AI-powered design review tool for AIDLC (AI-Driven Life Cycle) projects. Analyze
 
 ## Architecture Overview
 
-The AIDLC Design Reviewer provides **three deployment modes** for different use cases:
+The AIDLC Design Reviewer provides **two deployment modes** for different use cases:
 
 ### System Architecture
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                          AIDLC Design Reviewer                               │
-│                                                                              │
-│  ┌───────────────────┐  ┌───────────────────────┐  ┌───────────────────────┐│
-│  │  CLI Tool (Python)│  │ Hook (Bash) for Claude│  │ Kiro Agent (Steering) ││
-│  │                   │  │       Code            │  │                       ││
-│  │ • Manual/CI/CD    │  │ • Pre-tool-use trigger│  │ • On-demand via chat  ││
-│  │ • Python 3.12+    │  │ • Bash 4.0+           │  │ • Kiro IDE/CLI        ││
-│  │ • Markdown + HTML │  │ • Markdown reports    │  │ • Uses Kiro's Bedrock ││
-│  │ • Rich terminal   │  │ • Interactive prompts │  │ • No AWS profile      ││
-│  │ • 743 test suite  │  │ • Mock/Real AI modes  │  │   needed              ││
-│  └────────┬──────────┘  └──────────┬────────────┘  └──────────┬────────────┘│
-│           │                        │                           │             │
-│           └────────────────────────┼───────────────────────────┘             │
-│                                    │                                         │
+┌──────────────────────────────────────────────────────────────────────────┐
+│                        AIDLC Design Reviewer                             │
+│                                                                          │
+│  ┌─────────────────────────────┐    ┌──────────────────────────────────┐ │
+│  │     CLI Tool (Python)       │    │   Hook (Bash) for Claude Code    │ │
+│  │                             │    │                                  │ │
+│  │  • Manual execution         │    │  • Automatic integration         │ │
+│  │  • Python 3.12+             │    │  • Bash 4.0+                     │ │
+│  │  • Markdown + HTML reports  │    │  • Markdown reports              │ │
+│  │  • Rich terminal output     │    │  • Interactive prompts           │ │
+│  │  • 743 test suite           │    │  • Mock/Real AI modes            │ │
+│  │  • CI/CD ready              │    │  • Pre-tool-use interception     │ │
+│  └──────────────┬──────────────┘    └──────────────┬───────────────────┘ │
+│                 │                                  │                     │
+│                 └────────────────┬─────────────────┘                     │
 │                                  │                                       │
 │                 ┌────────────────▼────────────────┐                      │
 │                 │     Core Review Pipeline        │                      │
@@ -126,21 +120,19 @@ The AIDLC Design Reviewer provides **three deployment modes** for different use 
 
 ### Deployment Comparison
 
-| Aspect             | CLI Tool (Python)                                   | Hook (Bash) for Claude Code                              | Kiro Agent                                        |
-| -------------------- | ----------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| **Use Case**       | On-demand reviews, CI/CD                            | Real-time review during development                      | On-demand via Kiro chat                           |
-| **Execution**      | Manual: `design-reviewer --aidlc-docs ./aidlc-docs` | Automatic: Intercepts Claude Code operations             | Conversational: "review my design"                |
-| **Language**       | Python 3.12+                                        | Bash 4.0+                                                | Markdown steering file                            |
-| **Installation**   | `uv sync` + dependencies                            | `./tool-install/install-mac.sh` (or Linux/Windows)       | `./tool-install/kiro/install-kiro.sh`             |
-| **Dependencies**   | Python, boto3, pydantic, etc. (11 packages)         | Optional: yq or Python for config (fallback to defaults) | Kiro IDE or CLI                                   |
-| **Reports**        | Markdown + HTML (Jinja2 templates)                  | Markdown (template substitution)                         | Markdown (written by Kiro to `aidlc-docs/review/`)|
-| **AI Integration** | Direct AWS Bedrock API calls via boto3              | Mock by default, real AI with `USE_REAL_AI=1`            | Kiro's built-in Bedrock session (no AWS profile)  |
-| **Test Suite**     | 743 automated tests                                 | Integration tests via test scripts                       | Manual test via Kiro chat                         |
-| **Configuration**  | `config.yaml` (YAML with validation)                | `.claude/review-config.yaml` (3-tier fallback)           | `.kiro/review-config.yaml`                        |
-| **Output**         | Rich terminal + report files                        | Interactive prompts + report files                       | Kiro chat summary + report file                   |
-| **Typical User**   | DevOps, CI/CD, architects                           | Developers using Claude Code                             | Developers using Kiro IDE                         |
-
-> A fourth deployment mode — **Claude Code Agent** — is also available. See [Claude Code Agent Integration](#claude-code-agent-integration).
+| Aspect             | CLI Tool (Python)                                   | Hook (Bash)                                              |
+| -------------------- | ----------------------------------------------------- | ---------------------------------------------------------- |
+| **Use Case**       | On-demand reviews, CI/CD                            | Real-time review during development                      |
+| **Execution**      | Manual: `design-reviewer --aidlc-docs ./aidlc-docs` | Automatic: Intercepts Claude Code operations             |
+| **Language**       | Python 3.12+                                        | Bash 4.0+                                                |
+| **Installation**   | `uv sync` + dependencies                            | `./tool-install/install-mac.sh` (or Linux/Windows)       |
+| **Dependencies**   | Python, boto3, pydantic, etc. (11 packages)         | Optional: yq or Python for config (fallback to defaults) |
+| **Reports**        | Markdown + HTML (Jinja2 templates)                  | Markdown (template substitution)                         |
+| **AI Integration** | Direct AWS Bedrock API calls                        | Mock by default, real AI with `USE_REAL_AI=1`            |
+| **Test Suite**     | 743 automated tests                                 | Integration tests via test scripts                       |
+| **Configuration**  | `config.yaml` (YAML with validation)                | `.claude/review-config.yaml` (3-tier fallback)           |
+| **Output**         | Rich terminal + report files                        | Interactive prompts + report files                       |
+| **Typical User**   | DevOps, CI/CD, architects                           | Developers using Claude Code                             |
 
 ### Key Components
 
@@ -679,167 +671,6 @@ The installer runs 4 automatic validation tests:
 4. ✅ **Bash Syntax**: All scripts are parseable
 
 If validation fails, installer offers to restore from backup.
-
----
-
-## Kiro Agent Integration
-
-The AIDLC Design Reviewer can be installed as a **Kiro steering-file agent**
-that runs entirely inside Kiro using its built-in Bedrock session. No AWS
-profile, credentials, or external CLI invocation is required — Kiro's AI reads
-the design artifacts and performs the review itself.
-
-### How It Differs from the Claude Code Hook
-
-The Claude Code hook shells out to the `design-reviewer` Python CLI, which
-makes its own Bedrock API calls using the local AWS profile. The Kiro agent
-instead embeds the complete review methodology (critique, alternatives, gap
-analysis, scoring, report format, and pattern library) in a steering file.
-Kiro's AI reads that steering file and performs the review in-context using its
-own already-authenticated Bedrock connection.
-
-### Kiro Installation
-
-```bash
-./scripts/aidlc-designreview/tool-install/kiro/install-kiro.sh
-```
-
-This installs to the workspace `.kiro/` directory:
-
-```text
-.kiro/
-├── steering/
-│   └── design-reviewer.md     ← full review methodology
-├── patterns/
-│   └── *.md                   ← 15 architectural pattern definitions
-└── review-config.yaml         ← review configuration
-```
-
-### Kiro Usage
-
-Once installed, ask Kiro to run a review in natural language:
-
-```
-review my design
-run the design review
-check my AIDLC artifacts
-```
-
-Kiro will:
-
-1. Locate and read all design artifacts in `aidlc-docs/`
-2. Load the pattern definitions from `.kiro/patterns/`
-3. Run the three-phase review (Critique → Alternatives → Gap Analysis)
-4. Compute a quality score and recommendation
-5. Write the report to `aidlc-docs/review/design-review-<timestamp>.md`
-6. Summarise the key findings in the chat
-
-### Kiro Configuration
-
-Edit `.kiro/review-config.yaml` to control review depth:
-
-```yaml
-review:
-  enable_alternatives: true   # Suggest alternative design approaches
-  enable_gap_analysis: true   # Identify missing components/scenarios
-```
-
-Setting both to `false` runs critique-only (fast mode). Setting both to `true`
-runs a comprehensive review.
-
-### What Gets Installed
-
-| File | Purpose |
-|------|---------|
-| `.kiro/steering/design-reviewer.md` | Complete review methodology — artifact discovery, 3-phase analysis, scoring, report format |
-| `.kiro/patterns/*.md` | 15 architectural pattern definitions used during critique |
-| `.kiro/review-config.yaml` | Configuration (preserved on re-install) |
-
-### Kiro Source Files
-
-```text
-tool-install/kiro/
-├── design-reviewer.md   ← steering file source
-└── install-kiro.sh      ← installer
-```
-
----
-
-## Claude Code Agent Integration
-
-The AIDLC Design Reviewer can be installed as a **Claude Code subagent** that
-performs the full review inside Claude Code's own session — no AWS credentials,
-no external CLI, no Bedrock access required. Claude uses its built-in `Read`,
-`Glob`, and `Write` tools to discover artifacts and write the report.
-
-This is the simplest integration: install once, invoke by asking Claude to
-"review my design".
-
-### How It Differs from the Hook
-
-The existing Claude Code hook (`pre-tool-use`) intercepts tool calls and shells
-out to the external Python CLI, which makes its own Bedrock API calls. The
-Claude Code agent instead embeds the full review methodology in a subagent
-definition file. Claude reads it, performs the three-phase analysis in its own
-context, and writes the report using its file tools — no subprocess, no AWS
-profile needed.
-
-### Installation
-
-```bash
-./scripts/aidlc-designreview/tool-install/claude/install-claude.sh
-```
-
-This installs to the workspace `.claude/` directory:
-
-```text
-.claude/
-├── agents/
-│   └── aidlc-design-reviewer.md   ← subagent definition
-└── design-reviewer/
-    ├── patterns/
-    │   └── *.md                    ← 15 architectural pattern definitions
-    └── prompts/
-        ├── critique-v1.md
-        ├── alternatives-v1.md
-        └── gap-v1.md
-```
-
-### Usage
-
-Claude will delegate to the subagent automatically when you say:
-
-```
-review my design
-run the design review
-check my design artifacts
-```
-
-Or invoke it explicitly:
-
-```
-@"aidlc-design-reviewer (agent)" review my design
-```
-
-### What Gets Installed
-
-| File | Purpose |
-|------|---------|
-| `.claude/agents/aidlc-design-reviewer.md` | Subagent definition — orchestration, scoring, report format |
-| `.claude/design-reviewer/prompts/critique-v1.md` | Critique agent methodology (security-hardened, same prompts as CLI) |
-| `.claude/design-reviewer/prompts/alternatives-v1.md` | Alternatives agent methodology |
-| `.claude/design-reviewer/prompts/gap-v1.md` | Gap analysis agent methodology |
-| `.claude/design-reviewer/patterns/*.md` | 15 architectural pattern definitions read at review time |
-
-The subagent reads the prompt files at runtime to get the analysis methodology — the same prompts used by the Python CLI — and applies them directly, bypassing the JSON output step in favour of writing the markdown report inline. HTML output requires the Python CLI tool (`pip install -e scripts/aidlc-designreview`).
-
-### Source Files
-
-```text
-tool-install/claude/
-├── design-reviewer.md   ← subagent definition source
-└── install-claude.sh    ← installer
-```
 
 ---
 
